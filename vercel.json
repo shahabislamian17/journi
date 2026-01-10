@@ -4,10 +4,5 @@
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["iad1"],
-  "functions": {
-    "api/[...route].js": {
-      "maxDuration": 30
-    }
-  }
+  "regions": ["iad1"]
 }
