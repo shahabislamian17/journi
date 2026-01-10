@@ -1,0 +1,27 @@
+===========================================
+VERCEL ENVIRONMENT VARIABLES
+Copy each Key/Value pair below
+===========================================
+
+DATABASE_URL
+postgres://f5a7d1896cf0a53ce8511f7778b72784bcd30060784b4cf63c68761ad6a78a77:sk_4DFCx-Vb8Ir3zcK_bpEdW@db.prisma.io:5432/postgres?sslmode=require
+
+JWT_SECRET
+your-super-secret-jwt-key-min-32-characters-change-this-in-production
+
+STRIPE_SECRET_KEY
+sk_test_your_stripe_secret_key_here
+
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+pk_test_your_publishable_key_here
+
+NEXT_PUBLIC_API_URL
+https://journi-xi.vercel.app
+
+FRONTEND_URL
+https://journi-xi.vercel.app
+
+NODE_ENV
+production
+
+===========================================

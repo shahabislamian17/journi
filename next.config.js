@@ -5,6 +5,13 @@ const nextConfig = {
   // Fix for multiple lockfiles warning
   outputFileTracingRoot: require('path').join(__dirname),
   
+  // Include templates directory in Vercel build
+  experimental: {
+    outputFileTracingIncludes: {
+      '/': ['templates/**/*'],
+    },
+  },
+  
   // Webpack configuration to handle server-only modules
   webpack: (config, { isServer }) => {
     if (!isServer) {
