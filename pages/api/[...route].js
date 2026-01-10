@@ -373,55 +373,45 @@ module.exports = async function handler(req, res) {
       resolve();
     };
 
-    // Call Express app - use router.handle() for better route matching
+    // Call Express app - use app.handle() to process all middleware and routes
     try {
       console.log(`[Express Call] ${expressReq.method} ${expressReq.path}`, {
         url: expressReq.url,
         bodyKeys: expressReq.body ? Object.keys(expressReq.body) : 'none',
-        query: expressReq.query
+        query: expressReq.query,
+        pathParts: pathParts
       });
       
-      // Try using router.handle() method directly if we can find the matching router
-      const pathBase = '/' + pathParts.slice(0, 2).join('/'); // e.g., '/api/auth'
-      const router = global.__routeMap?.[pathBase];
-      
-      if (router && typeof router.handle === 'function') {
-        // Adjust path for router (remove mount point)
-        const routerPath = '/' + pathParts.slice(2).join('/') || '/';
-        expressReq.path = routerPath;
-        expressReq.url = routerPath + queryString;
-        expressReq.originalUrl = routerPath + queryString;
-        console.log(`[Router Handle] Using router for ${pathBase}, path=${routerPath}`);
-        router.handle(expressReq, expressRes, next);
+      // Use Express app.handle() if available (processes full middleware stack)
+      if (typeof app.handle === 'function') {
+        app.handle(expressReq, expressRes, next);
       } else {
-        // Fallback: call the full app
-        console.log(`[App Call] Using full app.handle()`);
-        if (typeof app.handle === 'function') {
-          app.handle(expressReq, expressRes, next);
-        } else {
-          app(expressReq, expressRes, next);
-        }
+        // Fallback: call app as middleware function
+        app(expressReq, expressRes, next);
       }
       
       // Add timeout fallback in case Express doesn't call next or respond
       setTimeout(() => {
         if (!responseEnded && !res.headersSent) {
           console.error(`[Express Timeout] No response after 5s for ${req.method} ${fullPath}`);
+          console.error(`[Express Timeout] Route map keys:`, Object.keys(global.__routeMap || {}));
           responseEnded = true;
           res.status(504).json({ 
             error: 'Request timeout - route may not be registered',
             path: fullPath,
-            method: req.method
+            method: req.method,
+            availableRoutes: Object.keys(global.__routeMap || {})
           });
           resolve();
         }
       }, 5000);
     } catch (error) {
       console.error('[Handler Error]:', error);
+      console.error('[Handler Error] Stack:', error.stack);
       if (!responseEnded && !res.headersSent) {
         res.status(500).json({ 
           error: error.message || 'Internal server error',
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+          ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
         });
       }
       resolve();
