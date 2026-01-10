@@ -498,7 +498,13 @@ module.exports = async function handler(req, res) {
               }
               
               // Check if method matches
-              const methodMatch = methods[expressReq.method.toLowerCase()] || methods[expressReq.method.toUpperCase()];
+              // Express stores methods as lowercase keys with boolean values: { get: true, post: true }
+              const methodLower = expressReq.method.toLowerCase();
+              const methodMatch = methods[methodLower] === true || methods[methodLower] || 
+                                 methods[expressReq.method.toUpperCase()] === true ||
+                                 methods[expressReq.method.toUpperCase()];
+              
+              console.log(`[Route Match Check] Path: ${routerPath} vs ${routePath}, Method: ${expressReq.method}, Methods:`, methods, 'Match:', methodMatch);
               
               if (pathMatch && methodMatch) {
                 console.log(`[Manual Route Match] Found route: ${expressReq.method} ${routePath}`);
