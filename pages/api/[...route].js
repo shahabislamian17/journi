@@ -65,6 +65,19 @@ if (!global.__expressApp) {
     '/api/cars': carsRouter,
     '/api/stripe': stripeRouter
   };
+  
+  // Store direct handler map for manual route execution
+  // This maps path patterns to handler functions directly
+  global.__handlerMap = {
+    'POST:/api/auth/register': require(path.join(backendPath, 'auth')).stack.find(l => l.route?.path === '/register' && l.route?.methods?.post)?.route?.stack?.[0]?.handle,
+    'POST:/api/auth/login': require(path.join(backendPath, 'auth')).stack.find(l => l.route?.path === '/login' && l.route?.methods?.post)?.route?.stack?.[0]?.handle,
+    'GET:/api/auth/me': require(path.join(backendPath, 'auth')).stack.find(l => l.route?.path === '/me' && l.route?.methods?.get)?.route?.stack?.[0]?.handle,
+    'GET:/api/categories': require(path.join(backendPath, 'categories')).stack.find(l => l.route?.path === '/' && l.route?.methods?.get)?.route?.stack?.[0]?.handle,
+    'GET:/api/experiences': require(path.join(backendPath, 'experiences')).stack.find(l => l.route?.path === '/' && l.route?.methods?.get)?.route?.stack?.[0]?.handle,
+    'GET:/api/stays': require(path.join(backendPath, 'stays')).stack.find(l => l.route?.path === '/' && l.route?.methods?.get)?.route?.stack?.[0]?.handle,
+    'GET:/api/cars': require(path.join(backendPath, 'cars')).stack.find(l => l.route?.path === '/' && l.route?.methods?.get)?.route?.stack?.[0]?.handle,
+    'GET:/api/reviews/website/featured': require(path.join(backendPath, 'reviews')).stack.find(l => l.route?.path === '/website/featured' && l.route?.methods?.get)?.route?.stack?.[0]?.handle
+  };
 
   // Health check
   app.get('/api/health', (req, res) => {
@@ -498,48 +511,37 @@ module.exports = async function handler(req, res) {
                 console.log(`[Route Handler] Route stack length:`, route.stack?.length || 0);
                 console.log(`[Route Handler] Route dispatch type:`, typeof route.dispatch);
                 
-                // For routes, Express uses route.dispatch() to call handlers
-                // route.stack contains the handlers for this route
+                // For routes, Express stores handlers in route.stack
+                // Each handler is wrapped in a Layer with a handle function
                 try {
-                  // Try route.dispatch() first (Express 4+)
-                  if (typeof route.dispatch === 'function') {
-                    console.log(`[Route Handler] Using route.dispatch()`);
-                    route.dispatch(expressReq, expressRes, next);
-                  } else if (route.stack && route.stack.length > 0) {
-                    // Fallback: call handlers directly from route.stack
-                    console.log(`[Route Handler] Calling handlers from route.stack`);
-                    let handlerIndex = 0;
-                    const routeNext = (err) => {
-                      if (err) {
-                        console.error(`[Route Handler] Error in handler ${handlerIndex}:`, err);
-                        return next(err);
-                      }
-                      handlerIndex++;
-                      if (handlerIndex < route.stack.length && route.stack[handlerIndex]) {
-                        route.stack[handlerIndex].handle(expressReq, expressRes, routeNext);
-                      } else {
-                        // All handlers processed
-                        if (!responseEnded && !res.headersSent) {
-                          next();
-                        }
-                      }
-                    };
-                    // Call first handler
-                    if (route.stack[0] && typeof route.stack[0].handle === 'function') {
-                      route.stack[0].handle(expressReq, expressRes, routeNext);
+                  // Express routes have handlers in route.stack array
+                  // Each item in route.stack is a Layer wrapping the handler
+                  if (route.stack && route.stack.length > 0) {
+                    console.log(`[Route Handler] Calling handler from route.stack[0]`);
+                    
+                    // Get the first handler (most routes have one handler)
+                    const handlerLayer = route.stack[0];
+                    
+                    if (handlerLayer && typeof handlerLayer.handle === 'function') {
+                      // Call the handler directly
+                      // The handler is an async function that expects (req, res, next)
+                      handlerLayer.handle(expressReq, expressRes, next);
                     } else {
-                      console.log(`[Route Handler] No valid handler in route.stack[0], trying layer.handle()`);
+                      console.error(`[Route Handler] No valid handler in route.stack[0]`);
+                      console.error(`[Route Handler] handlerLayer:`, handlerLayer);
+                      // Fallback: try layer.handle() which should call route.dispatch
                       layer.handle(expressReq, expressRes, next);
                     }
                   } else {
-                    // No route.stack, try layer.handle() directly
-                    console.log(`[Route Handler] No route.stack, using layer.handle()`);
+                    console.error(`[Route Handler] No route.stack or empty stack`);
+                    console.error(`[Route Handler] route:`, route);
+                    // Fallback: try layer.handle() which should trigger route matching
                     layer.handle(expressReq, expressRes, next);
                   }
-                } catch (layerError) {
-                  console.error(`[Route Handler Error]`, layerError);
-                  console.error(`[Route Handler Error] Stack:`, layerError.stack);
-                  next(layerError);
+                } catch (handlerError) {
+                  console.error(`[Route Handler Error]`, handlerError);
+                  console.error(`[Route Handler Error] Stack:`, handlerError.stack);
+                  next(handlerError);
                 }
                 break;
               }
