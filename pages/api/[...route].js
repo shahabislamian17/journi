@@ -81,7 +81,37 @@ if (!global.__expressApp) {
 
   // Health check
   app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'Journi API is running', routes: Object.keys(global.__routeMap || {}) });
+    const hasDbUrl = !!process.env.DATABASE_URL;
+    const dbUrlPreview = process.env.DATABASE_URL 
+      ? process.env.DATABASE_URL.substring(0, 30) + '...' + process.env.DATABASE_URL.substring(process.env.DATABASE_URL.length - 20)
+      : 'NOT SET';
+    res.json({ 
+      status: 'ok', 
+      message: 'Journi API is running', 
+      routes: Object.keys(global.__routeMap || {}),
+      database: {
+        hasUrl: hasDbUrl,
+        urlPreview: dbUrlPreview,
+        host: process.env.DATABASE_URL?.match(/@([^:]+)/)?.[1] || 'unknown'
+      }
+    });
+  });
+
+  // Debug route to check environment and routes
+  app.get('/api/debug/env', (req, res) => {
+    res.json({
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      databaseUrlLength: process.env.DATABASE_URL?.length || 0,
+      databaseUrlPreview: process.env.DATABASE_URL 
+        ? process.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@').substring(0, 100)
+        : 'NOT SET',
+      databaseHost: process.env.DATABASE_URL?.match(/@([^:]+)/)?.[1] || 'unknown',
+      nodeEnv: process.env.NODE_ENV,
+      hasJwtSecret: !!process.env.JWT_SECRET,
+      allDbRelatedVars: Object.keys(process.env).filter(k => 
+        k.includes('DATABASE') || k.includes('DB') || k.includes('PRISMA')
+      )
+    });
   });
 
   // Debug route to check if routes are loaded
