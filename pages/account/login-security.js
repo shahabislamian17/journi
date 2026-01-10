@@ -1,0 +1,93 @@
+import Layout from "../../components/Layout";
+import Template from "../../components/Template";
+import Script from "next/script";
+import Navigation from "../../components/layouts/inc/layouts/account/global/Navigation";
+import PasswordPanel from "../../components/layouts/inc/layouts/account/login-security/PasswordPanel";
+
+export async function getStaticProps() {
+  const { readTemplates } = await import("../../lib/templates");
+  const templates = readTemplates(["global/announcements.html", "global/footer-base.html", "global/footer-section-three.html", "global/header.html", "inc/layouts/account/global/navigation.html", "inc/layouts/account/login-security/breadcrumbs.html", "inc/layouts/account/login-security/panel.html", "inc/layouts/global/bag.html", "inc/layouts/global/calendar.html", "inc/layouts/global/dates.html", "inc/layouts/global/notifications.html"]);
+  return {
+    props: {
+      templates,
+      layoutOptions: {
+        title: "Login & Security | Account | Journi",
+        pageClass: "account",
+        includeCalendarCss: true,
+        includeCalendarJs: true,
+        showCalendarButton: true,
+        showAnnouncements: false,
+      },
+      needsDates: false,
+      inlineScripts: [],
+    },
+  };
+}
+
+function escapeForTemplateLiteral(str) {
+  return (str || "").replace(/`/g, "\\`").replace(/\$\{/g, "\\${");
+}
+
+export default function Page({ templates, layoutOptions, needsDates, inlineScripts }) {
+  return (
+    <Layout templates={templates} {...layoutOptions}>
+      <section className="notifications">
+
+        
+
+<Template html={templates["inc/layouts/global/notifications.html"]} />
+
+
+
+    </section>
+
+    <section className="breadcrumbs">
+
+        
+
+<Template html={templates["inc/layouts/account/login-security/breadcrumbs.html"]} />
+
+
+
+    </section>
+
+    <section className="security">
+
+        <section className="navigation">
+
+            <Navigation />
+
+        </section>
+
+        <section className="panel">
+
+            <PasswordPanel />
+
+        </section>
+
+    </section>
+
+    <section className="bag">
+
+        
+
+<Template html={templates["inc/layouts/global/bag.html"]} />
+
+
+
+    </section>
+
+    <section className="calendar">
+
+        
+
+<Template html={templates["inc/layouts/global/calendar.html"]} />
+
+
+
+    </section>
+      
+      <Script id="dates-template" strategy="afterInteractive">{`const DatesTemplate = \`${escapeForTemplateLiteral(templates["inc/layouts/global/dates.html"] || "")}\`;`}</Script>
+    </Layout>
+  );
+}

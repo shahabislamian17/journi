@@ -1,0 +1,1605 @@
+    $(function() {
+        const $html = $( 'html' );
+        $(window).on( 'scroll', function(event) {
+            const classes   = 'scroll',
+                  target    = 'html',
+                  winWidth  = 3860,
+                  offset    = 65,
+                  scrollTop = $(window).scrollTop();
+            if ( window.innerWidth <= winWidth ) {
+                if ( scrollTop > offset ) {
+                    if ( $(window).innerWidth() < 3860 ) {
+                        $( "meta[name='theme-color']" ).attr( 'content', '#FEFEFE' );
+                    };
+                    $html.addClass(classes);
+                } else {
+                    if ( $(window).innerWidth() < 3860 ) {
+                        $( "meta[name='theme-color']" ).attr( 'content', '#FEFEFE' );
+                    };
+                    $html.removeClass(classes);
+                }
+            }
+        });
+    });
+
+    document.documentElement.style.setProperty( '--height', `${ document.body.scrollHeight }px` );
+
+    $(function() {
+
+        const swiperGlobalOneElement = document.querySelector( '.announcements .slider' );
+        const slideGlobalOneCount = swiperGlobalOneElement ? swiperGlobalOneElement.querySelectorAll( '.slides .slide' ).length : 0;
+
+        let swiper = null;
+
+        if ( slideGlobalOneCount > 1 ) {
+            const swiperGlobalOne = new Swiper( '.announcements .slider', {
+                containerModifierClass: 'slide-',
+                slideActiveClass: 'active',
+                slideBlankClass: 'blank',
+                slideClass: 'slide',
+                slideNextClass: 'next',
+                slidePrevClass: 'previous',
+                slideVisibleClass: 'visible',
+                wrapperClass: 'slides',
+                autoHeight: true,
+                loop: true,
+                centeredSlides: true,
+                speed: 1250,
+                spaceBetween: 0,
+                direction: 'horizontal',
+                slidesPerView: 1,
+                autoplay: {
+                    delay: 5000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: false,
+                }
+            });
+        }
+
+        const swiperGlobalTwo = new Swiper( '.reviews .slider', {
+            containerModifierClass: 'slide-',
+            slideActiveClass: 'active',
+            slideBlankClass: 'blank',
+            slideClass: 'slide',
+            slideNextClass: 'next',
+            slidePrevClass: 'previous',
+            slideVisibleClass: 'visible',
+            wrapperClass: 'slides',
+            speed: 750,
+            navigation: {
+                disabledClass: 'disabled',
+                prevEl: '.reviews .slider .navigation .buttons .button.one',
+                nextEl: '.reviews .slider .navigation .buttons .button.two',
+            },
+            pagination: {
+                bulletClass: 'icon',
+                bulletActiveClass: 'active',
+                el: '.reviews .slider .pagination .icons',
+                dynamicBullets: true,
+            },
+            breakpoints: {
+                0: {
+                    spaceBetween: 12,
+                    slidesPerView: 1,
+                },
+                600: {
+                    spaceBetween: 16,
+                    slidesPerView: 2,
+                },
+                900: {
+                    spaceBetween: 1,
+                    slidesPerView: 2,
+                },
+                1025: {
+                    spaceBetween: 16,
+                    slidesPerView: 3,
+                }
+            }
+        });
+
+        const swiperGlobalThree = new Swiper( '.calendar .dates .labels .slider', {
+            containerModifierClass: 'slide-',
+            slideActiveClass: 'active',
+            slideBlankClass: 'blank',
+            slideClass: 'slide',
+            slideNextClass: 'next',
+            slidePrevClass: 'previous',
+            slideVisibleClass: 'visible',
+            wrapperClass: 'slides',
+            speed: 500,
+            navigation: {
+                disabledClass: 'disabled',
+                prevEl: '.calendar .buttons .button[data-action="previous"]',
+                nextEl: '.calendar .buttons .button[data-action="next"]',
+            },
+            breakpoints: {
+                0: {
+                    spaceBetween: 5,
+                    slidesPerView: 4,
+                },
+                900: {
+                    spaceBetween: 10,
+                    slidesPerView: 4,
+                },
+                1250: {
+                    spaceBetween: 10,
+                    slidesPerView: 6,
+                },
+                1375: {
+                    spaceBetween: 10,
+                    slidesPerView: 7,
+                }
+            }
+        });
+
+        const swiperGlobalFour = new Swiper( '.calendar .dates .days .slider', {
+            containerModifierClass: 'slide-',
+            slideActiveClass: 'active',
+            slideBlankClass: 'blank',
+            slideClass: 'slide',
+            slideNextClass: 'next',
+            slidePrevClass: 'previous',
+            slideVisibleClass: 'visible',
+            wrapperClass: 'slides',
+            speed: 500,
+            breakpoints: {
+                0: {
+                    spaceBetween: 5,
+                    slidesPerView: 4,
+                },
+                900: {
+                    spaceBetween: 10,
+                    slidesPerView: 4,
+                },
+                1250: {
+                    spaceBetween: 10,
+                    slidesPerView: 6,
+                },
+                1375: {
+                    spaceBetween: 10,
+                    slidesPerView: 7,
+                }
+            }
+        });
+
+        swiperGlobalThree.controller.control = swiperGlobalFour;
+        swiperGlobalFour.controller.control = swiperGlobalThree;
+
+        const swiperStaysOne = new Swiper( '.stays .slider', {
+            containerModifierClass: 'slide-',
+            slideActiveClass: 'active',
+            slideBlankClass: 'blank',
+            slideClass: 'slide',
+            slideNextClass: 'next',
+            slidePrevClass: 'previous',
+            slideVisibleClass: 'visible',
+            wrapperClass: 'slides',
+            speed: 750,
+            navigation: {
+                disabledClass: 'disabled',
+                prevEl: '.stays .slider .navigation .buttons .button.one',
+                nextEl: '.stays .slider .navigation .buttons .button.two',
+            },
+            breakpoints: {
+                0: {
+                    spaceBetween: 12,
+                    slidesPerView: 1.5,
+                },
+                600: {
+                    spaceBetween: 16,
+                    slidesPerView: 2,
+                },
+                900: {
+                    spaceBetween: 16,
+                    slidesPerView: 4,
+                },
+                1250: {
+                    spaceBetween: 16,
+                    slidesPerView: 4,
+                }
+            }
+        });
+
+        const swiperCarsOne = new Swiper( '.cars .slider', {
+            containerModifierClass: 'slide-',
+            slideActiveClass: 'active',
+            slideBlankClass: 'blank',
+            slideClass: 'slide',
+            slideNextClass: 'next',
+            slidePrevClass: 'previous',
+            slideVisibleClass: 'visible',
+            wrapperClass: 'slides',
+            speed: 750,
+            navigation: {
+                disabledClass: 'disabled',
+                prevEl: '.cars .slider .navigation .buttons .button.one',
+                nextEl: '.cars .slider .navigation .buttons .button.two',
+            },
+            breakpoints: {
+                0: {
+                    spaceBetween: 12,
+                    slidesPerView: 1.5,
+                },
+                600: {
+                    spaceBetween: 16,
+                    slidesPerView: 2,
+                },
+                900: {
+                    spaceBetween: 16,
+                    slidesPerView: 4,
+                },
+                1250: {
+                    spaceBetween: 16,
+                    slidesPerView: 4,
+                }
+            }
+        });
+
+        const swiperExperienceOne = new Swiper( '.experience .banner .slider', {
+            containerModifierClass: 'slide-',
+            slideActiveClass: 'active',
+            slideBlankClass: 'blank',
+            slideClass: 'slide',
+            slideNextClass: 'next',
+            slidePrevClass: 'previous',
+            slideVisibleClass: 'visible',
+            wrapperClass: 'slides',
+            navigation: {
+                disabledClass: 'disabled',
+                prevEl: '.experience .banner .slider .navigation .buttons .button.one',
+                nextEl: '.experience .banner .slider .navigation .buttons .button.two',
+            },
+            pagination: {
+                bulletClass: 'icon',
+                bulletActiveClass: 'active',
+                el: '.experience .banner .slider .pagination .icons',
+                dynamicBullets: true,
+            },
+            breakpoints: {
+                0: {
+                    speed: 625,
+                    spaceBetween: 12,
+                    slidesPerView: 1,
+                },
+                600: {
+                    speed: 625,
+                    spaceBetween: 16,
+                    slidesPerView: 1,
+                },
+                900: {
+                    speed: 625,
+                    spaceBetween: 16,
+                    slidesPerView: 1,
+                },
+                1025: {
+                    speed: 750,
+                    spaceBetween: 16,
+                    slidesPerView: 2,
+                }
+            }
+        });
+
+        const swiperExperienceTwo = new Swiper( '.experience .experiences .slider', {
+            containerModifierClass: 'slide-',
+            slideActiveClass: 'active',
+            slideBlankClass: 'blank',
+            slideClass: 'slide',
+            slideNextClass: 'next',
+            slidePrevClass: 'previous',
+            slideVisibleClass: 'visible',
+            wrapperClass: 'slides',
+            navigation: {
+                disabledClass: 'disabled',
+                prevEl: '.experience .experiences .slider .navigation .buttons .button.one',
+                nextEl: '.experience .experiences .slider .navigation .buttons .button.two',
+            },
+            breakpoints: {
+                0: {
+                    speed: 625,
+                    spaceBetween: 12,
+                    slidesPerView: 2,
+                },
+                600: {
+                    speed: 625,
+                    spaceBetween: 16,
+                    slidesPerView: 3,
+                },
+                900: {
+                    speed: 625,
+                    spaceBetween: 16,
+                    slidesPerView: 4,
+                },
+                1025: {
+                    speed: 750,
+                    spaceBetween: 16,
+                    slidesPerView: 5,
+                },
+                1250: {
+                    speed: 750,
+                    spaceBetween: 16,
+                    slidesPerView: 5,
+                }
+            }
+        });
+
+    });
+
+    $(function() {
+        $(document).on( 'change', '.home .select, .category .select', function() {
+            const $mirror = $( '.home .sort .select .value, .category .sort .select .value' );
+            const $selectedOption = $( '.home .select option:selected, .category .select option:selected', this );
+            const selectedText = $selectedOption.text();
+            $mirror.text( selectedText );
+            const isMobile = document.documentElement.classList.contains( 'mobile' );
+            const padding = isMobile ? 88 : 86;
+            const width = $mirror.outerWidth() + padding;
+            $( '.home .select select, .category .select select' ).css({
+                width: width + 'px'
+            });
+
+        });
+
+    });
+
+    document.querySelectorAll( '.input input, .input textarea, .select select' ).forEach( input => {
+        input.addEventListener( 'focus', () => {
+            input.parentElement.dataset.input = 'focus';
+        });
+        input.addEventListener( 'blur', () => {
+            if ( input.value.trim() !== '' ) {
+                input.parentElement.dataset.input = 'focus';
+            } else {
+                input.parentElement.dataset.input = '';
+            }
+        });
+        if ( input.value.trim() !== '' ) {
+            input.parentElement.dataset.input = 'focus';
+        }
+    });
+
+    $( 'header .content .sections .section.two .blocks .block .view .links ul li[data-link="list"]' ).click(function() {
+        $( 'body' ).removeClass( 'alt' );
+    });
+
+    $( 'header .content .sections .section.two .blocks .block .view .links ul li[data-link="calendar"]' ).click(function() {
+        $( 'body' ).addClass( 'alt' );
+    });
+
+    $( 'header .content .sections .section.three .blocks .block .icons .icon.three' ).click(function() {
+        $( 'html' ).attr( 'data-modal', 'notifications' );
+    });
+
+    $( '.search .content .sections .section.two .blocks .block .form .fields .blocks .block input[name="destination"]' ).click(function() {
+        $( 'html' ).attr( 'data-modal', 'destination' );
+    });
+
+    $( '.search .content .sections .section.two .blocks .block .form .fields .blocks .block input[name="dates"]' ).click(function() {
+        $( 'html' ).attr( 'data-modal', 'dates' );
+        Search.showDates = true;
+    });
+
+    $( '.search .content .sections .section.two .blocks .block .form .fields .blocks .block input[name="guests"]' ).click(function() {
+        $( 'html' ).attr( 'data-modal', 'guests' );
+    });
+
+    $( 'footer ~ .overlay' ).click(function() {
+        $( 'html' ).removeAttr( 'data-modal' );
+    });
+
+    // Wishlist toggle handler for heart icons
+    // This handles dynamically-rendered experiences (not React components)
+    // React components handle their own clicks via WishlistButton component
+    $( document ).on( 'click', '.experience .banner .icons, .experiences .experience .banner .icons .icon', function( e ) {
+        // Skip if this is a React-rendered component (React components handle their own clicks)
+        const $icons = $( this ).closest( '.icons' );
+        if ( $icons.data( 'react-component' ) || $icons.closest( '[data-reactroot]' ).length > 0 ) {
+            return; // Let React handle it
+        }
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const $experience = $( this ).closest( '.experience' );
+        let experienceId = $experience.attr( 'data-experience-id' ) || 
+                          $experience.find( '[data-experience-id]' ).attr( 'data-experience-id' );
+        
+        // Try to get ID from the icons element if not found on experience
+        if ( !experienceId ) {
+            experienceId = $icons.attr( 'data-experience-id' );
+        }
+        
+        // Validate experience ID - can be a number or UUID string
+        if ( !experienceId || experienceId === '' || experienceId === 'null' || experienceId === 'undefined' ) {
+            console.error( 'Experience ID is missing or invalid:', { 
+                experienceId, 
+                experience: $experience[0],
+                icons: $icons[0]
+            } );
+            if ( typeof window.showNotification === 'function' ) {
+                window.showNotification( 'Error: Experience ID is missing. Please refresh the page and try again.', 'error' );
+            } else {
+                console.error( 'Error: Experience ID is missing. Please refresh the page and try again.' );
+            }
+            return;
+        }
+        
+        // Validate ID format - can be a number or UUID string
+        // Check if it's a valid number
+        const expIdNum = parseInt( experienceId, 10 );
+        const isNumeric = !isNaN( expIdNum ) && expIdNum > 0;
+        
+        // Check if it's a valid UUID format (basic check: has dashes and is 36 chars)
+        const isUUID = typeof experienceId === 'string' && 
+                      experienceId.length === 36 && 
+                      experienceId.includes( '-' );
+        
+        if ( !isNumeric && !isUUID ) {
+            console.error( 'Invalid experience ID format:', experienceId );
+            if ( typeof window.showNotification === 'function' ) {
+                window.showNotification( 'Error: Invalid experience ID format. Please refresh the page and try again.', 'error' );
+            } else {
+                console.error( 'Error: Invalid experience ID format. Please refresh the page and try again.' );
+            }
+            return;
+        }
+        
+        // Use the ID as-is (number or UUID string)
+        const validExpId = isNumeric ? expIdNum : experienceId;
+        
+        // Check if user is authenticated - check both localStorage and cookies
+        let token = typeof localStorage !== 'undefined' ? localStorage.getItem( 'token' ) : null;
+        
+        // If not in localStorage, check cookies
+        if ( !token && typeof document !== 'undefined' ) {
+            const cookies = document.cookie.split( ';' );
+            const tokenCookie = cookies.find( cookie => cookie.trim().startsWith( 'token=' ) );
+            if ( tokenCookie ) {
+                token = tokenCookie.split( '=' )[1];
+            }
+        }
+        
+        if ( !token ) {
+            if ( typeof window.showNotification === 'function' ) {
+                window.showNotification( 'Please log in to add items to your wishlist', 'warning' );
+            }
+            if ( typeof window !== 'undefined' ) {
+                setTimeout( () => {
+                    window.location.href = '/account/log-in';
+                }, 2000 );
+            }
+            return;
+        }
+        
+        // Get API URL
+        let apiUrl = '';
+        if ( typeof window !== 'undefined' ) {
+            apiUrl = document.querySelector( 'meta[name="api-url"]' )?.getAttribute( 'content' ) ||
+                     window.__NEXT_DATA__?.env?.NEXT_PUBLIC_API_URL ||
+                     window.NEXT_PUBLIC_API_URL ||
+                     'http://localhost:4000';
+        }
+        
+        // Check if already in wishlist (icons container has active class)
+        const isInWishlist = $icons.hasClass( 'active' );
+        const endpoint = isInWishlist 
+            ? `${apiUrl}/api/wishlist/${validExpId}`
+            : `${apiUrl}/api/wishlist`;
+        const method = isInWishlist ? 'DELETE' : 'POST';
+        const body = isInWishlist ? null : JSON.stringify( { experienceId: validExpId } );
+        
+        console.log( 'Wishlist API call:', { endpoint, method, body, validExpId, experienceId, isNumeric, isUUID, isInWishlist } );
+        
+        // Show loading state
+        $icons.css( 'opacity', '0.6' );
+        $icons.css( 'pointer-events', 'none' );
+        
+        fetch( endpoint, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            credentials: 'include',
+            body: body
+        } )
+        .then( response => {
+            if ( !response.ok ) {
+                return response.json().then( err => { throw new Error( err.error || 'Failed to update wishlist' ); } );
+            }
+            return response.json();
+        } )
+        .then( data => {
+            // Show success notification
+            if ( typeof window.showNotification === 'function' ) {
+                const message = isInWishlist ? 'Removed from wishlist' : 'Added to wishlist';
+                window.showNotification( message, 'success' );
+            }
+            
+            // Toggle visual state on the icons container
+            $icons.toggleClass( 'active' );
+            
+            // If removing from wishlist page, remove the experience element
+            if ( isInWishlist && $( 'body' ).hasClass( 'wishlist' ) ) {
+                const $experience = $icons.closest( '.experience' );
+                const $block = $experience.closest( '.block[data-block]' );
+                $block.fadeOut( 300, function() {
+                    $( this ).remove();
+                    // Check if wishlist is now empty
+                    const remainingExperiences = $( '.wishlist .experiences .blocks .block' ).length;
+                    if ( remainingExperiences === 0 ) {
+                        // Show empty message
+                        const emptyHTML = '<div class="blocks" data-blocks="1"><div class="block"><div class="experiences"><p>Your wishlist is empty. Start adding experiences you love!</p></div></div></div>';
+                        $( '.wishlist .experiences .content .sections .section.three .container .content .blocks .block .experiences' ).html( emptyHTML );
+                    }
+                } );
+            }
+        } )
+        .catch( error => {
+            console.error( 'Error updating wishlist:', error );
+            if ( typeof window.showNotification === 'function' ) {
+                window.showNotification( error.message || 'Failed to update wishlist. Please try again.', 'error' );
+            }
+        } )
+        .finally( () => {
+            // Remove loading state
+            $icons.css( 'opacity', '1' );
+            $icons.css( 'pointer-events', 'auto' );
+        } );
+    });
+
+    $( 'header .content .sections .section.two .blocks .block .view .links ul li' ).click(function() {
+        $( this ).addClass( 'active' );
+    });
+
+    $( '.home .experiences .content .sections .section.two .blocks .block .blocks .block .view .buttons .button.circle.alt[data-link="list"]' ).click(function() {
+        $( 'body' ).removeClass( 'alt' );
+    });
+
+    $( '.home .experiences .content .sections .section.two .blocks .block .blocks .block .view .buttons .button.circle.alt[data-link="calendar"]' ).click(function() {
+        $( 'body' ).addClass( 'alt' );
+    });
+
+    $( '.home .experiences .content .sections .section.four .blocks .block .buttons .button.medium' ).click(function() {
+        $( '.home .experiences .content .sections .section.three .calendar' ).addClass( 'delay' );
+        setTimeout(function() {
+            $( '.home .experiences .content .sections .section.three .calendar' ).addClass( 'active' );
+        }, 100 );
+    });
+
+    $( '.home .experiences .content .sections .section.three .calendar .blocks .block .blocks .block .blocks .block .close, .home .experiences .content .sections .section.three .calendar .overlay' ).click(function() {
+        setTimeout(function() {
+            $( '.home .experiences .content .sections .section.three .calendar' ).removeClass( 'delay' );
+        }, 750 );
+        $( '.home .experiences .content .sections .section.three .calendar' ).removeClass( 'active' );
+    });
+
+    $( 'header .content .sections .section.three .blocks .block .icons .icon.two' ).click(function() {
+        $( '.bag' ).addClass( 'delay' );
+        setTimeout(function() {
+            $( '.bag' ).addClass( 'active' );
+        }, 100 );
+    });
+
+    // Handle user icon click - redirect to account profile
+    $( document ).on( 'click', 'header .content .sections .section.three .blocks .block .icons .icon.four .action', function( e ) {
+        e.preventDefault();
+        // Navigate to account profile page
+        if ( typeof window !== 'undefined' ) {
+            window.location.href = '/account/profile';
+        }
+    });
+
+    $( '.bag .content .sections .section.one .blocks .block .close, .bag .overlay' ).click(function() {
+        setTimeout(function() {
+            $( '.bag' ).removeClass( 'delay' );
+        }, 750 );
+        $( '.bag' ).removeClass( 'active' );
+    });
+
+    $( '.checkout .payment .content .sections .section .blocks .block .form .fields .fieldset .blocks .block .blocks .block .blocks .block[data-block="2BDB"] .icons' ).click(function() {
+        const $wrapper = $( this ).closest( '.blocks' );
+        const $input = $wrapper.find( '.input input' );
+        if ( $input.attr( 'type' ) === 'password' ) {
+            $input.attr( 'type', 'text' );
+        } else {
+            $input.attr( 'type', 'password' );
+        }
+        $( this ).toggleClass( 'active' );
+    });
+
+    $( 'footer .content .sections .section.three .blocks .block .buttons .button.medium' ).click(function() {
+        $( '.calendar' ).addClass( 'delay' );
+        setTimeout(function() {
+            $( '.calendar' ).addClass( 'active' );
+        }, 100 );
+    });
+
+    $( '.calendar .blocks .block .blocks .block .blocks .block .close, .calendar .overlay' ).click(function() {
+        setTimeout(function() {
+            $( '.calendar' ).removeClass( 'delay' );
+        }, 750 );
+        $( '.calendar' ).removeClass( 'active' );
+    });
+
+    $( '.home .experiences .content .sections .section.three .calendar .blocks .block .blocks .block .buttons .blocks .block:first-child .button.small, .calendar .blocks .block .dates .blocks .block .labels .label .blocks .block .button.circle.alt' ).click(function() {
+        $( this ).toggleClass( 'active' );
+    });
+
+    $( document ).on( 'click', '.calendar .dates .days .experiences .experience[data-availability="1"]', function( e ) {
+        // Don't open sidebar if drag was performed
+        if ( isDragging || dragEnabled ) {
+            return false;
+        }
+        $( '.availability' ).addClass( 'delay' );
+        setTimeout(function() {
+            $( '.availability' ).addClass( 'active' );
+        }, 100 );
+    });
+
+    // Drag and drop functionality for calendar experiences with long press
+    let longPressTimer = null;
+    let isDragging = false;
+    let dragEnabled = false;
+    let pressStartX = 0;
+    let pressStartY = 0;
+    let currentDraggingElement = null;
+    const LONG_PRESS_DURATION = 500; // milliseconds
+
+    function initCalendarDragDrop() {
+        // Remove existing event handlers and draggable
+        $( '.calendar .dates .days .experiences .experience' ).off( 'mousedown touchstart' );
+        $( '.calendar .dates .days .experiences .experience' ).off( 'mouseup touchend' );
+        $( '.calendar .dates .days .experiences .experience' ).off( 'mousemove touchmove' );
+        
+        // Destroy draggable only if it exists
+        $( '.calendar .dates .days .experiences .experience' ).each(function() {
+            const $el = $( this );
+            if ( $el.data( 'ui-draggable' ) || $el.data( 'draggable' ) ) {
+                $el.draggable( 'destroy' );
+            }
+        });
+        
+        // Destroy droppable only if it exists
+        $( '.calendar .dates .days .slider .slides .slide .day' ).each(function() {
+            const $el = $( this );
+            if ( $el.data( 'ui-droppable' ) || $el.data( 'droppable' ) ) {
+                $el.droppable( 'destroy' );
+            }
+        });
+
+        // Initialize all experiences as draggable but disabled
+        $( '.calendar .dates .days .experiences .experience' ).each(function() {
+            const $experience = $( this );
+            
+            // Destroy existing draggable if it exists
+            if ( $experience.data( 'ui-draggable' ) || $experience.data( 'draggable' ) ) {
+                $experience.draggable( 'destroy' );
+            }
+            
+            $experience.draggable({
+                disabled: true, // Start disabled
+                helper: function() {
+                    return $( this ).clone().css({
+                        'opacity': '0.8',
+                        'z-index': '1000',
+                        'position': 'fixed'
+                    });
+                },
+                revert: 'invalid',
+                zIndex: 1000,
+                cursor: 'move',
+                appendTo: 'body',
+                start: function( event, ui ) {
+                    $( this ).css( 'opacity', '0.5' );
+                    isDragging = true;
+                },
+                    stop: function( event, ui ) {
+                        $( this ).css( 'opacity', '1' );
+                        isDragging = false;
+                        dragEnabled = false;
+                        currentDraggingElement = null;
+                        // Disable again after drag
+                        if ( $experience.data( 'ui-draggable' ) || $experience.data( 'draggable' ) ) {
+                            $experience.draggable( 'option', 'disabled', true );
+                        }
+                    }
+            });
+        });
+
+        // Handle long press to enable dragging
+        $( document ).on( 'mousedown touchstart', '.calendar .dates .days .experiences .experience', function( e ) {
+            const $experience = $( this );
+            isDragging = false;
+            dragEnabled = false;
+            currentDraggingElement = $experience;
+            
+            // Get initial position
+            const touch = e.originalEvent.touches ? e.originalEvent.touches[0] : e;
+            pressStartX = touch.pageX;
+            pressStartY = touch.pageY;
+            
+            // Clear any existing timer
+            if ( longPressTimer ) {
+                clearTimeout( longPressTimer );
+            }
+            
+            // Set timer for long press
+            longPressTimer = setTimeout(function() {
+                if ( ! currentDraggingElement || ! currentDraggingElement.is( $experience ) ) {
+                    return;
+                }
+                
+                dragEnabled = true;
+                
+                // Enable dragging for this experience
+                if ( $experience.data( 'ui-draggable' ) || $experience.data( 'draggable' ) ) {
+                    $experience.draggable( 'option', 'disabled', false );
+                }
+                
+                // Add visual feedback
+                $experience.css( 'opacity', '0.7' );
+            }, LONG_PRESS_DURATION );
+        });
+
+        // Handle mouseup/touchend to cancel long press or handle click
+        $( document ).on( 'mouseup touchend', '.calendar .dates .days .experiences .experience', function( e ) {
+            const $experience = $( this );
+            
+            // Clear long press timer
+            if ( longPressTimer ) {
+                clearTimeout( longPressTimer );
+                longPressTimer = null;
+            }
+            
+            // If drag was enabled and is dragging, let it complete
+            if ( dragEnabled && isDragging ) {
+                return true;
+            }
+            
+            // If drag was enabled but not dragging yet, disable it
+            if ( dragEnabled && ! isDragging ) {
+                if ( $experience.data( 'ui-draggable' ) || $experience.data( 'draggable' ) ) {
+                    $experience.draggable( 'option', 'disabled', true );
+                }
+                $experience.css( 'opacity', '1' );
+                dragEnabled = false;
+                currentDraggingElement = null;
+                return false; // Prevent click
+            }
+            
+            // If long press didn't complete, allow normal click
+            dragEnabled = false;
+            currentDraggingElement = null;
+            $experience.css( 'opacity', '1' );
+        });
+
+        // Cancel long press if mouse moves significantly before timer completes
+        $( document ).on( 'mousemove touchmove', function( e ) {
+            if ( longPressTimer && currentDraggingElement ) {
+                const touch = e.originalEvent.touches ? e.originalEvent.touches[0] : e;
+                const moveX = Math.abs( touch.pageX - pressStartX );
+                const moveY = Math.abs( touch.pageY - pressStartY );
+                
+                // If moved significantly before long press completes, cancel
+                if ( moveX > 10 || moveY > 10 ) {
+                    clearTimeout( longPressTimer );
+                    longPressTimer = null;
+                    currentDraggingElement = null;
+                }
+            }
+        });
+
+        // Click prevention is handled in the availability click handler above
+
+        // Make day containers droppable
+        $( '.calendar .dates .days .slider .slides .slide .day' ).droppable({
+            accept: '.calendar .dates .days .experiences .experience',
+            tolerance: 'pointer',
+            hoverClass: 'ui-state-hover',
+            drop: function( event, ui ) {
+                const $droppedExperience = ui.draggable;
+                const $targetDay = $( this );
+                const $targetExperiences = $targetDay.find( '.experiences' );
+                
+                // Calculate new time based on drop position relative to the day container
+                const dayOffset = $targetDay.offset();
+                const dropY = event.pageY - dayOffset.top;
+                const dayHeight = $targetDay.height();
+                
+                // Calculate time slot (48 slots for 24 hours, 30-minute intervals)
+                const timeSlotHeight = dayHeight / 48;
+                let newTime = Math.max( 1, Math.min( 48, Math.ceil( dropY / timeSlotHeight ) ) );
+                
+                // Get duration from original experience
+                const duration = parseInt( $droppedExperience.attr( 'data-duration' ) ) || 2;
+                
+                // Check if moving to different day or same day
+                const $originalDay = $droppedExperience.closest( '.day' );
+                const isDifferentDay = ! $originalDay.is( $targetDay );
+                
+                // Remove from original location if moving to different day
+                if ( isDifferentDay ) {
+                    $droppedExperience.remove();
+                } else {
+                    // If same day, just update position
+                    $droppedExperience.attr( 'data-time', newTime );
+                    $droppedExperience.css( 'top', ( ( newTime - 1 ) * timeSlotHeight ) + 'px' );
+                    if ( $droppedExperience.data( 'ui-draggable' ) || $droppedExperience.data( 'draggable' ) ) {
+                        $droppedExperience.draggable( 'option', 'disabled', true );
+                    }
+                    isDragging = false;
+                    dragEnabled = false;
+                    currentDraggingElement = null;
+                    return;
+                }
+                
+                // Create new experience in target day
+                const $newExperience = $droppedExperience.clone();
+                $newExperience.attr( 'data-time', newTime );
+                $newExperience.attr( 'data-duration', duration );
+                $newExperience.css({
+                    'top': ( ( newTime - 1 ) * timeSlotHeight ) + 'px',
+                    'height': ( duration * timeSlotHeight ) + 'px',
+                    'opacity': '1'
+                });
+                
+                // Remove any existing experience at overlapping time slots
+                const endTime = newTime + duration - 1;
+                $targetExperiences.find( '.experience' ).each(function() {
+                    const existingTime = parseInt( $( this ).attr( 'data-time' ) );
+                    const existingDuration = parseInt( $( this ).attr( 'data-duration' ) ) || 2;
+                    const existingEndTime = existingTime + existingDuration - 1;
+                    
+                    // Check for overlap
+                    if ( ( newTime >= existingTime && newTime <= existingEndTime ) ||
+                         ( endTime >= existingTime && endTime <= existingEndTime ) ||
+                         ( newTime <= existingTime && endTime >= existingEndTime ) ) {
+                        $( this ).remove();
+                    }
+                });
+                
+                // Append to target day
+                $targetExperiences.append( $newExperience );
+                
+                // Initialize draggable for the new experience (disabled by default)
+                $newExperience.draggable({
+                    disabled: true,
+                    helper: function() {
+                        return $( this ).clone().css({
+                            'opacity': '0.8',
+                            'z-index': '1000',
+                            'position': 'fixed'
+                        });
+                    },
+                    revert: 'invalid',
+                    zIndex: 1000,
+                    cursor: 'move',
+                    appendTo: 'body',
+                    start: function( event, ui ) {
+                        $( this ).css( 'opacity', '0.5' );
+                        isDragging = true;
+                    },
+                    stop: function( event, ui ) {
+                        $( this ).css( 'opacity', '1' );
+                        isDragging = false;
+                        dragEnabled = false;
+                        currentDraggingElement = null;
+                        if ( $newExperience.data( 'ui-draggable' ) || $newExperience.data( 'draggable' ) ) {
+                            $newExperience.draggable( 'option', 'disabled', true );
+                        }
+                    }
+                });
+                
+                // Clean up drag state
+                isDragging = false;
+                dragEnabled = false;
+                currentDraggingElement = null;
+            }
+        });
+    }
+
+    // Initialize drag and drop when calendar is ready
+    function tryInitCalendarDragDrop() {
+        const hasExperiences = $( '.calendar .dates .days .experiences .experience' ).length > 0;
+        const hasDays = $( '.calendar .dates .days .slider .slides .slide .day' ).length > 0;
+        
+        if ( hasExperiences && hasDays ) {
+            initCalendarDragDrop();
+            return true;
+        }
+        return false;
+    }
+
+    $( document ).ready(function() {
+        // Try to initialize immediately
+        if ( ! tryInitCalendarDragDrop() ) {
+            // If not ready, try again after a delay
+            setTimeout(function() {
+                if ( ! tryInitCalendarDragDrop() ) {
+                    // Try one more time after longer delay
+                    setTimeout(function() {
+                        tryInitCalendarDragDrop();
+                    }, 2000 );
+                }
+            }, 1000 );
+        }
+    });
+
+    // Reinitialize when calendar content changes (for dynamically loaded content)
+    let calendarObserver;
+    if ( typeof MutationObserver !== 'undefined' ) {
+        calendarObserver = new MutationObserver(function( mutations ) {
+            let shouldReinit = false;
+            mutations.forEach(function( mutation ) {
+                if ( mutation.addedNodes.length > 0 ) {
+                    $( mutation.addedNodes ).each(function() {
+                        if ( $( this ).find( '.calendar .dates .days .experiences .experience' ).length > 0 ||
+                             $( this ).hasClass( 'calendar' ) ) {
+                            shouldReinit = true;
+                        }
+                    });
+                }
+            });
+            if ( shouldReinit ) {
+                setTimeout(function() {
+                    tryInitCalendarDragDrop();
+                }, 200 );
+            }
+        });
+        
+        // Observe calendar container for changes
+        $( document ).ready(function() {
+            const calendarContainer = document.querySelector( '.calendar' );
+            if ( calendarContainer ) {
+                calendarObserver.observe( calendarContainer, {
+                    childList: true,
+                    subtree: true
+                } );
+            }
+        });
+    }
+
+    $( document ).on( 'click', '.availability .close, .availability .overlay', function() {
+        setTimeout(function() {
+            $( '.availability' ).removeClass( 'delay' );
+        }, 750 );
+        $( '.availability' ).removeClass( 'active' );
+    });
+
+    const availabilityBlock = document.querySelector( '.experience .details .content .sections .section.two .blocks .block[data-block="1"]' );
+    const availabilityButton = document.querySelector( '.experience .breadcrumbs .content .sections .section.two .blocks .block .buttons .button.small' );
+
+    if ( availabilityBlock && availabilityButton ) {
+        window.addEventListener( 'scroll', () => {
+            const rect = availabilityBlock.getBoundingClientRect();
+            const inViewport = rect.bottom > 0 && rect.top < window.innerHeight;
+            if ( rect.top <= 150 && inViewport ) {
+                availabilityButton.setAttribute( 'data-visibility', 'false' );
+            } else {
+                availabilityButton.setAttribute( 'data-visibility', 'true' );
+            }
+        });
+    }
+
+    function checkBagScrollbar( el ) {
+        const update = () => {
+            el.classList.toggle( 'scroll', el.scrollHeight > el.clientHeight + 1 );
+            el.classList.toggle( 'active', el.scrollTop > 0 );
+        };
+        update();
+        el.addEventListener( 'scroll', update, { passive: true } );
+        window.addEventListener( 'resize', update );
+        return () => {
+            el.removeEventListener( 'scroll', update );
+            window.removeEventListener( 'resize', update );
+        };
+    }
+
+    const selector = '.checkout .payment .content .sections .section.two .blocks .block[data-block="1"], .bag .content .sections .section.two';
+    const media = window.matchMedia( '(min-width: 750px)' );
+
+    let cleanups = [];
+
+    function toggleBags( e ) {
+        cleanups.forEach( ( fn ) => fn() );
+        cleanups = [];
+        if ( e.matches ) {
+            document.querySelectorAll( selector ).forEach( ( el ) => {
+                cleanups.push( checkBagScrollbar( el ) );
+            } );
+        }
+    }
+
+    media.addEventListener( 'change', toggleBags );
+
+    toggleBags( media );
+
+    $( '.checkout .payment .content .sections .section.two .blocks .block .buttons .button.small' ).click(function() {
+        $( '.checkout .payment .content .sections .section.two .blocks .block[data-block="1"]' ).toggleClass( 'active' );
+    });
+
+    $( document ).on( 'click', '.accordion .panels .panel .blocks .block[data-block="2ABA"]', function() {
+        const $header = $( this ).closest( '.accordion .panels .panel .blocks .block[data-block="2ABA"]' );
+        const $allHeaders = $( '.accordion .panels .panel .blocks .block[data-block="2ABA"]' );
+        const $allPanels  = $( '.accordion .panels .panel .blocks .block[data-block="2ABB"]' );
+        const $panel = $header.next( '.accordion .panels .panel .blocks .block[data-block="2ABB"]' );
+        $allHeaders.not( $header ).removeClass( 'active' );
+        $allPanels.not( $panel ).css( 'height', '0' );
+        $header.toggleClass( 'active' );
+        if ( $header.hasClass( 'active' ) ) {
+            $panel.css( 'height', $panel[0].scrollHeight + 'px' );
+        } else {
+            $panel.css( 'height', '0' );
+        }
+    });
+
+    $( '.form .fields .fieldset .blocks .block .toggle' ).click(function() {
+        const $wrapper = $( this ).closest( '.blocks' );
+        const $input = $wrapper.find( '.input input' );
+        if ( $input.attr( 'type' ) === 'password' ) {
+            $input.attr( 'type', 'text' );
+        } else {
+            $input.attr( 'type', 'password' );
+        }
+        const $icons = $( this ).find( '.icons' );
+        $icons.toggleClass( 'active' );
+    });
+
+    $( '.form .fields .fieldset .blocks .block .checkbox' ).click(function() {
+        const $icons = $( this ).find( '.icons' );
+        $icons.toggleClass( 'active' );
+    });
+
+    $( '.checkout .payment .content .sections .section .blocks .block .form .fields .fieldset .blocks .block .blocks .block .blocks .block[data-block="2BDB"] .icons' ).click(function() {
+        const $wrapper = $( this ).closest( '.blocks' );
+        const $input = $wrapper.find( '.input input' );
+        if ( $input.attr( 'type' ) === 'password' ) {
+            $input.attr( 'type', 'text' );
+        } else {
+            $input.attr( 'type', 'password' );
+        }
+        $( this ).toggleClass( 'active' );
+    });
+
+    $( '.account .panel .content .sections .section .blocks .block .bookings .blocks .block .booking .blocks .block .blocks .block .buttons .button[data-action="1001"]' ).click(function() {
+        $( '.calendar' ).addClass( 'delay' );
+        setTimeout(function() {
+            $( '.calendar' ).addClass( 'active' );
+        }, 100 );
+    });
+
+    $( '.calendar .blocks .block .blocks .block .blocks .block .close, .calendar .overlay' ).click(function() {
+        setTimeout(function() {
+            $( '.calendar' ).removeClass( 'delay' );
+        }, 750 );
+        $( '.calendar' ).removeClass( 'active' );
+    });
+
+    if ( $( window ).width() <= 900 ) {
+        $( '.account .messages .panel .content .sections .section.two .blocks .block .conversations .blocks .block .users .blocks .block .user' ).click(function() {
+            $( '.account .messages .panel' ).addClass( 'delay' );
+            setTimeout(function() {
+                $( '.account .messages .panel' ).addClass( 'active' );
+            }, 100 );
+        });
+    }
+
+    if ( $( window ).width() <= 900 ) {
+        $( '.account .messages .panel .content .sections .section.two .blocks .block .conversation .blocks .block .blocks .block .close, .account .messages .panel .content .sections .section.two .blocks .block .conversation .overlay' ).click(function() {
+            setTimeout(function() {
+                $( '.account .messages .panel' ).removeClass( 'delay' );
+            }, 750 );
+            $( '.account .messages .panel' ).removeClass( 'active' );
+        });
+    }
+    // Handle experience name clicks in category experiences
+    // Navigate to experience detail page
+    // Location: templates/inc/layouts/category/experiences.html
+    // Used in: pages/ibiza/sightseeing.js (and other category pages)
+    // Note: Links are now handled by Next.js Link components, but we keep this
+    // for any dynamically rendered content that might not have proper links
+    $( document ).on( 'click', '.experiences .experience .blocks .block .title a, .experiences .experience .blocks .block .banner a', function( e ) {
+        // Let Next.js Link handle navigation if href is set correctly
+        const href = $( this ).attr( 'href' );
+        if ( href && href.includes('experience?slug=') ) {
+            // Link is already correct, let it navigate naturally
+            return;
+        }
+        
+        // Fallback: Get slug from data attribute or href
+        const $link = $( this );
+        const $experience = $link.closest( '.experience' );
+        const experienceId = $experience.attr( 'data-experience-id' );
+        const experienceSlug = $experience.attr( 'data-experience-slug' );
+        
+        // Try to get slug from data attribute first (most reliable)
+        if ( experienceSlug ) {
+            e.preventDefault();
+            if ( typeof window !== 'undefined' ) {
+                window.location.href = `/ibiza/sightseeing/experience?slug=${encodeURIComponent( experienceSlug )}`;
+            }
+            return;
+        }
+        
+        // Try to get slug from href
+        if ( href && href.includes('slug=') ) {
+            const match = href.match(/slug=([^&]+)/);
+            if ( match && match[1] ) {
+                const slug = decodeURIComponent( match[1] );
+                e.preventDefault();
+                if ( typeof window !== 'undefined' ) {
+                    window.location.href = `/ibiza/sightseeing/experience?slug=${encodeURIComponent( slug )}`;
+                }
+                return;
+            }
+        }
+        
+        // If we have experience ID, try to get slug from experience data stored in window
+        if ( experienceId && typeof window !== 'undefined' && window.__EXPERIENCES_DATA__ ) {
+            const experience = window.__EXPERIENCES_DATA__.find( exp => 
+                exp.id === experienceId || exp.experienceId === experienceId || exp._id === experienceId
+            );
+            if ( experience && experience.slug ) {
+                e.preventDefault();
+                window.location.href = `/ibiza/sightseeing/experience?slug=${encodeURIComponent( experience.slug )}`;
+                return;
+            }
+        }
+        
+        // Last resort: If href exists and is valid, use it
+        if ( href && href.startsWith( '/' ) ) {
+            return; // Let it navigate naturally
+        }
+        
+        // If no valid link, prevent default and do nothing
+        e.preventDefault();
+        console.warn( 'Could not determine experience slug for navigation. Experience ID:', experienceId );
+    });
+
+    // Handle category name clicks in category experiences
+    // Updates URL with category name without page redirect
+    // Location: templates/inc/layouts/category/experiences.html (lines 13-360)
+    // Used in: pages/ibiza/sightseeing.js (and other category pages)
+    // Functionality: When clicking category name (Featured, Sightseeing, etc.), updates URL with ?category=name parameter
+    // TODO: Call API to filter experiences by category when category is clicked
+    // Example API call:
+    // fetch( '/api/experiences?category=' + categorySlug )
+    //     .then( response => response.json() )
+    //     .then( data => {
+    //         // Handle filtered experience data
+    //         // Update UI with filtered experiences
+    //     } )
+    //     .catch( error => {
+    //         console.error( 'Error fetching category experiences:', error );
+    //     } );
+    $( document ).on( 'click', '.experiences .content .sections .section.one .blocks .block .links .one ul li a.action', function( e ) {
+        // Allow Featured link to navigate normally
+        if ( $( this ).attr( 'data-featured-link' ) === 'true' ) {
+            return true; // Allow default navigation
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        const $link = $( this );
+        const $categoryTitle = $link.find( '.blocks .block .title h4' );
+        
+        // Get category name from title
+        if ( $categoryTitle.length > 0 ) {
+            const categoryName = $categoryTitle.text().trim();
+            
+            // Convert to URL-friendly slug
+            const categorySlug = categoryName
+                .toLowerCase()
+                .replace( /[^a-z0-9]+/g, '-' )
+                .replace( /^-+|-+$/g, '' );
+            
+            // Update active state
+            $( '.experiences .content .sections .section.one .blocks .block .links .one ul li' ).removeClass( 'active' );
+            $link.closest( 'li' ).addClass( 'active' );
+            
+            // Update URL without page reload
+            if ( typeof window !== 'undefined' && window.history && window.history.pushState ) {
+                const currentPath = window.location.pathname;
+                const currentSearch = window.location.search;
+                const params = new URLSearchParams( currentSearch );
+                params.set( 'category', categorySlug );
+                // Remove experience param when category changes
+                params.delete( 'experience' );
+                const newUrl = currentPath + '?' + params.toString();
+                window.history.pushState( { category: categoryName }, '', newUrl );
+            }
+            
+            // ✅ REST API CALL: Fetch experiences for this category
+            fetchRESTExperiences( categorySlug, null, 10 )
+                .then( data => {
+                    // Handle REST API response
+                    // data.experiences.data is an array of experience objects
+                    if ( data && data.experiences && data.experiences.data && Array.isArray( data.experiences.data ) ) {
+                        // Map REST API response to render format
+                        const mappedExperiences = data.experiences.data.map( experience => {
+                            const primaryImage = experience.images && experience.images.length > 0 ? experience.images[0] : null;
+                            return {
+                                id: experience.id,
+                                slug: experience.slug,
+                                title: experience.title,
+                                duration: experience.duration || (experience.hours ? `${experience.hours} Hours` : 'N/A'),
+                                rating: experience.rating || '0',
+                                price: experience.price || '0',
+                                image: primaryImage?.medium || primaryImage?.large || primaryImage?.original || 
+                                       '/assets/images/experiences/experience-1a.jpg',
+                                featured: experience.featured || false,
+                                new: experience.isNew || false,
+                                inWishlist: false // Will be updated if user is authenticated
+                            };
+                        } );
+                        
+                        // Call render function to update UI with filtered experiences
+                        renderExperiencesFromAPI( mappedExperiences ).catch( error => {
+                            console.error( 'Error rendering experiences:', error );
+                        } );
+                        
+                        // Store pagination info for future use
+                        window.experiencesPagination = {
+                            hasMore: data.experiences.hasMore || false,
+                            nextCursor: data.experiences.nextCursor || null,
+                            category: categorySlug
+                        };
+                    }
+                } )
+                .catch( error => {
+                    console.error( 'Error fetching category experiences:', error );
+                    // Optionally show error message to user
+                } );
+        }
+    });
+    
+    // REST API Function
+    // Fetches experiences using REST API
+    // GET /api/experiences?category=xxx&limit=xxx&cursor=xxx
+    function fetchRESTExperiences( category, cursor, limit ) {
+        // ✅ Get API URL - try multiple sources
+        let apiUrl = '';
+        
+        if ( typeof window !== 'undefined' ) {
+            // Method 1: Check if API URL is set in window (injected by Next.js build)
+            apiUrl = window.__NEXT_DATA__?.env?.NEXT_PUBLIC_API_URL || 
+                     window.NEXT_PUBLIC_API_URL || 
+                     '';
+            
+            // Method 2: If still empty, try to get from meta tag or script tag
+            if ( !apiUrl ) {
+                const apiUrlMeta = document.querySelector( 'meta[name="api-url"]' );
+                if ( apiUrlMeta ) {
+                    apiUrl = apiUrlMeta.getAttribute( 'content' );
+                }
+            }
+            
+            // Method 3: Default fallback
+            if ( !apiUrl ) {
+                apiUrl = 'http://localhost:4000';
+                console.warn( 'NEXT_PUBLIC_API_URL not found. Using default:', apiUrl );
+            }
+        }
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        if ( category ) params.append( 'category', category );
+        if ( cursor ) params.append( 'cursor', cursor );
+        if ( limit ) params.append( 'limit', limit );
+        
+        const restEndpoint = `${apiUrl}/api/experiences${params.toString() ? '?' + params.toString() : ''}`;
+        console.log( 'REST API Endpoint:', restEndpoint );
+    
+        return fetch( restEndpoint, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            mode: 'cors' // Explicitly enable CORS
+        } )
+        .then( response => {
+            console.log('REST API Response Status:', response.status);
+            if ( !response.ok ) {
+                return response.text().then(text => {
+                    console.error('API Error Response:', text);
+                    throw new Error( `API request failed: ${response.status} ${response.statusText}` );
+                });
+            }
+            return response.json();
+        } )
+        .then( data => {
+            console.log('REST API Result:', data);
+            return data;
+        } )
+        .catch( error => {
+            console.error('REST API Fetch Error:', error);
+            console.error('Attempted URL:', restEndpoint);
+            console.error('API URL:', apiUrl);
+            // Provide more helpful error message
+            if ( error.message.includes('Failed to fetch') || error.message.includes('NetworkError') ) {
+                throw new Error( `Cannot connect to API server at ${apiUrl}. Please ensure the backend is running on port 4000.` );
+            }
+            throw error;
+        } );
+    }
+    
+    // Function to get wishlist IDs from window or fetch
+    async function getWishlistIds() {
+        // Check if wishlist is already available in window
+        if ( typeof window !== 'undefined' && window.__API_WISHLIST__ ) {
+            const wishlist = window.__API_WISHLIST__ || [];
+            return wishlist.map( item => item.experience?.id || item.experienceId || item.id ).filter( Boolean );
+        }
+        
+        // Try to fetch wishlist if user is authenticated
+        try {
+            const token = typeof localStorage !== 'undefined' ? localStorage.getItem( 'token' ) : null;
+            if ( !token ) {
+                // Check cookies
+                const cookies = document.cookie.split( ';' );
+                const tokenCookie = cookies.find( cookie => cookie.trim().startsWith( 'token=' ) );
+                if ( tokenCookie ) {
+                    token = tokenCookie.split( '=' )[1];
+                }
+            }
+            
+            if ( token ) {
+                let apiUrl = document.querySelector( 'meta[name="api-url"]' )?.getAttribute( 'content' ) ||
+                             window.__NEXT_DATA__?.env?.NEXT_PUBLIC_API_URL ||
+                             window.NEXT_PUBLIC_API_URL ||
+                             'http://localhost:4000';
+                
+                const response = await fetch( `${apiUrl}/api/wishlist`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include'
+                } );
+                
+                if ( response.ok ) {
+                    const data = await response.json();
+                    const wishlist = data.wishlist || [];
+                    return wishlist.map( item => item.experience?.id || item.experienceId || item.id ).filter( Boolean );
+                }
+            }
+        } catch ( error ) {
+            console.error( 'Error fetching wishlist:', error );
+        }
+        
+        return [];
+    }
+    
+    // Function to render experiences from API data
+    // This function dynamically creates HTML for experiences and inserts them into the DOM
+    // Input format (mapped from GraphQL):
+    // {
+    //   id: 1,
+    //   title: "Experience Title",
+    //   duration: "4 Hours",
+    //   rating: 4.7,
+    //   price: 125,
+    //   image: "/assets/images/experiences/experience-1a.jpg",
+    //   featured: true,
+    //   new: false
+    // }
+    async function renderExperiencesFromAPI( experiences ) {
+        const $experiencesContainer = $( '.experiences .content .sections .section.three .container .content .blocks .block .experiences' );
+        
+        if ( !$experiencesContainer.length ) {
+            // Container not found - this is normal on pages that don't have this structure (e.g., experience detail page)
+            return;
+        }
+        
+        // Clear existing experiences
+        $experiencesContainer.find( '.blocks .block' ).remove();
+        
+        // Get wishlist IDs to check which experiences are in wishlist
+        const wishlistIds = await getWishlistIds();
+        
+        // Build HTML for each experience
+        let experiencesHTML = '<div class="blocks" data-blocks="2">';
+        
+        experiences.forEach( ( experience, index ) => {
+            const blockNumber = index + 1;
+            // Use experience slug or ID for URL
+            const slug = experience.slug || experience.id || experience.experienceId || 'experience';
+            
+            // Generate URL using experience slug
+            const experienceUrl = `/ibiza/sightseeing/experience?slug=${encodeURIComponent(slug)}`;
+            
+            // Get experience ID - check multiple possible fields
+            const experienceId = experience.id || experience.experienceId || experience._id || null;
+            
+            // Skip experiences without valid IDs
+            if ( !experienceId ) {
+                console.warn( 'Skipping experience without ID:', experience );
+                return; // Skip this experience
+            }
+            
+            // Check if experience is in wishlist
+            const isInWishlist = experience.inWishlist || wishlistIds.includes( experienceId ) || wishlistIds.includes( String( experienceId ) );
+            
+            const experienceHTML = `
+                <div class="block" data-block="${blockNumber}A">
+                    <div class="experience" data-experience-id="${experienceId}" data-experience-slug="${slug}">
+                        <div class="blocks" data-blocks="3">
+                            <div class="block" data-block="1AA">
+                                <div class="banner">
+                                    <div class="blocks" data-blocks="4">
+                                        <div class="block" data-block="1AAA">
+                                            <div class="icons ${isInWishlist ? 'active' : ''}" data-experience-id="${experienceId}">
+                                                <div class="icon one">
+                                                    <i class="icons8 icons8-heart"></i>
+                                                </div>
+                                                <div class="icon two">
+                                                    <i class="icons8 icons8-heart-2"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="block" data-block="1AAB">
+                                            <a href="${experienceUrl}">
+                                                <div class="images">
+                                                    <div class="image" style="background-image: url('${experience.image || '/assets/images/experiences/experience-1a.jpg'}')"></div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="block" data-block="1AB">
+                                <a href="${experienceUrl}">
+                                    <div class="title">
+                                        <h3 class="three">${experience.title || experience.name || 'Experience'}</h3>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="block" data-block="1AC">
+                                <div class="blocks" data-blocks="5">
+                                    <div class="block" data-block="1ACA">
+                                        <div class="duration">
+                                            <div class="text">${experience.duration || 'N/A'}</div>
+                                        </div>
+                                    </div>
+                                    <div class="block" data-block="1ACB">
+                                        <div class="rating">
+                                            <div class="icon">
+                                                <i class="icons8 icons8-star-2"></i>
+                                            </div>
+                                            <div class="text">${experience.rating || '0'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="block" data-block="1AD">
+                                <div class="blocks" data-blocks="6">
+                                    <div class="block" data-block="1ADA">
+                                        <div class="price">
+                                            <div class="text">From €${experience.price || '0'}</div>
+                                        </div>
+                                    </div>
+                                    <div class="block" data-block="1ADB">
+                                        <div class="labels">
+                                            ${experience.featured ? '<div class="label">Featured</div>' : ''}
+                                            ${experience.new ? '<div class="label">New</div>' : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            experiencesHTML += experienceHTML;
+        } );
+        
+        experiencesHTML += '</div>';
+        
+        // Insert HTML
+        $experiencesContainer.html( experiencesHTML );
+        
+        // Re-initialize any event handlers or plugins if needed
+        // For example, if you have Swiper sliders or other interactive elements
+    }
+    
+    // Initial load: Fetch experiences on page load if category page and no category in URL
+    $( document ).ready(function() {
+        // Check if we're on a category page (has .category class or experiences section)
+        // BUT exclude wishlist page (wishlist page has its own React component that handles data)
+        const isWishlistPage = $( 'body' ).hasClass( 'wishlist' );
+        const isCategoryPage = !isWishlistPage && ( $( 'body' ).hasClass( 'category' ) || $( '.experiences' ).length > 0 );
+        
+        if ( isCategoryPage ) {
+            // Get category from URL params
+            const urlParams = new URLSearchParams( window.location.search );
+            const categoryFromUrl = urlParams.get( 'category' );
+            
+            // If no category in URL, fetch all experiences (or default category)
+            if ( !categoryFromUrl ) {
+                // Fetch experiences without category filter (or with default)
+                fetchRESTExperiences( null, null, 5 )
+                    .then( data => {
+                        // Handle REST API response
+                        if ( data && data.experiences && data.experiences.data && Array.isArray( data.experiences.data ) ) {
+                            // Map REST API response to render format
+                            const mappedExperiences = data.experiences.data.map( experience => {
+                                const primaryImage = experience.images && experience.images.length > 0 ? experience.images[0] : null;
+                                return {
+                                    id: experience.id,
+                                    slug: experience.slug,
+                                    title: experience.title,
+                                    duration: experience.duration || (experience.hours ? `${experience.hours} Hours` : 'N/A'),
+                                    rating: experience.rating || '0',
+                                    price: experience.price || '0',
+                                    image: primaryImage?.medium || primaryImage?.large || primaryImage?.original || 
+                                           '/assets/images/experiences/experience-1a.jpg',
+                                    featured: experience.featured || false,
+                                    new: experience.isNew || false,
+                                    inWishlist: false // Will be updated if user is authenticated
+                                };
+                            } );
+                            
+                            // Call render function to update UI with experiences
+                            renderExperiencesFromAPI( mappedExperiences ).catch( error => {
+                                console.error( 'Error rendering experiences:', error );
+                            } );
+                            
+                            // Store pagination info
+                            window.experiencesPagination = {
+                                hasMore: data.experiences.hasMore || false,
+                                nextCursor: data.experiences.nextCursor || null,
+                                category: null
+                            };
+                        }
+                    } )
+                    .catch( error => {
+                        console.error( 'Error fetching initial experiences:', error );
+                        // Silently fail on initial load - static content will still show
+                    } );
+            } else {
+                // Category is in URL, fetch for that category
+                fetchRESTExperiences( categoryFromUrl, null, 10 )
+                    .then( data => {
+                        if ( data && data.experiences && data.experiences.data && Array.isArray( data.experiences.data ) ) {
+                            const mappedExperiences = data.experiences.data.map( experience => {
+                                const primaryImage = experience.images && experience.images.length > 0 ? experience.images[0] : null;
+                                return {
+                                    id: experience.id,
+                                    slug: experience.slug,
+                                    title: experience.title,
+                                    duration: experience.duration || (experience.hours ? `${experience.hours} Hours` : 'N/A'),
+                                    rating: experience.rating || '0',
+                                    price: experience.price || '0',
+                                    image: primaryImage?.medium || primaryImage?.large || primaryImage?.original || 
+                                           '/assets/images/experiences/experience-1a.jpg',
+                                    featured: experience.featured || false,
+                                    new: experience.isNew || false,
+                                    inWishlist: false // Will be updated if user is authenticated
+                                };
+                            } );
+                            
+                            renderExperiencesFromAPI( mappedExperiences ).catch( error => {
+                                console.error( 'Error rendering experiences:', error );
+                            } );
+                            
+                            window.experiencesPagination = {
+                                hasMore: data.experiences.hasMore || false,
+                                nextCursor: data.experiences.nextCursor || null,
+                                category: categoryFromUrl
+                            };
+                        }
+                    } )
+                    .catch( error => {
+                        console.error( 'Error fetching category experiences on load:', error );
+                    } );
+            }
+        }
+    });
+
+    // Handle wishlist icon click in header - navigate to wishlist page
+    $( document ).on( 'click', 'header .content .sections .section.three .blocks .block .icons .icon.five a.action', function( e ) {
+        e.preventDefault();
+        if ( typeof window !== 'undefined' ) {
+            window.location.href = '/wishlist';
+        }
+    });
+

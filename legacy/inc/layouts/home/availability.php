@@ -1,0 +1,769 @@
+    <div class="container">
+
+        <div class="content">
+
+            <div class="sections">
+
+                <div class="section one">
+
+                    <div class="blocks" data-blocks="1">
+
+                        <div class="block" data-block="1">
+
+                            <div class="blocks" data-blocks="2">
+
+                                <div class="block" data-block="1A">
+
+                                    <div class="close">
+
+                                        <div class="button circle" data-button="2A">
+
+                                            <div class="action">
+
+                                                <div class="icon">
+
+                                                    <i class="icons8 icons8-less-than"></i>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="block" data-blocks="1B">
+
+                                    <div class="title">
+
+                                        <h2 class="four">Experiences</h2>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="block" data-blocks="2">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="section two">
+
+                    <div class="blocks" data-blocks="1">
+
+                        <div class="block" data-blocks="1">
+
+                            <div class="experiences">
+
+                                <div class="blocks" data-blocks="2">
+
+                                    <div class="block" data-block="1A">
+
+                                        <div class="experience">
+
+                                            <div class="blocks" data-blocks="3">
+
+                                                <div class="block" data-block="1AA">
+
+                                                    <div class="banner">
+
+                                                        <div class="blocks" data-blocks="4">
+
+                                                            <div class="block" data-block="1AAB">
+
+                                                                <a href="#">
+
+                                                                    <div class="images">
+
+                                                                        <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/experiences/experience-1a.jpg')"></div>
+
+                                                                    </div>
+
+                                                                </a>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AB">
+
+                                                    <a href="#">
+
+                                                        <div class="title">
+
+                                                            <h3 class="three">Discover Formentera on a beautiful catamaran</h3>
+
+                                                        </div>
+
+                                                    </a>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AC">
+
+                                                    <div class="blocks" data-blocks="5">
+
+                                                        <div class="block" data-block="1ACA">
+
+                                                            <div class="duration">
+
+                                                                <div class="text">10:00 - 14:00</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1ACB">
+
+                                                            <div class="rating">
+
+                                                                <div class="icon">
+
+                                                                    <i class="icons8 icons8-star-2"></i>
+
+                                                                </div>
+
+                                                                <div class="text">4.7</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AD">
+
+                                                    <div class="blocks" data-blocks="6">
+
+                                                        <div class="block" data-block="1ADA">
+
+                                                            <div class="price">
+
+                                                                <div class="text">From €125</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1ADB">
+
+                                                            <div class="labels">
+
+                                                                <div class="label">Featured</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="block" data-block="1A">
+
+                                        <div class="experience">
+
+                                            <div class="blocks" data-blocks="3">
+
+                                                <div class="block" data-block="1AA">
+
+                                                    <div class="banner">
+
+                                                        <div class="blocks" data-blocks="4">
+
+                                                            <div class="block" data-block="1AAB">
+
+                                                                <a href="#">
+
+                                                                    <div class="images">
+
+                                                                        <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/experiences/experience-4a.jpg')"></div>
+
+                                                                    </div>
+
+                                                                </a>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AB">
+
+                                                    <a href="#">
+
+                                                        <div class="title">
+
+                                                            <h3 class="three">Discover the other side of Ibiza</h3>
+
+                                                        </div>
+
+                                                    </a>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AC">
+
+                                                    <div class="blocks" data-blocks="5">
+
+                                                        <div class="block" data-block="1ACA">
+
+                                                            <div class="duration">
+
+                                                                <div class="text">10:00 - 13:00</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1ACB">
+
+                                                            <div class="rating">
+
+                                                                <div class="icon">
+
+                                                                    <i class="icons8 icons8-star-2"></i>
+
+                                                                </div>
+
+                                                                <div class="text">4.9</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AD">
+
+                                                    <div class="blocks" data-blocks="6">
+
+                                                        <div class="block" data-block="1ADA">
+
+                                                            <div class="price">
+
+                                                                <div class="text">From €125</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1ADB">
+
+                                                            <div class="labels">
+
+                                                                <div class="label">Featured</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="block" data-block="1A">
+
+                                        <div class="experience">
+
+                                            <div class="blocks" data-blocks="3">
+
+                                                <div class="block" data-block="1AA">
+
+                                                    <div class="banner">
+
+                                                        <div class="blocks" data-blocks="4">
+
+                                                            <div class="block" data-block="1AAB">
+
+                                                                <a href="#">
+
+                                                                    <div class="images">
+
+                                                                        <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/experiences/experience-5a.jpg')"></div>
+
+                                                                    </div>
+
+                                                                </a>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AB">
+
+                                                    <a href="#">
+
+                                                        <div class="title">
+
+                                                            <h3 class="three">Full running tour of Ibiza Town</h3>
+
+                                                        </div>
+
+                                                    </a>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AC">
+
+                                                    <div class="blocks" data-blocks="5">
+
+                                                        <div class="block" data-block="1ACA">
+
+                                                            <div class="duration">
+
+                                                                <div class="text">10:00 - 12:00</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1ACB">
+
+                                                            <div class="rating">
+
+                                                                <div class="icon">
+
+                                                                    <i class="icons8 icons8-star-2"></i>
+
+                                                                </div>
+
+                                                                <div class="text">5.0</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AD">
+
+                                                    <div class="blocks" data-blocks="6">
+
+                                                        <div class="block" data-block="1ADA">
+
+                                                            <div class="price">
+
+                                                                <div class="text">From €50</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1ADB">
+
+                                                            <div class="labels">
+
+                                                                <div class="label">Featured</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="block" data-block="1A">
+
+                                        <div class="experience">
+
+                                            <div class="blocks" data-blocks="3">
+
+                                                <div class="block" data-block="1AA">
+
+                                                    <div class="banner">
+
+                                                        <div class="blocks" data-blocks="4">
+
+                                                            <div class="block" data-block="1AAB">
+
+                                                                <a href="#">
+
+                                                                    <div class="images">
+
+                                                                        <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/experiences/experience-7a.jpg')"></div>
+
+                                                                    </div>
+
+                                                                </a>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AB">
+
+                                                    <a href="#">
+
+                                                        <div class="title">
+
+                                                            <h3 class="three">Paddle along the wildest part of Ibiza</h3>
+
+                                                        </div>
+
+                                                    </a>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AC">
+
+                                                    <div class="blocks" data-blocks="5">
+
+                                                        <div class="block" data-block="1ACA">
+
+                                                            <div class="duration">
+
+                                                                <div class="text">11:00 - 14:00</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1ACB">
+
+                                                            <div class="rating">
+
+                                                                <div class="icon">
+
+                                                                    <i class="icons8 icons8-star-2"></i>
+
+                                                                </div>
+
+                                                                <div class="text">4.9</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AD">
+
+                                                    <div class="blocks" data-blocks="6">
+
+                                                        <div class="block" data-block="1ADA">
+
+                                                            <div class="price">
+
+                                                                <div class="text">From €50</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1ADB">
+
+                                                            <div class="labels">
+
+                                                                <div class="label">Featured</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="block" data-block="1A">
+
+                                        <div class="experience">
+
+                                            <div class="blocks" data-blocks="3">
+
+                                                <div class="block" data-block="1AA">
+
+                                                    <div class="banner">
+
+                                                        <div class="blocks" data-blocks="4">
+
+                                                            <div class="block" data-block="1AAB">
+
+                                                                <a href="#">
+
+                                                                    <div class="images">
+
+                                                                        <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/experiences/experience-9a.jpg')"></div>
+
+                                                                    </div>
+
+                                                                </a>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AB">
+
+                                                    <a href="#">
+
+                                                        <div class="title">
+
+                                                            <h3 class="three">Discover one of Ibiza's most secluded beaches</h3>
+
+                                                        </div>
+
+                                                    </a>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AC">
+
+                                                    <div class="blocks" data-blocks="5">
+
+                                                        <div class="block" data-block="1ACA">
+
+                                                            <div class="duration">
+
+                                                                <div class="text">10:00 - 14:00</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1ACB">
+
+                                                            <div class="rating">
+
+                                                                <div class="icon">
+
+                                                                    <i class="icons8 icons8-star-2"></i>
+
+                                                                </div>
+
+                                                                <div class="text">4.8</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AD">
+
+                                                    <div class="blocks" data-blocks="6">
+
+                                                        <div class="block" data-block="1ADA">
+
+                                                            <div class="price">
+
+                                                                <div class="text">From €50</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1ADB">
+
+                                                            <div class="labels">
+
+                                                                <div class="label">Featured</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="block" data-block="1A">
+
+                                        <div class="experience">
+
+                                            <div class="blocks" data-blocks="3">
+
+                                                <div class="block" data-block="1AA">
+
+                                                    <div class="banner">
+
+                                                        <div class="blocks" data-blocks="4">
+
+                                                            <div class="block" data-block="1AAB">
+
+                                                                <a href="#">
+
+                                                                    <div class="images">
+
+                                                                        <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/experiences/experience-10a.jpg')"></div>
+
+                                                                    </div>
+
+                                                                </a>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AB">
+
+                                                    <a href="#">
+
+                                                        <div class="title">
+
+                                                            <h3 class="three">A tour of Ibiza old town</h3>
+
+                                                        </div>
+
+                                                    </a>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AC">
+
+                                                    <div class="blocks" data-blocks="5">
+
+                                                        <div class="block" data-block="1ACA">
+
+                                                            <div class="duration">
+
+                                                                <div class="text">10:00 - 13:00</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1ACB">
+
+                                                            <div class="rating">
+
+                                                                <div class="icon">
+
+                                                                    <i class="icons8 icons8-star-2"></i>
+
+                                                                </div>
+
+                                                                <div class="text">5.0</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1AD">
+
+                                                    <div class="blocks" data-blocks="6">
+
+                                                        <div class="block" data-block="1ADA">
+
+                                                            <div class="price">
+
+                                                                <div class="text">From €50</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1ADB">
+
+                                                            <div class="labels">
+
+                                                                <div class="label">Featured</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="overlay"></div>

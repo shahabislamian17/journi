@@ -1,0 +1,226 @@
+    <div class="container">
+
+        <div class="content">
+
+            <div class="sections">
+
+                <div class="section one">
+
+                    <div class="blocks" data-blocks="1">
+
+                        <div class="block" data-block="1">
+
+                            <div class="blocks" data-blocks="2">
+
+                                <div class="block" data-block="1A">
+
+                                    <div class="labels">
+
+                                        <div class="label">Featured</div>
+                                        <div class="label">Sightseeing</div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="block" data-block="1B">
+
+                                    <div class="title">
+
+                                        <h1 class="two">Discover Formentera on a beautiful catamaran</h1>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="block" data-block="1C">
+
+                                    <div class="blocks" data-blocks="3">
+
+                                        <div class="block" data-block="1CA">
+
+                                            <div class="blocks" data-blocks="4">
+
+                                                <div class="block" data-block="1CAA">
+
+                                                    <div class="duration">
+
+                                                        <div class="text">4 Hours</div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1CAB">
+
+                                                    <div class="rating">
+
+                                                        <div class="icon">
+
+                                                            <i class="icons8 icons8-star-2"></i>
+
+                                                        </div>
+
+                                                        <div class="text">4.7</div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="block" data-block="1CB">
+
+                                            <div class="overview">
+
+                                                <div class="text">
+
+                                                    <p class="small one">Sail across the Iberian Peninsula to discover Formentera aboard our beautiful catamaran, enjoying sun, sea, and serenity.</p>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="section two">
+
+                    <div class="blocks" data-blocks="1">
+
+                        <div class="block" data-block="1">
+
+                            <div class="slider">
+
+                                <div class="navigation">
+
+                                    <div class="buttons">
+
+                                        <div class="button circle background alt one">
+
+                                            <div class="action">
+
+                                                <div class="icon">
+
+                                                    <i class="icons8 icons8-less-than"></i>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="button circle background alt two">
+
+                                            <div class="action">
+
+                                                <div class="icon">
+
+                                                    <i class="icons8 icons8-more-than"></i>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="slides">
+
+                                    <div class="slide">
+
+                                        <div class="images">
+
+                                            <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/experiences/experience-1a.jpg')"></div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="slide">
+
+                                        <div class="images">
+
+                                            <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/experiences/experience-1b.jpg')"></div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="slide">
+
+                                        <div class="images">
+
+                                            <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/experiences/experience-1a.jpg')"></div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="slide">
+
+                                        <div class="images">
+
+                                            <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/experiences/experience-1b.jpg')"></div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="pagination">
+
+                                    <div class="icons"></div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="block" data-block="2">
+
+                            <div class="icons">
+
+                                <div class="icon" data-icon="1">
+
+                                    <i class="icons8 icons8-heart"></i>
+
+                                </div>
+
+                                <div class="icon" data-icon="2">
+
+                                    <i class="icons8 icons8-heart-2"></i>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>

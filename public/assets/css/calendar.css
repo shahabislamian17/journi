@@ -1,0 +1,794 @@
+.calendar {
+    bottom: 0;
+    display: none;
+    height: 100%;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    visibility: hidden;
+    width: 100%;
+    z-index: -1;
+}
+
+.calendar.delay {
+    display: block;
+    visibility: visible;
+    z-index: 1000;
+}
+
+.calendar .container {
+    background: #FFFFFF;
+    border-radius: 24px 24px 0 0;
+    bottom: 0;
+    box-sizing: border-box;
+    float: left;
+    height: calc(100% - 138px);
+    left: 0;
+    margin: 0;
+    max-width: 100%;
+    position: absolute;
+    right: 0;
+    top: auto;
+    transition: all 0.6s ease 0s;
+    -webkit-transition: all 0.6s ease 0s;
+    transform: translateY(100%);
+    -webkit-transform: translateY(100%);
+    width: 100%;
+    will-change: transform;
+    z-index: 1000;
+}
+
+@media (max-width: 900px) {
+    .calendar .container {
+        height: 100%;
+    }
+}
+
+.scroll .calendar .container {
+    height: calc(100% - 75px);
+}
+
+@media (max-width: 900px) {
+    .scroll .calendar .container {
+        height: 100%;
+    }
+}
+
+.calendar.active .container {
+    bottom: 0;
+    transform: translateX(0);
+    -webkit-transform: translateX(0);
+    visibility: visible;
+}
+
+@media (max-width: 900px) {
+    .calendar.active .container {
+        border-radius: 0;
+    }
+}
+
+.calendar .overlay {
+    background: rgba(16, 24, 32, 0.1);
+    height: 100%;
+    left: 0;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    transition: all 0.2s ease 0s;
+    -webkit-transition: all 0.2s ease 0s;
+    width: 100%;
+    z-index: -1;
+}
+
+@media {
+    .mobile .calendar .overlay {
+        cursor: pointer;
+    }
+}
+
+.calendar.active .overlay {
+    opacity: 1;
+    z-index: 500;
+}
+
+.calendar .content {
+    float: left;
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.calendar .content .blocks {
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block {
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block:nth-child(1) {
+    display: flex;
+    justify-content: center;
+    margin: 30px 0 0;
+}
+
+.calendar .content .blocks .block:nth-child(2) {
+    box-sizing: border-box;
+    height: calc(100vh - 70px);
+    overflow-x: hidden;
+    padding: 18px 4.6875% 35px;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+.calendar .content .blocks .block .blocks {
+    display: block;
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .blocks {
+    width: calc(87.5% + 6px);
+}
+
+.calendar .content .blocks .block .blocks .block {
+    box-sizing: border-box;
+    float: left;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    padding: 0;
+    transform: none;
+    -webkit-transform: none;
+    width: auto;
+}
+
+.calendar .content .blocks .block .blocks .block:nth-child(2) {
+    float: right;
+    left: 0;
+    position: sticky;
+    top: 0;
+}
+
+.calendar .content .blocks .block .blocks .block .blocks {
+    display: flex;
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .blocks .block .blocks .block {
+    box-sizing: border-box;
+    display: block;
+    float: left;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    padding: 0;
+    transform: none;
+    -webkit-transform: none;
+    width: auto;
+}
+
+.calendar .content .blocks .block .blocks .block .blocks .block:nth-child(1) {
+    margin: 0 15px 0 0;
+}
+
+@media (max-width: 1250px) {
+    .calendar .content .blocks .block .blocks .block .blocks .block:nth-child(1) {
+        margin: 0 10px 0 0;
+    }
+}
+
+.calendar .content .blocks .block .blocks .block .blocks .block .close {
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .blocks .block .blocks .block .title {
+    float: left;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    -webkit-transform: translateY(-50%);
+    width: 100%;
+}
+
+.calendar .content .blocks .block .blocks .block .buttons {
+    float: left;
+    margin: 3px 0;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .blocks .block .buttons .blocks {
+    display: block;
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .blocks .block .buttons .blocks .block:first-child {
+    float: left;
+}
+
+@media (max-width: 600px) {
+    .calendar .content .blocks .block .blocks .block .buttons .blocks .block:first-child {
+        display: none;
+    }
+}
+
+.calendar .content .blocks .block .blocks .block .buttons .blocks .block:last-child {
+    float: right;
+    margin: 0 5px 0 0;
+}
+
+@media (max-width: 900px) {
+    .calendar .content .blocks .block .blocks .block .buttons .blocks .block:last-child {
+        margin: 0;
+    }
+}
+
+.calendar .content .blocks .block .blocks .block .buttons .blocks .block:first-child .button.small {
+    margin: 0 7px 0 0;
+}
+
+.calendar .content .blocks .block .blocks .block .buttons .blocks .block:first-child .button.circle.alt {
+    display: none;
+}
+
+.calendar .content .blocks .block .blocks .block .buttons .blocks .block:last-child .button.circle.alt:first-child {
+    margin: 0 6px 0 0;
+}
+
+.calendar .content .blocks .block .dates {
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks {
+    display: block;
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block {
+    display: block;
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block:nth-child(1) {
+    background: #FFFFFF;
+    float: right;
+    position: sticky;
+    top: -20px;
+    width: 100%;
+    z-index: 50;
+}
+
+.calendar .content .blocks .block .dates .blocks .block:nth-child(1):before {
+    background: #F7F7F8;
+    bottom: 0;
+    content: '';
+    height: 1px;
+    left: 0;
+    position: absolute;
+    width: 60px;
+    z-index: 100;
+}
+
+@media screen and (max-width: 1250px) {
+    .calendar .content .blocks .block .dates .blocks .block:nth-child(1):before {
+        width: 25px;
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block:nth-child(2) {
+    z-index: 10;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels {
+    float: right;
+    position: relative;
+    width: calc(100% - 75px);
+}
+
+@media (max-width: 1250px) {
+    .calendar .content .blocks .block .dates .blocks .block .labels {
+        width: calc(100% - 35px);
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels:before,
+.calendar .content .blocks .block .dates .blocks .block .labels:after {
+    background: #FFFFFF;
+    bottom: 0;
+    box-sizing: border-box;
+    content: '';
+    height: 100%;
+    position: absolute;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    z-index: 50;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels:before {
+    left: calc(-4.6875vw - 75px);
+    width: calc(4.6875vw + 75px);
+}
+
+@media (max-width: 1250px) {
+    .calendar .content .blocks .block .dates .blocks .block .labels:before {
+        left: calc(-4.6875vw - 65px);
+        width: calc(4.6875vw + 65px);
+    }
+}
+
+@media (max-width: 900px) {
+    .calendar .content .blocks .block .dates .blocks .block .labels:before {
+        left: calc(-4.6875vw - 35px);
+        width: calc(4.6875vw + 35px);
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels:after {
+    right: -4.6875vw;
+    width: 4.6875vw;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider {
+    float: left;
+    height: 100%;
+    position: relative;
+    touch-action: pan-y;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides {
+    box-sizing: content-box;
+    display: flex;
+    float: left;
+    height: 100%;
+    position: relative;
+    transform: translate3d(0px, 0, 0);
+    -webkit-transform: translate3d(0px, 0, 0);
+    transition-property: transform;
+    width: 100%;
+    z-index: 1;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide {
+    flex-shrink: 0;
+    float: left;
+    height: 100%;
+    margin: 0 10px 0 0;
+    position: relative;
+    transition: all 0.2s ease 0s;
+    -webkit-transition: all 0.2s ease 0s;
+    transition-property: transform;
+    width: calc(14.2857% - 9px);
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label {
+    float: left;
+    padding: 18px 0 10px;
+    position: relative;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label:after {
+    background: #F7F7F8;
+    bottom: 0;
+    content: '';
+    height: 1px;
+    left: 0;
+    position: absolute;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    width: calc(100% - 10px);
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label:last-child {
+    margin: 0 25px 0 0;
+    padding: 20px 0 10px;
+}
+
+@media (max-width: 900px) {
+    .calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label:last-child {
+        margin: 0 22px 0 0;
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label:last-child:after {
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks {
+    position: relative;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block {
+    background: none;
+    box-sizing: border-box;
+    display: block;
+    height: auto;
+    left: auto;
+    margin: 0;
+    overflow: visible;
+    padding: 0;
+    position: relative;
+    top: auto;
+    transform: none;
+    -webkit-transform: none;
+    width: auto;
+    z-index: auto;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block:before {
+    display: none;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block:nth-child(1) {
+    position: relative;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block:nth-child(2) {
+    right: 6px;
+    position: absolute;
+    top: 0;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .text {
+    float: left;
+    font-size: 0.775em;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    line-height: 1.3625em;
+}
+
+@media {
+    .mobile .calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .text {
+        font-size: 0.8125em;
+        font-weight: 460;
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .text span {
+    float: left;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .text .one {
+        display: none;
+    }
+}
+
+@media (max-width: 900px) {
+    .calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .text .two {
+        width: 25px;
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block:nth-child(2) .button.circle.alt {
+    height: 28px;
+    margin: 2px 0;
+    width: 28px;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .button.circle.alt .icon {
+    font-size: 14px;
+    line-height: 14px;
+    top: calc(50% - 1px);
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .button.circle.alt.active ~ .list {
+    display: block;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .list {
+    display: none;
+    float: left;
+    margin: 0;
+    position: absolute;
+    right: -6px;
+    top: 40px;
+    width: 100px;
+    z-index: 50;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .list:before {
+    background: #FFFFFF;
+    content: '';
+    height: 2px;
+    left: 50%;
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    -webkit-transform: translateX(-50%);
+    width: 100%;
+    z-index: 1;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .list ul {
+    background: #FFFFFF;
+    border: 1px solid #F7F7F8;
+    border-radius: 6px;
+    box-sizing: border-box;
+    float: left;
+    list-style: none;
+    margin: 0;
+    padding: 15px 18px;
+    position: relative;
+    width: 100px;
+    z-index: 10;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .list ul li {
+    cursor: pointer;
+    float: left;
+    font-size: 12px;
+    letter-spacing: -0.005em;
+    line-height: 19px;
+    transition: all 0.2s ease 0s;
+    -webkit-transition: all 0.2s ease 0s;
+    width: 100%;
+}
+
+@media {
+    .mobile .calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .list ul li {
+        font-size: 0.8375em;
+        line-height: 20px;
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block .labels .slider .slides .slide .label .blocks .block .list ul li:hover {
+    color: #74D2DE;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks {
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block:nth-child(1) {
+    width: 60px;
+}
+
+@media (max-width: 1250px) {
+    .calendar .content .blocks .block .dates .blocks .block .blocks .block:nth-child(1) {
+        width: 25px;
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block:nth-child(2) {
+    width: calc(100% - 75px);
+}
+
+@media (max-width: 1250px) {
+    .calendar .content .blocks .block .dates .blocks .block .blocks .block:nth-child(2) {
+        width: calc(100% - 35px);
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .labels {
+    float: left;
+    position: relative;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .labels:before,
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .labels:after {
+    display: none;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .labels .label {
+    border-bottom: 1px solid #F7F7F8;
+    box-sizing: border-box;
+    height: 38px;
+    position: relative;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .labels .label:first-child:before {
+    background: #F7F7F8;
+    content: '';
+    height: 1px;
+    left: 0;
+    position: absolute;
+    top: -1px;
+    width: 100%;
+    z-index: 10;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .labels .label .text {
+    float: left;
+    font-size: 0.775em;
+    font-weight: 400;
+    letter-spacing: -0.006875em;
+    line-height: 38px;
+}
+
+@media {
+    .mobile .calendar .content .blocks .block .dates .blocks .block .blocks .block .labels .label .text {
+        font-size: 0.8125em;
+        font-weight: 460;
+    }
+}
+
+@media (max-width: 1250px) {
+    .calendar .content .blocks .block .dates .blocks .block .blocks .block .labels .label:nth-child(2n) .text {
+        display: none;
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .labels .label .text span {
+    float: left;
+}
+
+@media (max-width: 1250px) {
+    .calendar .content .blocks .block .dates .blocks .block .blocks .block .labels .label .text .two {
+        display: none;
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days {
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider {
+    float: left;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    touch-action: pan-y;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides {
+    box-sizing: content-box;
+    display: flex;
+    float: left;
+    height: 100%;
+    position: relative;
+    transform: translate3d(0px, 0, 0);
+    -webkit-transform: translate3d(0px, 0, 0);
+    transition-property: transform;
+    width: 100%;
+    z-index: 1;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide {
+    flex-shrink: 0;
+    float: left;
+    height: 100%;
+    margin: 0 10px 0 0;
+    position: relative;
+    transition: all 0.2s ease 0s;
+    -webkit-transition: all 0.2s ease 0s;
+    transition-property: transform;
+    width: calc(14.2857% - 9px);
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day {
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .times {
+    float: left;
+    position: relative;
+    width: 100%;
+    z-index: 1;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .times .time {
+    border-bottom: 1px solid #F7F7F8;
+    box-sizing: border-box;
+    float: left;
+    height: 38px;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences {
+    float: left;
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 10;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience {
+    background: #DCF4F7;
+    border-radius: 6px;
+    box-sizing: border-box;
+    cursor: pointer;
+    float: left;
+    margin: 5px 0;
+    padding: 10px 11px;
+    position: absolute;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience {
+        padding: 8px 9px;
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience.active {
+    background: #89D9E3;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience .blocks {
+    display: block;
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience .blocks .block {
+    background: none;
+    box-sizing: border-box;
+    display: block;
+    height: auto;
+    float: left;
+    left: auto;
+    margin: 0;
+    overflow: visible;
+    padding: 0;
+    top: auto;
+    transform: none;
+    -webkit-transform: none;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience .blocks .block:before {
+    display: none;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience .blocks .block:last-child {
+    bottom: 12px;
+    display: none;
+    position: absolute;
+    right: 15px;
+    width: auto;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience .blocks .block .text {
+    float: left;
+    font-size: 0.7625em;
+    font-weight: 400;
+    line-height: 1.35em;
+    word-break: break-word;
+}
+
+@media {
+    .mobile .calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience .blocks .block .text {
+        font-size: 0.8em;
+        font-weight: 455;
+    }
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience .blocks .block .text span {
+    float: left;
+    width: 100%;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience .blocks .block .text .two {
+    display: none;
+    margin: 12px 0 0;
+}
+
+.calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience .blocks .block .icon {
+    float: right;
+    font-size: 15px;
+    line-height: 1em;
+}
+
+@media {
+    .mobile .calendar .content .blocks .block .dates .blocks .block .blocks .block .days .slider .slides .slide .day .experiences .experience .blocks .block .icon{
+        font-size: 1.025em;
+    }
+}

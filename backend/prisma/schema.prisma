@@ -1,0 +1,230 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  firstName     String?   @map("first_name")
+  lastName      String?   @map("last_name")
+  phone         String?
+  avatar        String?
+  languages     String?   @db.Text // JSON array of languages for HOST users
+  role          String    @default("TRAVELLER") // TRAVELLER or HOST
+  emailVerified Boolean   @default(false) @map("email_verified")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  bookings      Booking[]
+  wishlistItems WishlistItem[]
+  messages      Message[]
+  reviews       Review[]
+  websiteReviews WebsiteReview[]
+
+  @@map("users")
+}
+
+model Category {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  description String?
+  image       String?
+  banner      String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  experiences Experience[]
+
+  @@map("categories")
+}
+
+model Experience {
+  id          String       @id @default(uuid())
+  title       String
+  slug        String       @unique
+  description String?      @db.Text
+  categoryId  String       @map("category_id")
+  duration    String?      // e.g., "4 Hours"
+  hours       Float?       // numeric hours for sorting
+  price       Float
+  rating      Float        @default(0)
+  featured    Boolean      @default(false)
+  isNew       Boolean      @default(false) @map("is_new")
+  location    String?
+  itinerary   String?      @db.Text
+  hostId      String?      @map("host_id")
+  hostName    String?      @map("host_name")
+  hostImage   String?      @map("host_image")
+  languages   String?      @db.Text // JSON array of languages
+  includedItems String?    @db.Text @map("included_items") // JSON array of included items
+  requirements String?     @db.Text // Requirements text
+  accessibility String?    @db.Text // Accessibility information
+  cancellationPolicy String? @db.Text @map("cancellation_policy") // Cancellation policy
+  locationDetails String?  @db.Text @map("location_details") // Detailed location info
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  category    Category     @relation(fields: [categoryId], references: [id])
+  images      ExperienceImage[]
+  bookings    Booking[]
+  wishlistItems WishlistItem[]
+  reviews     Review[]
+  availabilitySlots AvailabilitySlot[]
+
+  @@map("experiences")
+}
+
+model ExperienceImage {
+  id           String     @id @default(uuid())
+  experienceId String    @map("experience_id")
+  original     String
+  large        String?
+  medium       String?
+  small        String?
+  thumbnail    String?
+  isPrimary    Boolean    @default(false) @map("is_primary")
+  order        Int        @default(0)
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@map("experience_images")
+}
+
+model Booking {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  experienceId  String    @map("experience_id")
+  date          DateTime
+  guests        Int       @default(1)
+  totalPrice    Float     @map("total_price")
+  status        String    @default("pending") // pending, confirmed, cancelled, completed
+  paymentStatus String    @default("pending") @map("payment_status") // pending, paid, refunded
+  paymentIntentId String? @map("payment_intent_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user          User      @relation(fields: [userId], references: [id])
+  experience    Experience @relation(fields: [experienceId], references: [id])
+
+  @@map("bookings")
+}
+
+model WishlistItem {
+  id          String     @id @default(uuid())
+  userId      String     @map("user_id")
+  experienceId String    @map("experience_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  user        User       @relation(fields: [userId], references: [id])
+  experience  Experience @relation(fields: [experienceId], references: [id])
+
+  @@unique([userId, experienceId])
+  @@map("wishlist_items")
+}
+
+model Review {
+  id          String     @id @default(uuid())
+  userId      String     @map("user_id")
+  experienceId String    @map("experience_id")
+  bookingId   String?    @unique @map("booking_id")
+  rating      Int        // 1-5
+  comment     String?    @db.Text
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  user        User       @relation(fields: [userId], references: [id])
+  experience  Experience @relation(fields: [experienceId], references: [id])
+
+  @@map("reviews")
+}
+
+model WebsiteReview {
+  id          String     @id @default(uuid())
+  userId      String     @map("user_id")
+  rating      Int        // 1-5
+  comment     String?    @db.Text
+  featured    Boolean    @default(false) // For home page display
+  reviewCount Int?       @map("review_count") // Number of reviews by this user (e.g., "3 Reviews")
+  localGuide  Boolean    @default(false) @map("local_guide") // "Local Guide" badge
+  source      String     @default("Google") // Review source (Google, etc.)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  user        User       @relation(fields: [userId], references: [id])
+
+  @@map("website_reviews")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  subject   String
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("messages")
+}
+
+model AvailabilitySlot {
+  id           String     @id @default(uuid())
+  experienceId String     @map("experience_id")
+  date         DateTime
+  startTime    String?    @map("start_time") // e.g., "10:30"
+  endTime      String?    @map("end_time") // e.g., "14:00"
+  price        Float?     // Override price for this slot
+  maxGuests    Int?       @default(10) @map("max_guests")
+  available    Boolean    @default(true)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@map("availability_slots")
+}
+
+model Stay {
+  id          String   @id @default(uuid())
+  name        String
+  location    String
+  rating      Int      @default(5) // 1-5 stars
+  price       Float
+  image       String
+  type        String   @default("Hotel") // e.g., "Hotel", "Resort", "Villa"
+  featured    Boolean  @default(false)
+  externalUrl String   @map("external_url") // Third-party booking link with commission code
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("stays")
+}
+
+model Car {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   // e.g., "Compact", "Luxury SUV", "Sport"
+  price       Float
+  image       String
+  featured    Boolean  @default(false)
+  externalUrl String   @map("external_url") // Third-party booking link with commission code
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("cars")
+}
+

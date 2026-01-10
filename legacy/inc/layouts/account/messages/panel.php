@@ -1,0 +1,401 @@
+    <div class="container">
+
+        <div class="content">
+
+            <div class="sections">
+
+                <div class="section two">
+
+                    <div class="blocks" data-blocks="1">
+
+                        <div class="block" data-block="1">
+
+                            <div class="conversations">
+
+                                <div class="blocks" data-blocks="2">
+
+                                    <div class="block" data-block="1A">
+
+                                        <div class="title">
+
+                                            <h1 class="four">Messages</h1>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="block" data-block="1B">
+
+                                        <div class="users">
+
+                                            <div class="blocks" data-blocks="3">
+
+                                                <div class="block active" data-block="1BA">
+
+                                                    <div class="user">
+
+                                                        <div class="blocks" data-blocks="4">
+
+                                                            <div class="block" data-block="1BAA">
+
+                                                                <div class="images">
+
+                                                                    <div class="blocks" data-blocks="5">
+
+                                                                        <div class="block" data-block="1BAAA">
+
+                                                                            <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/experiences/experience-1a.jpg')"></div>
+
+                                                                        </div>
+
+                                                                        <div class="block" data-block="1BAAB">
+
+                                                                            <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/global/hosts/placeholder.jpg')"></div>
+
+                                                                        </div>
+
+                                                                    </div>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                            <div class="block" data-block="1BAB">
+
+                                                                <div class="text">
+
+                                                                    <span class="one">Hugo Carretero</span>
+                                                                    <span class="two">Discover Formentera on..</span>
+                                                                    <span class="three">01 Jun</span>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="1BA">
+
+                                                    <div class="user">
+
+                                                        <div class="blocks" data-blocks="4">
+
+                                                            <div class="block" data-block="1BAA">
+
+                                                                <div class="images">
+
+                                                                    <div class="blocks" data-blocks="5">
+
+                                                                        <div class="block" data-block="1BAAA">
+
+                                                                            <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/experiences/experience-7a.jpg')"></div>
+
+                                                                        </div>
+
+                                                                        <div class="block" data-block="1BAAB">
+
+                                                                            <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/global/hosts/placeholder.jpg')"></div>
+
+                                                                        </div>
+
+                                                                    </div>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                            <div class="block" data-block="1BAB">
+
+                                                                <div class="text">
+
+                                                                    <span class="one">Hugo Carretero</span>
+                                                                    <span class="two">Paddle along the wilde..</span>
+                                                                    <span class="three">30 May</span>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="block" data-block="2">
+
+                            <div class="conversation">
+
+                                <div class="blocks" data-blocks="6">
+
+                                    <div class="block" data-block="2A">
+
+                                        <div class="blocks" data-blocks="7">
+
+                                            <div class="block" data-block="2AA">
+
+                                                <div class="close">
+
+                                                    <div class="button circle" data-button="2A">
+
+                                                        <div class="action">
+
+                                                            <div class="icon">
+
+                                                                <i class="icons8 icons8-less-than"></i>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                            <div class="block" data-block="2AB">
+
+                                                <div class="image" style="background-image: url('<?=BASE_URL?>/assets/images/global/hosts/placeholder.jpg')"></div>
+
+                                            </div>
+
+                                            <div class="block" data-block="2AC">
+
+                                                <div class="title">
+
+                                                    <h2 class="five">Hugo Carretero</h2>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="block" data-block="2B">
+
+                                        <div class="messages">
+
+                                            <div class="blocks" data-blocks="8">
+
+                                                <div class="block" data-block="2BA" data-user="1">
+
+                                                    <div class="message">
+
+                                                        <div class="blocks" data-blocks="9">
+
+                                                            <div class="block" data-block="2BAA">
+
+                                                                <div class="text">
+
+                                                                    <span>Hugo Carretero</span>
+                                                                    <span>01 Jun</span>
+                                                                    <span>09:00</span>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                            <div class="block" data-block="2BAB">
+
+                                                                <div class="text">
+
+                                                                    <p class="small three">Lorem ipsum dolor sit amet consectetur pretium. Quisque faucibus sapien vitae pellentesque sem placerat pretium.</p>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="2BA" data-user="2">
+
+                                                    <div class="message">
+
+                                                        <div class="blocks" data-blocks="9">
+
+                                                            <div class="block" data-block="2BAA">
+
+                                                                <div class="text">
+
+                                                                    <span>Andrew Wheeldon</span>
+                                                                    <span>01 Jun</span>
+                                                                    <span>10:00</span>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                            <div class="block" data-block="2BAB">
+
+                                                                <div class="text">
+
+                                                                    <p class="small three">Lorem ipsum dolor sit amet consectetur pretium. Quisque faucibus sapien vitae pellentesque sem placerat pretium.</p>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="2BA" data-user="1">
+
+                                                    <div class="message">
+
+                                                        <div class="blocks" data-blocks="9">
+
+                                                            <div class="block" data-block="2BAA">
+
+                                                                <div class="text">
+
+                                                                    <span>Hugo Carretero</span>
+                                                                    <span>01 Jun</span>
+                                                                    <span>11:00</span>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                            <div class="block" data-block="2BAB">
+
+                                                                <div class="text">
+
+                                                                    <p class="small three">Lorem ipsum dolor sit amet consectetur pretium. Quisque faucibus sapien vitae pellentesque sem placerat pretium.</p>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="block" data-block="2BA" data-user="2">
+
+                                                    <div class="message">
+
+                                                        <div class="blocks" data-blocks="9">
+
+                                                            <div class="block" data-block="2BAA">
+
+                                                                <div class="text">
+
+                                                                    <span>Andrew Wheeldon</span>
+                                                                    <span>01 Jun</span>
+                                                                    <span>12:00</span>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                            <div class="block" data-block="2BAB">
+
+                                                                <div class="text">
+
+                                                                    <p class="small three">Lorem ipsum dolor sit amet consectetur pretium. Quisque faucibus sapien vitae pellentesque sem placerat pretium.</p>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="block" data-block="2C">
+
+                                        <form class="form">
+
+                                            <div class="fields">
+
+                                                <div class="fieldset">
+
+                                                    <div class="blocks" data-blocks="10">
+
+                                                        <div class="block" data-block="2CA">
+
+                                                            <div class="textarea">
+
+                                                                <textarea></textarea>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="2CB">
+
+                                                            <div class="button small" data-button="1A">
+
+                                                                <a class="action">
+
+                                                                    <div class="text">Send</div>
+
+                                                                </a>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </form>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="overlay"></div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>

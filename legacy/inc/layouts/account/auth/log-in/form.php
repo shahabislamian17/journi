@@ -1,0 +1,211 @@
+    <div class="container">
+
+        <div class="content">
+
+            <div class="sections">
+
+                <div class="section one">
+
+                    <div class="blocks" data-blocks="1">
+
+                        <div class="block" data-block="1">
+
+                            <div class="blocks" data-blocks="2">
+
+                                <div class="block" data-block="1A">
+
+                                    <div class="title">
+
+                                        <h1 class="three">Log In</h1>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="block" data-block="1B">
+
+                                    <div class="text">
+
+                                        <p class="small three">Access your account.</p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="block" data-block="2">
+
+                            <div class="text">
+
+                                <p class="small five">
+
+                                    <span>New to Journi?</span>
+                                    <span>Click <a class="link" href="<?=BASE_URL?>/account/register">here</a>.</span>
+
+                                </p>
+
+                                <p class="small five">
+
+                                    <span>Forgot your password?</span>
+                                    <span>Click <a class="link" href="<?=BASE_URL?>/account/forgot-password">here</a>.</span>
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="section two">
+
+                    <div class="blocks" data-blocks="1">
+
+                        <div class="block" data-block="1">
+
+                            <form class="form" data-form="log-in">
+
+                                <div class="fields">
+
+                                    <div class="fieldset">
+
+                                        <div class="blocks" data-blocks="2">
+
+                                            <div class="block" data-block="1A" data-inputs="1">
+
+                                                <div class="input">
+
+                                                    <label>Email Address</label>
+
+                                                    <input type="text" name="email-address" autocapitalize="none" required>
+
+                                                </div>
+
+                                            </div>
+
+                                            <div class="block" data-block="1B" data-inputs="1">
+
+                                                <div class="blocks" data-blocks="3">
+
+                                                    <div class="block" data-block="1BA">
+
+                                                        <div class="input">
+
+                                                            <label>Password</label>
+
+                                                            <input type="password" name="password" required>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                    <div class="block" data-block="1BB">
+
+                                                        <div class="toggle">
+
+                                                            <div class="icons">
+
+                                                                <div class="icon" data-icon="1">
+
+                                                                    <i class="icons8 icons8-eye"></i>
+
+                                                                </div>
+
+                                                                <div class="icon" data-icon="2">
+
+                                                                    <i class="icons8 icons8-eye-2"></i>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                            <div class="block" data-block="1C">
+
+                                                <div class="checkbox">
+
+                                                    <div class="blocks" data-blocks="4">
+
+                                                        <div class="block" data-block="1CA">
+
+                                                            <div class="icons">
+
+                                                                <div class="icon" data-icon="1">
+
+                                                                    <i class="icons8 icons8-checkbox"></i>
+
+                                                                </div>
+
+                                                                <div class="icon" data-icon="2">
+
+                                                                    <i class="icons8 icons8-checked-checkbox"></i>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="block" data-block="1CB">
+
+                                                            <div class="text">Remember Me</div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                            <div class="block" data-block="1D">
+
+                                                <div class="buttons">
+
+                                                    <div class="button medium" data-button="1A">
+
+                                                        <a class="action" href="#">
+
+                                                            <div class="text">Log In</div>
+
+                                                            <div class="background"></div>
+
+                                                        </a>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>

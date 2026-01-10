@@ -1,0 +1,22 @@
+{
+  "name": "journi-next",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "postinstall": "cd backend && npm install && npx prisma generate"
+  },
+  "dependencies": {
+    "@apollo/client": "^4.0.11",
+    "apollo-upload-client": "^19.0.0",
+    "graphql": "^16.12.0",
+    "graphql-ws": "^6.0.6",
+    "next": "^15.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/apollo-upload-client": "^19.0.0"
+  }
+}
