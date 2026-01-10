@@ -82,5 +82,5 @@ public/assets/lib/stripe/
 # Legacy PHP payment directory
 payment/
 
-# Legacy PHP directory (optional - uncomment if not needed)
-# legacy/
+# Legacy PHP directory (not used in Next.js)
+legacy/
