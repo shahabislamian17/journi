@@ -2,9 +2,16 @@
 const { PrismaClient } = require('@prisma/client');
 
 // Singleton pattern for serverless environments
+// Use global variable to persist across function invocations
 let prisma;
 
 function getPrismaClient() {
+  // Check global first (for serverless function reuse)
+  if (global.__prisma) {
+    return global.__prisma;
+  }
+  
+  // Check local variable (for same execution context)
   if (prisma) {
     return prisma;
   }
@@ -80,10 +87,14 @@ function getPrismaClient() {
       'NOT SET'
   );
 
+  // Store in global for serverless function reuse
+  global.__prisma = prisma;
+  
   // Graceful shutdown
   process.on('beforeExit', async () => {
-    if (prisma) {
-      await prisma.$disconnect();
+    if (global.__prisma) {
+      await global.__prisma.$disconnect();
+      global.__prisma = null;
     }
   });
 
