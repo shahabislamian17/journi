@@ -82,8 +82,9 @@ module.exports = async function handler(req, res) {
     : '';
 
   console.log(`[API Handler] ${req.method} ${fullPath}`, { 
-    body: req.method === 'POST' || req.method === 'PUT' ? '(present)' : undefined,
-    query: cleanQuery 
+    body: req.method === 'POST' || req.method === 'PUT' ? (req.body ? Object.keys(req.body) : 'missing') : undefined,
+    query: cleanQuery,
+    routeSegments: routeSegments
   });
 
   // Next.js already parses JSON body, so use it directly
@@ -329,7 +330,21 @@ module.exports = async function handler(req, res) {
     try {
       // Express app is callable as app(req, res, next)
       // This will process all middleware and route handlers
+      console.log(`[Express Call] Calling app with method=${expressReq.method}, path=${expressReq.path}, url=${expressReq.url}`);
+      console.log(`[Express Call] Body keys:`, expressReq.body ? Object.keys(expressReq.body) : 'none');
+      
+      // Call Express app handler
       app(expressReq, expressRes, next);
+      
+      // Add timeout fallback in case Express doesn't call next or respond
+      setTimeout(() => {
+        if (!responseEnded && !res.headersSent) {
+          console.error(`[Express Timeout] No response after 5s for ${req.method} ${fullPath}`);
+          responseEnded = true;
+          res.status(504).json({ error: 'Request timeout - route may not be registered' });
+          resolve();
+        }
+      }, 5000);
     } catch (error) {
       console.error('[Handler Error]:', error);
       if (!responseEnded && !res.headersSent) {
