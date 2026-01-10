@@ -93,7 +93,14 @@ export async function getServerSideProps(context) {
     };
   } catch (error) {
     console.error('Error fetching data:', error);
-    // Fallback with empty data
+    console.error('Error details:', {
+      message: error.message,
+      status: error.status,
+      response: error.response,
+      stack: error.stack?.split('\n').slice(0, 5).join('\n')
+    });
+    
+    // Fallback with empty data but preserve structure
     const templates = readTemplates([
       "global/announcements.html",
       "global/footer-base.html",
@@ -111,10 +118,12 @@ export async function getServerSideProps(context) {
     return {
       props: {
         experiences: [],
+        totalCount: 0,
         categories: [],
         stays: [],
         cars: [],
         reviews: [],
+        wishlistIds: [],
         templates,
         layoutOptions: {
           title: "Journi | Coming Soon",

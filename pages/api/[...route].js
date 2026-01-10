@@ -105,9 +105,23 @@ module.exports = async function handler(req, res) {
   // Handle both array and single value
   let segments = [];
   if (Array.isArray(routeSegments)) {
-    segments = routeSegments;
+    segments = routeSegments.filter(Boolean); // Remove any empty values
   } else if (routeSegments) {
     segments = [routeSegments];
+  }
+  
+  // Validate we have route segments
+  if (segments.length === 0) {
+    console.error('[API Handler] No route segments found', { 
+      query: req.query, 
+      url: req.url,
+      path: req.url 
+    });
+    return res.status(404).json({ 
+      error: 'Invalid API route',
+      path: req.url,
+      query: req.query
+    });
   }
   
   // Reconstruct full path
