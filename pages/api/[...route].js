@@ -297,20 +297,7 @@ module.exports = async function handler(req, res) {
     });
     
     // Extract path params for dynamic routes (e.g., /api/experiences/:slug)
-    const pathParts = fullPath.split('/').filter(Boolean);
-    // pathParts: ['api', 'experiences', 'slug-value'] or ['api', 'categories']
-    if (pathParts.length >= 3) {
-      // For routes like /api/experiences/slug-value
-      if (pathParts.length >= 4) {
-        expressReq.params.slug = pathParts[3];
-        expressReq.params.id = pathParts[3];
-      }
-      // For routes like /api/reviews/experience/experienceId
-      if (pathParts.length >= 5) {
-        expressReq.params.id = pathParts[4];
-        expressReq.params.experienceId = pathParts[4];
-      }
-    }
+    // Note: pathParts is already defined above, so this will be used in the routing logic
     
     // Create mock response object
     const expressRes = {
@@ -387,33 +374,75 @@ module.exports = async function handler(req, res) {
       resolve();
     };
 
-    // Call Express app - use app.handle() to process all middleware and routes
+    // Call Express - manually route to the correct router with adjusted path
     try {
+      // Extract pathParts for routing logic
+      const pathParts = fullPath.split('/').filter(Boolean);
+      
       console.log(`[Express Call] ${expressReq.method} ${expressReq.path}`, {
         url: expressReq.url,
         bodyKeys: expressReq.body ? Object.keys(expressReq.body) : 'none',
         query: expressReq.query,
-        pathParts: pathParts
+        pathParts: pathParts,
+        segments: segments
       });
       
-      // Use Express app.handle() if available (processes full middleware stack)
-      if (typeof app.handle === 'function') {
-        app.handle(expressReq, expressRes, next);
+      // Find matching router by mount path (e.g., /api/auth, /api/experiences)
+      const mountPath = '/' + pathParts.slice(0, 2).join('/'); // e.g., '/api/auth'
+      const router = global.__routeMap?.[mountPath];
+      
+      if (router && pathParts.length >= 2) {
+        // Adjust path to remove mount point (Express strips this internally)
+        // For /api/auth/register, router should see /register
+        const routerPath = '/' + pathParts.slice(2).join('/') || '/';
+        
+        // Update request object for router (Express internally strips mount point)
+        expressReq.path = routerPath;
+        expressReq.url = routerPath + queryString;
+        expressReq.originalUrl = routerPath + queryString;
+        expressReq.baseUrl = mountPath; // Set baseUrl so router knows its mount point
+        
+        // Extract params for dynamic routes
+        if (pathParts.length >= 4) {
+          expressReq.params.slug = pathParts[3];
+          expressReq.params.id = pathParts[3];
+        }
+        if (pathParts.length >= 5) {
+          expressReq.params.id = pathParts[4];
+          expressReq.params.experienceId = pathParts[4];
+        }
+        
+        console.log(`[Router Handle] Mount: ${mountPath}, Router path: ${routerPath}, Method: ${expressReq.method}`);
+        
+        // Call router as middleware function - Express routers are callable
+        // This should properly match POST /register
+        router(expressReq, expressRes, next);
       } else {
-        // Fallback: call app as middleware function
-        app(expressReq, expressRes, next);
+        // Fallback: try full app.handle() or call app directly
+        console.log(`[App Handle] No specific router found for ${mountPath}, using full app`);
+        console.log(`[App Handle] Available routes:`, Object.keys(global.__routeMap || {}));
+        
+        if (typeof app.handle === 'function') {
+          app.handle(expressReq, expressRes, next);
+        } else {
+          // Call app as middleware function
+          app(expressReq, expressRes, next);
+        }
       }
       
       // Add timeout fallback in case Express doesn't call next or respond
       setTimeout(() => {
         if (!responseEnded && !res.headersSent) {
           console.error(`[Express Timeout] No response after 5s for ${req.method} ${fullPath}`);
-          console.error(`[Express Timeout] Route map keys:`, Object.keys(global.__routeMap || {}));
+          console.error(`[Express Timeout] Mount path: ${mountPath}, Router: ${router ? 'found' : 'not found'}`);
+          console.error(`[Express Timeout] Available routes:`, Object.keys(global.__routeMap || {}));
           responseEnded = true;
           res.status(504).json({ 
             error: 'Request timeout - route may not be registered',
             path: fullPath,
             method: req.method,
+            mountPath: mountPath,
+            routerPath: pathParts.slice(2).join('/'),
             availableRoutes: Object.keys(global.__routeMap || {})
           });
           resolve();
