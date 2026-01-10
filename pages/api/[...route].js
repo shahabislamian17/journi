@@ -1,186 +1,135 @@
 // Next.js API route handler - catch-all for /api/*
-// Routes all API requests to backend Express routes using http.createServer
+// Routes all API requests to backend Express routes
 
-const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
-// Create Express app (singleton)
-let expressApp;
-let httpServer;
+// Create a simple Express app just for routing
+const routerApp = express();
+routerApp.use(express.json());
+routerApp.use(express.urlencoded({ extended: true }));
+routerApp.use(cors({
+  origin: process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-function getExpressApp() {
-  if (!expressApp) {
-    expressApp = express();
-    
-    // Middleware
-    expressApp.use(cors({
-      origin: process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || '*',
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization']
-    }));
-    expressApp.use(express.json());
-    expressApp.use(express.urlencoded({ extended: true }));
+// Import and mount backend routes
+const backendPath = path.join(process.cwd(), 'backend', 'routes');
+routerApp.use('/auth', require(path.join(backendPath, 'auth')));
+routerApp.use('/experiences', require(path.join(backendPath, 'experiences')));
+routerApp.use('/categories', require(path.join(backendPath, 'categories')));
+routerApp.use('/bookings', require(path.join(backendPath, 'bookings')));
+routerApp.use('/wishlist', require(path.join(backendPath, 'wishlist')));
+routerApp.use('/reviews', require(path.join(backendPath, 'reviews')));
+routerApp.use('/messages', require(path.join(backendPath, 'messages')));
+routerApp.use('/stays', require(path.join(backendPath, 'stays')));
+routerApp.use('/cars', require(path.join(backendPath, 'cars')));
+routerApp.use('/stripe', require(path.join(backendPath, 'stripe')));
 
-    // Log request for debugging
-    expressApp.use((req, res, next) => {
-      console.log(`[Express] ${req.method} ${req.path || req.url}`);
-      next();
-    });
+// 404 handler
+routerApp.use((req, res) => {
+  res.status(404).json({ error: 'API endpoint not found', path: req.path });
+});
 
-    // Import routes from backend
-    const backendPath = path.join(process.cwd(), 'backend', 'routes');
-    
-    // Mount routes
-    expressApp.use('/auth', require(path.join(backendPath, 'auth')));
-    expressApp.use('/experiences', require(path.join(backendPath, 'experiences')));
-    expressApp.use('/categories', require(path.join(backendPath, 'categories')));
-    expressApp.use('/bookings', require(path.join(backendPath, 'bookings')));
-    expressApp.use('/wishlist', require(path.join(backendPath, 'wishlist')));
-    expressApp.use('/reviews', require(path.join(backendPath, 'reviews')));
-    expressApp.use('/messages', require(path.join(backendPath, 'messages')));
-    expressApp.use('/stays', require(path.join(backendPath, 'stays')));
-    expressApp.use('/cars', require(path.join(backendPath, 'cars')));
-    expressApp.use('/stripe', require(path.join(backendPath, 'stripe')));
+// Error handler
+routerApp.use((err, req, res, next) => {
+  console.error('[API Error]:', err);
+  res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+});
 
-    // Health check
-    expressApp.get('/health', (req, res) => {
-      res.json({ status: 'ok', message: 'Journi API is running', timestamp: new Date().toISOString() });
-    });
-
-    // 404 handler
-    expressApp.use((req, res) => {
-      console.error(`[Express] 404 - Route not found: ${req.method} ${req.path || req.url}`);
-      res.status(404).json({ error: 'API endpoint not found', path: req.path || req.url, method: req.method });
-    });
-
-    // Error handling
-    expressApp.use((err, req, res, next) => {
-      console.error('[Express] Error:', err.stack);
-      res.status(err.status || 500).json({
-        error: err.message || 'Internal server error'
-      });
-    });
-  }
-  return expressApp;
-}
-
-// Export handler for Next.js API route
+// Export Next.js API route handler
 module.exports = async function handler(req, res) {
+  // Handle OPTIONS (CORS preflight)
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    return res.status(200).end();
+  }
+
   // Get route segments: /api/auth/login -> ['auth', 'login']
   const routeSegments = req.query.route || [];
   const apiPath = '/' + routeSegments.join('/');
   
-  console.log(`[Next.js Handler] ${req.method} /api${apiPath} (segments: [${routeSegments.join(', ')}])`);
-
-  // Create a Node.js IncomingMessage-like object for Express
-  const IncomingMessage = http.IncomingMessage;
-  const ServerResponse = http.ServerResponse;
+  // Preserve query string
+  const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+  const fullPath = apiPath + queryString;
   
-  // Convert Next.js request to Node.js request
-  const nodeReq = Object.create(IncomingMessage.prototype);
-  Object.assign(nodeReq, {
-    method: req.method,
-    url: apiPath + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''),
-    headers: req.headers,
-    body: req.body,
-    query: req.query,
-    // Add body if POST/PUT
-    on: (event, callback) => {
-      if (event === 'data' && req.body) {
-        // Body already parsed by Next.js
-        setImmediate(() => callback(Buffer.from(JSON.stringify(req.body))));
-      } else if (event === 'end') {
-        setImmediate(callback);
-      }
-      return nodeReq;
-    },
-    read: () => {
-      if (req.body) {
-        return Buffer.from(JSON.stringify(req.body));
-      }
-      return null;
-    },
-  });
+  console.log(`[API] ${req.method} ${fullPath} (segments: [${routeSegments.join(', ')}])`);
 
-  // Convert Next.js response to Node.js response
-  const nodeRes = Object.create(ServerResponse.prototype);
-  Object.assign(nodeRes, {
+  // Create request-like object for Express
+  const expressReq = {
+    method: req.method,
+    url: fullPath,
+    path: apiPath,
+    originalUrl: fullPath,
+    baseUrl: '',
+    query: { ...req.query, route: undefined }, // Remove route from query
+    body: req.body || {},
+    headers: req.headers,
+    params: {},
+    user: req.user,
+    get: (name) => req.headers[name?.toLowerCase()] || req.headers[name],
+    // For path params, extract from segments if needed
+  };
+
+  // Extract path params for routes like /:slug or /:id
+  if (routeSegments.length >= 2) {
+    // e.g., ['experiences', 'some-slug'] -> params: { slug: 'some-slug' }
+    expressReq.params.slug = routeSegments[1];
+    expressReq.params.id = routeSegments[1];
+  }
+
+  // Create response-like object
+  let statusCode = 200;
+  const expressRes = {
     statusCode: 200,
-    headers: {},
-    setHeader: function(name, value) {
-      this.headers[name] = value;
-      return res.setHeader(name, value);
-    },
-    getHeader: function(name) {
-      return this.headers[name] || res.getHeader(name);
-    },
-    writeHead: function(statusCode, headers) {
-      this.statusCode = statusCode;
-      if (headers) {
-        Object.assign(this.headers, headers);
-        Object.entries(headers).forEach(([k, v]) => res.setHeader(k, v));
-      }
-      res.statusCode = statusCode;
+    headersSent: false,
+    status: function(code) {
+      statusCode = code;
+      this.statusCode = code;
       return this;
-    },
-    write: function(chunk) {
-      return res.write(chunk);
-    },
-    end: function(chunk, encoding, callback) {
-      if (chunk) res.write(chunk);
-      res.end(callback);
-      return this;
-    },
-    on: function(event, callback) {
-      return res.on(event, callback);
     },
     json: function(data) {
+      if (this.headersSent) return this;
+      this.headersSent = true;
       res.setHeader('Content-Type', 'application/json');
-      res.status(this.statusCode || 200);
+      res.status(statusCode || 200);
       return res.json(data);
     },
     send: function(data) {
-      res.setHeader('Content-Type', 'text/html');
-      res.status(this.statusCode || 200);
+      if (this.headersSent) return this;
+      this.headersSent = true;
+      res.status(statusCode || 200);
       return res.send(data);
     },
-    status: function(code) {
-      this.statusCode = code;
-      res.statusCode = code;
-      return this;
+    end: function(data) {
+      if (this.headersSent) return this;
+      this.headersSent = true;
+      return res.end(data);
     },
-  });
+    setHeader: function(name, value) {
+      return res.setHeader(name, value);
+    },
+    getHeader: function(name) {
+      return res.getHeader(name);
+    },
+  };
 
-  // Get Express app and handle request
-  const app = getExpressApp();
-  
-  // Handle the request with Express
+  // Call Express router
   return new Promise((resolve) => {
-    // Parse body if not already parsed
-    if (req.method === 'POST' || req.method === 'PUT') {
-      if (!req.body && req.body !== '') {
-        let body = '';
-        req.on('data', chunk => { body += chunk.toString(); });
-        req.on('end', () => {
-          try {
-            nodeReq.body = JSON.parse(body);
-          } catch {
-            nodeReq.body = body;
-          }
-          app(nodeReq, nodeRes);
-          resolve();
-        });
-        return;
-      } else {
-        nodeReq.body = req.body;
+    routerApp(expressReq, expressRes, (err) => {
+      if (err) {
+        console.error('[Router Error]:', err);
+        if (!expressRes.headersSent) {
+          res.status(500).json({ error: err.message || 'Internal server error' });
+        }
       }
-    }
-    
-    // Handle request immediately
-    app(nodeReq, nodeRes);
-    resolve();
+      resolve();
+    });
   });
-};
+}
