@@ -563,24 +563,36 @@ module.exports = async function handler(req, res) {
         
         // If no manual match, try calling router normally
         if (!routeMatched) {
-          console.log(`[Router Call] No manual match, calling router as middleware`);
+          console.log(`[Router Call] No manual match, trying router directly`);
           try {
-            router(expressReq, expressRes, next);
+            // Try using router.handle() if available (internal Express method)
+            if (typeof router.handle === 'function') {
+              router.handle(expressReq, expressRes, next);
+            } else {
+              // Fallback: call router as middleware
+              router(expressReq, expressRes, next);
+            }
           } catch (routerError) {
             console.error(`[Router Error] Error calling router:`, routerError);
             next(routerError);
           }
         }
       } else {
-        // Fallback: try full app.handle() or call app directly
+        // No router found - try full app
         console.log(`[App Handle] No specific router found for ${mountPath}, using full app`);
         console.log(`[App Handle] Available routes:`, Object.keys(global.__routeMap || {}));
         
-        if (typeof app.handle === 'function') {
-          app.handle(expressReq, expressRes, next);
-        } else {
-          // Call app as middleware function
-          app(expressReq, expressRes, next);
+        // Use app.handle() which processes all middleware and routes
+        try {
+          if (typeof app.handle === 'function') {
+            app.handle(expressReq, expressRes, next);
+          } else {
+            // Call app as middleware function
+            app(expressReq, expressRes, next);
+          }
+        } catch (appError) {
+          console.error(`[App Error] Error calling app:`, appError);
+          next(appError);
         }
       }
       
