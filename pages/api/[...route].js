@@ -28,16 +28,43 @@ if (!global.__expressApp) {
 
   // Routes - mount with /api prefix
   const backendPath = path.join(process.cwd(), 'backend', 'routes');
-  app.use('/api/auth', require(path.join(backendPath, 'auth')));
-  app.use('/api/experiences', require(path.join(backendPath, 'experiences')));
-  app.use('/api/categories', require(path.join(backendPath, 'categories')));
-  app.use('/api/bookings', require(path.join(backendPath, 'bookings')));
-  app.use('/api/wishlist', require(path.join(backendPath, 'wishlist')));
-  app.use('/api/reviews', require(path.join(backendPath, 'reviews')));
-  app.use('/api/messages', require(path.join(backendPath, 'messages')));
-  app.use('/api/stays', require(path.join(backendPath, 'stays')));
-  app.use('/api/cars', require(path.join(backendPath, 'cars')));
-  app.use('/api/stripe', require(path.join(backendPath, 'stripe')));
+  
+  // Load and mount all routes
+  const authRouter = require(path.join(backendPath, 'auth'));
+  const experiencesRouter = require(path.join(backendPath, 'experiences'));
+  const categoriesRouter = require(path.join(backendPath, 'categories'));
+  const bookingsRouter = require(path.join(backendPath, 'bookings'));
+  const wishlistRouter = require(path.join(backendPath, 'wishlist'));
+  const reviewsRouter = require(path.join(backendPath, 'reviews'));
+  const messagesRouter = require(path.join(backendPath, 'messages'));
+  const staysRouter = require(path.join(backendPath, 'stays'));
+  const carsRouter = require(path.join(backendPath, 'cars'));
+  const stripeRouter = require(path.join(backendPath, 'stripe'));
+  
+  app.use('/api/auth', authRouter);
+  app.use('/api/experiences', experiencesRouter);
+  app.use('/api/categories', categoriesRouter);
+  app.use('/api/bookings', bookingsRouter);
+  app.use('/api/wishlist', wishlistRouter);
+  app.use('/api/reviews', reviewsRouter);
+  app.use('/api/messages', messagesRouter);
+  app.use('/api/stays', staysRouter);
+  app.use('/api/cars', carsRouter);
+  app.use('/api/stripe', stripeRouter);
+  
+  // Store route map for manual matching if needed (in singleton)
+  global.__routeMap = {
+    '/api/auth': authRouter,
+    '/api/experiences': experiencesRouter,
+    '/api/categories': categoriesRouter,
+    '/api/bookings': bookingsRouter,
+    '/api/wishlist': wishlistRouter,
+    '/api/reviews': reviewsRouter,
+    '/api/messages': messagesRouter,
+    '/api/stays': staysRouter,
+    '/api/cars': carsRouter,
+    '/api/stripe': stripeRouter
+  };
 
   // Health check
   app.get('/api/health', (req, res) => {
@@ -70,11 +97,23 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Reconstruct full path: /api/auth/login
-  const routeSegments = req.query.route || [];
-  const fullPath = '/api/' + routeSegments.join('/');
+  // Reconstruct full path from Next.js catch-all route
+  // For /api/categories, req.query.route = ['categories']
+  // For /api/auth/register, req.query.route = ['auth', 'register']
+  const routeSegments = req.query.route;
   
-  // Clean query params
+  // Handle both array and single value
+  let segments = [];
+  if (Array.isArray(routeSegments)) {
+    segments = routeSegments;
+  } else if (routeSegments) {
+    segments = [routeSegments];
+  }
+  
+  // Reconstruct full path
+  const fullPath = '/api/' + segments.join('/');
+  
+  // Clean query params - remove the route parameter
   const cleanQuery = { ...req.query };
   delete cleanQuery.route;
   const queryString = Object.keys(cleanQuery).length > 0 
@@ -82,9 +121,11 @@ module.exports = async function handler(req, res) {
     : '';
 
   console.log(`[API Handler] ${req.method} ${fullPath}`, { 
-    body: req.method === 'POST' || req.method === 'PUT' ? (req.body ? Object.keys(req.body) : 'missing') : undefined,
+    routeSegments: segments,
     query: cleanQuery,
-    routeSegments: routeSegments
+    body: req.method === 'POST' || req.method === 'PUT' ? (req.body ? Object.keys(req.body) : 'missing') : undefined,
+    originalUrl: req.url,
+    originalQuery: req.query
   });
 
   // Next.js already parses JSON body, so use it directly
@@ -241,14 +282,20 @@ module.exports = async function handler(req, res) {
       configurable: true
     });
     
-    // Extract path params
+    // Extract path params for dynamic routes (e.g., /api/experiences/:slug)
     const pathParts = fullPath.split('/').filter(Boolean);
-    if (pathParts.length >= 4) {
-      expressReq.params.slug = pathParts[3];
-      expressReq.params.id = pathParts[3];
-    }
-    if (pathParts.length >= 5) {
-      expressReq.params.id = pathParts[4];
+    // pathParts: ['api', 'experiences', 'slug-value'] or ['api', 'categories']
+    if (pathParts.length >= 3) {
+      // For routes like /api/experiences/slug-value
+      if (pathParts.length >= 4) {
+        expressReq.params.slug = pathParts[3];
+        expressReq.params.id = pathParts[3];
+      }
+      // For routes like /api/reviews/experience/experienceId
+      if (pathParts.length >= 5) {
+        expressReq.params.id = pathParts[4];
+        expressReq.params.experienceId = pathParts[4];
+      }
     }
     
     // Create mock response object
@@ -326,29 +373,56 @@ module.exports = async function handler(req, res) {
       resolve();
     };
 
-    // Call Express app - it's a function that processes requests
+    // Call Express app - use router.handle() for better route matching
     try {
-      // Express app is callable as app(req, res, next)
-      // This will process all middleware and route handlers
-      console.log(`[Express Call] Calling app with method=${expressReq.method}, path=${expressReq.path}, url=${expressReq.url}`);
-      console.log(`[Express Call] Body keys:`, expressReq.body ? Object.keys(expressReq.body) : 'none');
+      console.log(`[Express Call] ${expressReq.method} ${expressReq.path}`, {
+        url: expressReq.url,
+        bodyKeys: expressReq.body ? Object.keys(expressReq.body) : 'none',
+        query: expressReq.query
+      });
       
-      // Call Express app handler
-      app(expressReq, expressRes, next);
+      // Try using router.handle() method directly if we can find the matching router
+      const pathBase = '/' + pathParts.slice(0, 2).join('/'); // e.g., '/api/auth'
+      const router = global.__routeMap?.[pathBase];
+      
+      if (router && typeof router.handle === 'function') {
+        // Adjust path for router (remove mount point)
+        const routerPath = '/' + pathParts.slice(2).join('/') || '/';
+        expressReq.path = routerPath;
+        expressReq.url = routerPath + queryString;
+        expressReq.originalUrl = routerPath + queryString;
+        console.log(`[Router Handle] Using router for ${pathBase}, path=${routerPath}`);
+        router.handle(expressReq, expressRes, next);
+      } else {
+        // Fallback: call the full app
+        console.log(`[App Call] Using full app.handle()`);
+        if (typeof app.handle === 'function') {
+          app.handle(expressReq, expressRes, next);
+        } else {
+          app(expressReq, expressRes, next);
+        }
+      }
       
       // Add timeout fallback in case Express doesn't call next or respond
       setTimeout(() => {
         if (!responseEnded && !res.headersSent) {
           console.error(`[Express Timeout] No response after 5s for ${req.method} ${fullPath}`);
           responseEnded = true;
-          res.status(504).json({ error: 'Request timeout - route may not be registered' });
+          res.status(504).json({ 
+            error: 'Request timeout - route may not be registered',
+            path: fullPath,
+            method: req.method
+          });
           resolve();
         }
       }, 5000);
     } catch (error) {
       console.error('[Handler Error]:', error);
       if (!responseEnded && !res.headersSent) {
-        res.status(500).json({ error: error.message || 'Internal server error' });
+        res.status(500).json({ 
+          error: error.message || 'Internal server error',
+          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
       }
       resolve();
     }
