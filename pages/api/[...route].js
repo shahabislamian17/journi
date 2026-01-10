@@ -479,21 +479,21 @@ module.exports = async function handler(req, res) {
               
               if (pathMatch && methodMatch) {
                 console.log(`[Manual Route Match] Found route: ${expressReq.method} ${routePath}`);
+                console.log(`[Manual Route Match] Route methods:`, methods);
+                console.log(`[Manual Route Match] Layer handle type:`, typeof layer.handle);
                 routeMatched = true;
-                // Call the route handler - use layer.handle() which calls the route handler
-                // Create a route-specific next function
-                const routeNext = (err) => {
-                  if (err) {
-                    console.error(`[Route Handler Error] ${expressReq.method} ${routePath}:`, err);
-                    return next(err);
-                  }
-                  // If route handler doesn't send response, call next
-                  if (!responseEnded && !res.headersSent) {
-                    next();
-                  }
-                };
-                // Call layer.handle() which will call the route handler
-                layer.handle(expressReq, expressRes, routeNext);
+                
+                // Set route on request (Express does this internally)
+                expressReq.route = route;
+                
+                // Call layer.handle() - this executes the route handler
+                // Layer.handle() is a function that calls the route handler with (req, res, next)
+                try {
+                  layer.handle(expressReq, expressRes, next);
+                } catch (layerError) {
+                  console.error(`[Layer Handle Error]`, layerError);
+                  next(layerError);
+                }
                 break;
               }
             }
