@@ -437,20 +437,66 @@ module.exports = async function handler(req, res) {
         }
         
         console.log(`[Router Call] Mount: ${mountPath}, Router path: ${routerPath}, Method: ${expressReq.method}`);
-        console.log(`[Router Call] Router type:`, typeof router, 'Is function:', typeof router === 'function');
+        console.log(`[Router Call] Request body:`, expressReq.body ? Object.keys(expressReq.body) : 'none');
         
-        // Ensure router has proper properties for Express route matching
-        // Add socket property for Express compatibility
-        expressReq.socket = expressReq.socket || { remoteAddress: expressReq.ip };
-        expressReq.connection = expressReq.socket;
+        // Try to manually match route in router stack
+        // Express routers store routes in router.stack array
+        let routeMatched = false;
         
-        // Call router as middleware function - Express routers are callable
-        // Express will internally match routes based on method and path
-        try {
-          router(expressReq, expressRes, next);
-        } catch (routerError) {
-          console.error(`[Router Error] Error calling router:`, routerError);
-          next(routerError);
+        if (router.stack && Array.isArray(router.stack)) {
+          // Walk through router stack to find matching route
+          for (const layer of router.stack) {
+            if (layer.route) {
+              // Check if method and path match
+              const route = layer.route;
+              const methods = route.methods || {};
+              const routePath = route.path;
+              
+              // Match path (handle both exact and parameterized routes)
+              let pathMatch = false;
+              if (routePath === routerPath) {
+                pathMatch = true;
+              } else if (routePath.includes(':')) {
+                // Parameterized route - basic matching
+                const routeRegex = new RegExp('^' + routePath.replace(/:[^/]+/g, '[^/]+') + '$');
+                pathMatch = routeRegex.test(routerPath);
+                
+                // Extract params if matched
+                if (pathMatch) {
+                  const routeParts = routePath.split('/');
+                  const pathParts2 = routerPath.split('/');
+                  routeParts.forEach((part, idx) => {
+                    if (part.startsWith(':')) {
+                      const paramName = part.substring(1);
+                      expressReq.params[paramName] = pathParts2[idx];
+                    }
+                  });
+                }
+              }
+              
+              // Check if method matches
+              const methodMatch = methods[expressReq.method.toLowerCase()] || methods[expressReq.method.toUpperCase()];
+              
+              if (pathMatch && methodMatch) {
+                console.log(`[Manual Route Match] Found route: ${expressReq.method} ${routePath}`);
+                routeMatched = true;
+                // Call the route handler directly
+                layer.handle_request(expressReq, expressRes, next);
+                break;
+              }
+            }
+          }
+        }
+        
+        // If no manual match, try calling router normally
+        if (!routeMatched) {
+          console.log(`[Router Call] No manual match, calling router as middleware`);
+          try {
+            router(expressReq, expressRes, next);
+          } catch (routerError) {
+            console.error(`[Router Error] Error calling router:`, routerError);
+            next(routerError);
+          }
         }
       } else {
         // Fallback: try full app.handle() or call app directly
