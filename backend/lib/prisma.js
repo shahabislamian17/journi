@@ -87,8 +87,24 @@ function getPrismaClient() {
     transactionOptions: {
       maxWait: 5000, // max time to wait for transaction
       timeout: 10000 // max time transaction can run
+    },
+    // Connection pool settings for serverless
+    __internal: {
+      engine: {
+        connectTimeout: 10000, // 10 second connection timeout
+        queryTimeout: 20000 // 20 second query timeout
+      }
     }
   });
+  
+  // Test connection on first initialization (in serverless, this is OK as it's cached)
+  // But don't await - let it connect lazily
+  if (process.env.NODE_ENV === 'production') {
+    // In production, test connection but don't block
+    prisma.$connect().catch(err => {
+      console.error('[Prisma] Connection test failed (this is OK in serverless):', err.message);
+    });
+  }
 
   // Log connection attempt (don't connect eagerly in serverless)
   console.log('[Prisma] Client initialized with DATABASE_URL:', 
