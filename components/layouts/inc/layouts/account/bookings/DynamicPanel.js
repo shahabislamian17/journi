@@ -9,7 +9,7 @@ export default function DynamicPanel({ initialBookings = [] }) {
   const [loading, setLoading] = useState(!initialBookings || initialBookings.length === 0);
 
   useEffect(() => {
-    // Get bookings from window if not passed as prop
+    // Get bookings from window if not passed as props
     let bookingsData = initialBookings;
     if ((!bookingsData || bookingsData.length === 0) && typeof window !== 'undefined' && window.__API_BOOKINGS__) {
       bookingsData = window.__API_BOOKINGS__;
