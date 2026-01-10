@@ -20,46 +20,56 @@ function getPrismaClient() {
     throw error;
   }
 
-  // Validate DATABASE_URL format
+  // Validate DATABASE_URL format and handle different connection types
   const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl.startsWith('postgres://') && !dbUrl.startsWith('postgresql://')) {
-    console.warn('[Prisma Warning] DATABASE_URL should start with postgres:// or postgresql://. Got:', dbUrl.substring(0, 30) + '...');
+  if (!dbUrl) {
+    throw new Error('DATABASE_URL is not set in environment variables');
   }
 
-  // Create Prisma Client with proper connection handling for serverless
-  // Use connection pooling URL if available (Prisma Accelerate/Proxy)
-  let connectionUrl = process.env.DATABASE_URL;
-  
+  // Log DATABASE_URL info (masked for security)
+  const urlMatch = dbUrl.match(/@([^:]+)/);
+  const host = urlMatch ? urlMatch[1] : 'unknown';
   console.log('[Prisma] DATABASE_URL format check:', {
-    hasPrisma: connectionUrl.includes('prisma://'),
-    hasPooler: connectionUrl.includes('pooler'),
-    startsWith: connectionUrl.substring(0, 20),
-    host: connectionUrl.match(/@([^:]+)/)?.[1] || 'unknown'
+    hasPrisma: dbUrl.includes('prisma://'),
+    hasPooler: dbUrl.includes('pooler'),
+    hasDbPrisma: dbUrl.includes('db.prisma.io'),
+    host: host,
+    startsWith: dbUrl.substring(0, 20) + '...'
   });
 
-  // If using Prisma Data Proxy/Accelerate (prisma://), use as-is
-  // Otherwise, add connection parameters for direct PostgreSQL connections
-  if (!connectionUrl.includes('prisma://') && !connectionUrl.includes('pooler')) {
+  // For Prisma Accelerate/Data Proxy (db.prisma.io or prisma://), use as-is
+  // For direct PostgreSQL connections, add connection pooling parameters
+  let connectionUrl = dbUrl;
+  
+  if (!dbUrl.includes('prisma://') && !dbUrl.includes('pooler') && !dbUrl.includes('db.prisma.io')) {
     try {
-      const url = new URL(connectionUrl);
-      // Add connection pooling parameters for serverless
+      const url = new URL(dbUrl);
+      // Add connection pooling parameters for serverless (direct PostgreSQL)
       url.searchParams.set('connection_limit', '1');
       url.searchParams.set('pool_timeout', '20');
       url.searchParams.set('connect_timeout', '10');
       connectionUrl = url.toString();
-      console.log('[Prisma] Added connection parameters for direct connection');
+      console.log('[Prisma] Added connection pooling parameters for direct PostgreSQL connection');
     } catch (urlError) {
       console.warn('[Prisma] Could not parse DATABASE_URL as URL, using as-is:', urlError.message);
       // If URL parsing fails, use original connectionUrl
     }
+  } else {
+    console.log('[Prisma] Using Prisma Accelerate/Proxy connection (no pooling params needed)');
   }
 
+  // Create Prisma Client with optimized settings for serverless
   prisma = new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
     datasources: {
       db: {
         url: connectionUrl
       }
+    },
+    // Add transaction options for better serverless performance
+    transactionOptions: {
+      maxWait: 5000, // max time to wait for transaction
+      timeout: 10000 // max time transaction can run
     }
   });
 
