@@ -81,7 +81,27 @@ if (!global.__expressApp) {
 
   // Health check
   app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'Journi API is running' });
+    res.json({ status: 'ok', message: 'Journi API is running', routes: Object.keys(global.__routeMap || {}) });
+  });
+
+  // Debug route to check if routes are loaded
+  app.get('/api/debug/routes', (req, res) => {
+    const routes = {};
+    Object.keys(global.__routeMap || {}).forEach(mountPath => {
+      const router = global.__routeMap[mountPath];
+      routes[mountPath] = {
+        hasRouter: !!router,
+        stackLength: router?.stack?.length || 0,
+        stack: router?.stack?.map((layer, idx) => ({
+          index: idx,
+          hasRoute: !!layer.route,
+          routePath: layer.route?.path,
+          routeMethods: layer.route?.methods,
+          hasHandle: typeof layer.handle === 'function'
+        })) || []
+      };
+    });
+    res.json({ routes, routeMap: Object.keys(global.__routeMap || {}) });
   });
 
   // 404 handler
