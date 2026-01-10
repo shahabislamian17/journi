@@ -1,13 +1,6 @@
 // Vercel serverless function - catch-all route for /api/*
 // This routes all API requests to the backend Express app
 
-// Ensure environment variables are available
-// In Vercel, they should be automatically available, but log for debugging
-if (!process.env.DATABASE_URL) {
-  console.error('⚠️  WARNING: DATABASE_URL is not set in Vercel environment variables');
-  console.error('Set it in Vercel Dashboard > Settings > Environment Variables');
-}
-
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -24,10 +17,17 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Log request for debugging
+app.use((req, res, next) => {
+  console.log(`[API] ${req.method} ${req.path}`);
+  next();
+});
+
 // Import routes from backend
 const backendPath = path.join(__dirname, '..', 'backend', 'routes');
 
-// Routes
+// Routes - In Vercel, /api/* requests are routed here, but the path doesn't include /api
+// So /api/experiences/slug becomes /experiences/slug in this function
 app.use('/api/auth', require(path.join(backendPath, 'auth')));
 app.use('/api/experiences', require(path.join(backendPath, 'experiences')));
 app.use('/api/categories', require(path.join(backendPath, 'categories')));
@@ -39,19 +39,35 @@ app.use('/api/stays', require(path.join(backendPath, 'stays')));
 app.use('/api/cars', require(path.join(backendPath, 'cars')));
 app.use('/api/stripe', require(path.join(backendPath, 'stripe')));
 
+// Also mount without /api prefix (for Vercel catch-all behavior)
+app.use('/auth', require(path.join(backendPath, 'auth')));
+app.use('/experiences', require(path.join(backendPath, 'experiences')));
+app.use('/categories', require(path.join(backendPath, 'categories')));
+app.use('/bookings', require(path.join(backendPath, 'bookings')));
+app.use('/wishlist', require(path.join(backendPath, 'wishlist')));
+app.use('/reviews', require(path.join(backendPath, 'reviews')));
+app.use('/messages', require(path.join(backendPath, 'messages')));
+app.use('/stays', require(path.join(backendPath, 'stays')));
+app.use('/cars', require(path.join(backendPath, 'cars')));
+app.use('/stripe', require(path.join(backendPath, 'stripe')));
+
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Journi API is running' });
+  res.json({ status: 'ok', message: 'Journi API is running', timestamp: new Date().toISOString() });
+});
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Journi API is running', timestamp: new Date().toISOString() });
 });
 
 // 404 handler
-app.use('/api/*', (req, res) => {
-  res.status(404).json({ error: 'API endpoint not found' });
+app.use((req, res) => {
+  console.error(`[API] 404 - Route not found: ${req.method} ${req.path}`);
+  res.status(404).json({ error: 'API endpoint not found', path: req.path, method: req.method });
 });
 
 // Error handling
 app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
+  console.error('API Error:', err.stack);
   res.status(err.status || 500).json({
     error: err.message || 'Internal server error'
   });
