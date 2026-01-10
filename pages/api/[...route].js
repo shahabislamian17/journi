@@ -4,6 +4,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const http = require('http');
 
 // Create Express app (singleton)
 let app;
@@ -18,9 +19,16 @@ if (!global.__expressApp) {
     allowedHeaders: ['Content-Type', 'Authorization']
   }));
   
-  // Skip body parsing middleware - Next.js already parses JSON
-  // We'll set req.body manually before routes run
-  // This avoids conflicts with Express's body parser
+  // Body parsing middleware - apply conditionally
+  app.use((req, res, next) => {
+    // If body is already parsed (from Next.js), skip parsing
+    if (req.body !== undefined) {
+      return next();
+    }
+    // Otherwise parse it
+    express.json()(req, res, next);
+  });
+  app.use(express.urlencoded({ extended: true }));
 
   // Routes - mount with /api prefix
   const backendPath = path.join(process.cwd(), 'backend', 'routes');
@@ -191,26 +199,109 @@ module.exports = async function handler(req, res) {
     }
   };
 
-  // Call Express app with proper error handling
+  // Direct route matching - call Express router.handle() method
   return new Promise((resolve) => {
-    let handled = false;
+    let responseEnded = false;
     
+    // Create mock request object compatible with Express
+    const expressReq = {
+      method: req.method,
+      url: fullPath + queryString,
+      path: fullPath,
+      originalUrl: fullPath + queryString,
+      baseUrl: '',
+      query: cleanQuery,
+      headers: { ...req.headers },
+      params: {},
+      body: req.body || {},
+      ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1',
+      get: function(name) {
+        return this.headers[name?.toLowerCase()] || this.headers[name] || null;
+      },
+      is: function(type) {
+        const ct = (this.headers['content-type'] || '').toLowerCase();
+        return ct.includes(type.toLowerCase());
+      }
+    };
+    
+    // Extract path params
+    const pathParts = fullPath.split('/').filter(Boolean);
+    if (pathParts.length >= 4) {
+      expressReq.params.slug = pathParts[3];
+      expressReq.params.id = pathParts[3];
+    }
+    if (pathParts.length >= 5) {
+      expressReq.params.id = pathParts[4];
+    }
+    
+    // Create mock response object
+    const expressRes = {
+      statusCode: 200,
+      headersSent: false,
+      _headers: {},
+      req: expressReq,
+      status: function(code) {
+        this.statusCode = code;
+        return this;
+      },
+      json: function(data) {
+        if (responseEnded) return this;
+        responseEnded = true;
+        this.headersSent = true;
+        res.setHeader('Content-Type', 'application/json');
+        res.status(this.statusCode || 200);
+        res.json(data);
+        resolve();
+        return this;
+      },
+      send: function(data) {
+        if (responseEnded) return this;
+        responseEnded = true;
+        this.headersSent = true;
+        res.status(this.statusCode || 200);
+        if (typeof data === 'object' && !Buffer.isBuffer(data)) {
+          res.setHeader('Content-Type', 'application/json');
+          res.json(data);
+        } else {
+          res.send(data);
+        }
+        resolve();
+        return this;
+      },
+      end: function(data) {
+        if (responseEnded) return this;
+        responseEnded = true;
+        this.headersSent = true;
+        if (data) res.write(data);
+        res.end();
+        resolve();
+        return this;
+      },
+      setHeader: function(name, value) {
+        this._headers[name.toLowerCase()] = value;
+        res.setHeader(name, value);
+        return this;
+      },
+      getHeader: function(name) {
+        return this._headers[name.toLowerCase()] || res.getHeader(name);
+      }
+    };
+
     const next = (err) => {
-      if (handled) return;
-      handled = true;
+      if (responseEnded) return;
+      responseEnded = true;
       
       if (err) {
         console.error(`[Express Error] ${req.method} ${fullPath}:`, err);
-        if (!headersSent && !res.headersSent) {
+        if (!res.headersSent) {
           res.status(err.status || 500).json({ 
-            error: err.message || 'Internal server error',
-            ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+            error: err.message || 'Internal server error'
           });
         }
-      } else if (!headersSent && !res.headersSent) {
+      } else if (!res.headersSent) {
         console.error(`[Express] Route not handled: ${req.method} ${fullPath}`);
-        res.status(404).json({ 
-          error: 'Route not found', 
+        res.status(405).json({ 
+          error: 'Method not allowed', 
           path: fullPath, 
           method: req.method 
         });
@@ -218,14 +309,14 @@ module.exports = async function handler(req, res) {
       resolve();
     };
 
-    // Call Express app - it will process middleware and routes
+    // Call Express app - it's a function that processes requests
     try {
-      // Since body is already parsed by Next.js, we can pass it directly
-      // But Express middleware still needs to run, so we call app() as a function
-      app(mockReq, mockRes, next);
+      // Express app is callable as app(req, res, next)
+      // This will process all middleware and route handlers
+      app(expressReq, expressRes, next);
     } catch (error) {
       console.error('[Handler Error]:', error);
-      if (!headersSent && !res.headersSent) {
+      if (!responseEnded && !res.headersSent) {
         res.status(500).json({ error: error.message || 'Internal server error' });
       }
       resolve();
