@@ -56,42 +56,58 @@ router.get('/', async (req, res) => {
       totalCount = 0;
     }
 
-    const experiences = await prisma.experience.findMany({
-      where,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true
+    // Fetch experiences with error handling
+    let experiences = [];
+    try {
+      experiences = await prisma.experience.findMany({
+        where,
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true
+            }
+          },
+          images: {
+            orderBy: [
+              { isPrimary: 'desc' },
+              { order: 'asc' }
+            ],
+            take: 5
+          },
+          reviews: {
+            select: {
+              rating: true
+            }
+          },
+          _count: {
+            select: {
+              reviews: true
+            }
           }
         },
-        images: {
-          orderBy: [
-            { isPrimary: 'desc' },
-            { order: 'asc' }
-          ],
-          take: 5
-        },
-        reviews: {
-          select: {
-            rating: true
-          }
-        },
-        _count: {
-          select: {
-            reviews: true
-          }
-        }
-      },
-      orderBy: [
-        { featured: 'desc' },
-        { createdAt: 'desc' }
-      ],
-      take: take + 1,
-      skip,
-      cursor: cursorObj
-    });
+        orderBy: [
+          { featured: 'desc' },
+          { createdAt: 'desc' }
+        ],
+        take: take + 1,
+        skip,
+        cursor: cursorObj
+      });
+    } catch (expError) {
+      console.error('Error fetching experiences:', expError);
+      console.error('Experience error details:', {
+        message: expError.message,
+        code: expError.code,
+        meta: expError.meta
+      });
+      // Return error response if query fails
+      return res.status(500).json({
+        error: 'Failed to fetch experiences',
+        experiences: { data: [], total: 0, hasMore: false, nextCursor: null }
+      });
+    }
 
     const hasMore = experiences.length > take;
     const data = hasMore ? experiences.slice(0, take) : experiences;
