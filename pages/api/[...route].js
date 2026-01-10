@@ -19,16 +19,12 @@ if (!global.__expressApp) {
     allowedHeaders: ['Content-Type', 'Authorization']
   }));
   
-  // Body parsing middleware - apply conditionally
+  // Body parsing middleware - Next.js already parses JSON, so we skip Express parsing
+  // But we still need to ensure req.body is available
   app.use((req, res, next) => {
-    // If body is already parsed (from Next.js), skip parsing
-    if (req.body !== undefined) {
-      return next();
-    }
-    // Otherwise parse it
-    express.json()(req, res, next);
+    // Body will be set manually before calling Express
+    next();
   });
-  app.use(express.urlencoded({ extended: true }));
 
   // Routes - mount with /api prefix
   const backendPath = path.join(process.cwd(), 'backend', 'routes');
@@ -204,6 +200,9 @@ module.exports = async function handler(req, res) {
     let responseEnded = false;
     
     // Create mock request object compatible with Express
+    // IMPORTANT: Set body BEFORE creating the object so Express can access it
+    const requestBody = req.body || {};
+    
     const expressReq = {
       method: req.method,
       url: fullPath + queryString,
@@ -211,18 +210,35 @@ module.exports = async function handler(req, res) {
       originalUrl: fullPath + queryString,
       baseUrl: '',
       query: cleanQuery,
-      headers: { ...req.headers },
+      headers: { 
+        ...req.headers,
+        'content-type': req.headers['content-type'] || 'application/json'
+      },
       params: {},
-      body: req.body || {},
-      ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1',
+      body: requestBody, // Set body explicitly
+      ip: req.headers['x-forwarded-for']?.split(',')[0] || req.socket?.remoteAddress || '127.0.0.1',
+      protocol: 'https',
+      hostname: req.headers.host || 'localhost',
       get: function(name) {
-        return this.headers[name?.toLowerCase()] || this.headers[name] || null;
+        const lowerName = name?.toLowerCase();
+        return this.headers[lowerName] || this.headers[name] || null;
       },
       is: function(type) {
         const ct = (this.headers['content-type'] || '').toLowerCase();
+        if (type === 'application/json' || type.includes('json')) {
+          return ct.includes('application/json');
+        }
         return ct.includes(type.toLowerCase());
       }
     };
+    
+    // Ensure body is properly set (Express might check this)
+    Object.defineProperty(expressReq, 'body', {
+      value: requestBody,
+      writable: true,
+      enumerable: true,
+      configurable: true
+    });
     
     // Extract path params
     const pathParts = fullPath.split('/').filter(Boolean);
