@@ -444,8 +444,18 @@ module.exports = async function handler(req, res) {
         let routeMatched = false;
         
         if (router.stack && Array.isArray(router.stack)) {
+          console.log(`[Router Stack] Router has ${router.stack.length} layers`);
+          
           // Walk through router stack to find matching route
-          for (const layer of router.stack) {
+          for (let i = 0; i < router.stack.length; i++) {
+            const layer = router.stack[i];
+            console.log(`[Router Stack] Layer ${i}:`, {
+              hasRoute: !!layer.route,
+              hasHandle: typeof layer.handle === 'function',
+              routePath: layer.route?.path,
+              routeMethods: layer.route?.methods
+            });
+            
             if (layer.route) {
               // Check if method and path match
               const route = layer.route;
@@ -485,38 +495,50 @@ module.exports = async function handler(req, res) {
                 // Set route on request (Express does this internally)
                 expressReq.route = route;
                 
+                console.log(`[Route Handler] Route stack length:`, route.stack?.length || 0);
+                console.log(`[Route Handler] Route dispatch type:`, typeof route.dispatch);
+                
                 // For routes, Express uses route.dispatch() to call handlers
                 // route.stack contains the handlers for this route
                 try {
-                  if (route.stack && route.stack.length > 0) {
-                    // Call route.dispatch() which properly executes route handlers
-                    if (typeof route.dispatch === 'function') {
-                      route.dispatch(expressReq, expressRes, next);
-                    } else {
-                      // Fallback: call handlers directly from route.stack
-                      let handlerIndex = 0;
-                      const routeNext = (err) => {
-                        if (err) return next(err);
-                        handlerIndex++;
-                        if (handlerIndex < route.stack.length) {
-                          route.stack[handlerIndex].handle(expressReq, expressRes, routeNext);
-                        } else {
+                  // Try route.dispatch() first (Express 4+)
+                  if (typeof route.dispatch === 'function') {
+                    console.log(`[Route Handler] Using route.dispatch()`);
+                    route.dispatch(expressReq, expressRes, next);
+                  } else if (route.stack && route.stack.length > 0) {
+                    // Fallback: call handlers directly from route.stack
+                    console.log(`[Route Handler] Calling handlers from route.stack`);
+                    let handlerIndex = 0;
+                    const routeNext = (err) => {
+                      if (err) {
+                        console.error(`[Route Handler] Error in handler ${handlerIndex}:`, err);
+                        return next(err);
+                      }
+                      handlerIndex++;
+                      if (handlerIndex < route.stack.length && route.stack[handlerIndex]) {
+                        route.stack[handlerIndex].handle(expressReq, expressRes, routeNext);
+                      } else {
+                        // All handlers processed
+                        if (!responseEnded && !res.headersSent) {
                           next();
                         }
-                      };
-                      if (route.stack[0] && route.stack[0].handle) {
-                        route.stack[0].handle(expressReq, expressRes, routeNext);
-                      } else {
-                        // Last resort: call layer.handle()
-                        layer.handle(expressReq, expressRes, next);
                       }
+                    };
+                    // Call first handler
+                    if (route.stack[0] && typeof route.stack[0].handle === 'function') {
+                      route.stack[0].handle(expressReq, expressRes, routeNext);
+                    } else {
+                      console.log(`[Route Handler] No valid handler in route.stack[0], trying layer.handle()`);
+                      layer.handle(expressReq, expressRes, next);
                     }
                   } else {
-                    // No handlers in route.stack, try layer.handle()
+                    // No route.stack, try layer.handle() directly
+                    console.log(`[Route Handler] No route.stack, using layer.handle()`);
                     layer.handle(expressReq, expressRes, next);
                   }
                 } catch (layerError) {
                   console.error(`[Route Handler Error]`, layerError);
+                  console.error(`[Route Handler Error] Stack:`, layerError.stack);
                   next(layerError);
                 }
                 break;
