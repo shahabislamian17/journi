@@ -537,7 +537,16 @@ module.exports = async function handler(req, res) {
                     if (handlerLayer && typeof handlerLayer.handle === 'function') {
                       // Call the handler directly
                       // The handler is an async function that expects (req, res, next)
-                      handlerLayer.handle(expressReq, expressRes, next);
+                      // Wrap in promise to handle async errors
+                      Promise.resolve(handlerLayer.handle(expressReq, expressRes, next))
+                        .catch(err => {
+                          console.error(`[Route Handler Async Error]`, err);
+                          if (!responseEnded && !res.headersSent) {
+                            next(err);
+                          }
+                        });
+                      // Don't break - let handler execute
+                      return; // Exit early, handler will call res.json() or next()
                     } else {
                       console.error(`[Route Handler] No valid handler in route.stack[0]`);
                       console.error(`[Route Handler] handlerLayer:`, handlerLayer);
