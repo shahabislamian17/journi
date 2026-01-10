@@ -73,3 +73,14 @@ backend/prisma/migrations/
 
 # Stripe library (legacy, contains test keys)
 public/assets/lib/stripe/
+
+# Documentation files
+*.md
+!README.md
+!CHANGELOG.md
+
+# Legacy PHP payment directory
+payment/
+
+# Legacy PHP directory (optional - uncomment if not needed)
+# legacy/
