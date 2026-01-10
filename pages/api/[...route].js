@@ -477,21 +477,27 @@ module.exports = async function handler(req, res) {
               
               // Match path (handle both exact and parameterized routes)
               let pathMatch = false;
-              if (routePath === routerPath) {
+              
+              // Handle root path (/)
+              if (routePath === '/' && routerPath === '/') {
+                pathMatch = true;
+              } else if (routePath === routerPath) {
                 pathMatch = true;
               } else if (routePath.includes(':')) {
-                // Parameterized route - basic matching
-                const routeRegex = new RegExp('^' + routePath.replace(/:[^/]+/g, '[^/]+') + '$');
-                pathMatch = routeRegex.test(routerPath);
+                // Parameterized route - use regex with capture groups
+                const routeRegex = new RegExp('^' + routePath.replace(/:[^/]+/g, '([^/]+)') + '$');
+                const match = routerPath.match(routeRegex);
                 
-                // Extract params if matched
-                if (pathMatch) {
+                if (match) {
+                  pathMatch = true;
+                  // Extract params if matched
                   const routeParts = routePath.split('/');
                   const pathParts2 = routerPath.split('/');
+                  let paramIndex = 1; // match[0] is full match, params start at match[1]
                   routeParts.forEach((part, idx) => {
                     if (part.startsWith(':')) {
                       const paramName = part.substring(1);
-                      expressReq.params[paramName] = pathParts2[idx];
+                      expressReq.params[paramName] = pathParts2[idx] || match[paramIndex++] || null;
                     }
                   });
                 }
