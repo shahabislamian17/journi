@@ -185,18 +185,21 @@ module.exports = async function handler(req, res) {
     }
   };
 
-  // Call Express app
+  // Call Express app - it expects (req, res, next)
   return new Promise((resolve) => {
-    app(nodeReq, nodeRes, (err) => {
+    const next = (err) => {
       if (err) {
-        console.error('[App Error]:', err);
+        console.error('[Express Next Error]:', err);
         if (!headersSent && !res.headersSent) {
-          res.status(500).json({ error: err.message || 'Internal server error' });
+          res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
         }
       } else if (!headersSent && !res.headersSent) {
-        res.status(404).json({ error: 'Route not found', path: fullPath });
+        res.status(404).json({ error: 'Route not found', path: fullPath, method: req.method });
       }
       resolve();
-    });
+    };
+    
+    // Call the Express app
+    app(expressReq, nodeRes, next);
   });
 };
