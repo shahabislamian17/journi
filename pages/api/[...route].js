@@ -55,31 +55,43 @@ if (!global.__expressApp) {
   app = global.__expressApp;
 }
 
-// Helper to convert Next.js request to Node.js IncomingMessage-like object
-function createNodeRequest(nextReq, fullPath) {
-  const stream = new Readable();
-  stream._read = () => {};
-  
-  if (nextReq.body) {
-    const bodyStr = typeof nextReq.body === 'string' ? nextReq.body : JSON.stringify(nextReq.body);
-    stream.push(bodyStr);
-  }
-  stream.push(null);
-
-  const nodeReq = Object.create(stream);
-  nodeReq.method = nextReq.method;
-  nodeReq.url = fullPath + (nextReq.url.includes('?') ? nextReq.url.substring(nextReq.url.indexOf('?')) : '');
-  nodeReq.path = fullPath;
-  nodeReq.originalUrl = fullPath;
-  nodeReq.headers = nextReq.headers || {};
-  nodeReq.query = nextReq.query || {};
-  nodeReq.body = nextReq.body || {};
-  nodeReq.params = {};
-  nodeReq.get = function(name) {
-    return this.headers[name?.toLowerCase()] || this.headers[name];
+// Helper to convert Next.js request to Express-compatible request object
+function createExpressRequest(nextReq, fullPath, query) {
+  // Create a simple object that Express can use
+  const expressReq = {
+    method: nextReq.method,
+    url: fullPath + (Object.keys(query).length > 0 ? '?' + new URLSearchParams(query).toString() : ''),
+    path: fullPath,
+    originalUrl: fullPath,
+    baseUrl: '',
+    query: query,
+    body: nextReq.body || {},
+    headers: nextReq.headers || {},
+    params: {},
+    user: null,
+    get: function(name) {
+      return this.headers[name?.toLowerCase()] || this.headers[name];
+    },
+    // Add stream-like properties for body parsing middleware
+    on: function(event, handler) {
+      if (event === 'data' && this.body) {
+        setImmediate(() => handler(Buffer.from(JSON.stringify(this.body))));
+      } else if (event === 'end') {
+        setImmediate(handler);
+      }
+      return this;
+    }
   };
   
-  return nodeReq;
+  // Extract path params (e.g., /api/experiences/:slug)
+  const pathParts = fullPath.split('/').filter(Boolean);
+  if (pathParts.length >= 4) {
+    // /api/experiences/slug -> params.slug = 'slug'
+    expressReq.params.slug = pathParts[3];
+    expressReq.params.id = pathParts[3];
+  }
+  
+  return expressReq;
 }
 
 module.exports = async function handler(req, res) {
@@ -92,19 +104,23 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Get route segments and reconstruct full path
+  // Get route segments: /api/auth/login -> ['auth', 'login']
+  // But Express routes are mounted at /api/auth, so path should be /api/auth/login
   const routeSegments = req.query.route || [];
   const fullPath = '/api/' + routeSegments.join('/');
   
-  // Extract params
-  if (routeSegments.length >= 2) {
-    // This will be handled by Express routing
-  }
+  // Clean query - remove 'route' param
+  const cleanQuery = { ...req.query };
+  delete cleanQuery.route;
+  const queryString = Object.keys(cleanQuery).length > 0 
+    ? '?' + new URLSearchParams(cleanQuery).toString() 
+    : '';
+  const fullPathWithQuery = fullPath + queryString;
 
-  console.log(`[API Handler] ${req.method} ${fullPath}`);
+  console.log(`[API Handler] ${req.method} ${fullPath}`, { query: cleanQuery, segments: routeSegments });
 
-  // Create Node.js-like request
-  const nodeReq = createNodeRequest(req, fullPath);
+  // Create Express-compatible request
+  const expressReq = createExpressRequest(req, fullPath, cleanQuery);
 
   // Create response wrapper
   let statusCode = 200;
