@@ -246,6 +246,7 @@ router.get('/:slug', async (req, res) => {
     let host = null;
     if (experience.hostId) {
       try {
+        // First try with languages (if column exists)
         host = await prisma.user.findUnique({
           where: { id: experience.hostId },
           select: {
@@ -257,7 +258,27 @@ router.get('/:slug', async (req, res) => {
           }
         });
       } catch (e) {
-        console.error('Error fetching host:', e);
+        // If languages column doesn't exist, fetch without it
+        if (e.code === 'P2022' || e.message?.includes('languages')) {
+          try {
+            host = await prisma.user.findUnique({
+              where: { id: experience.hostId },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            });
+            if (host) {
+              host.languages = null;
+            }
+          } catch (e2) {
+            console.error('Error fetching host (fallback):', e2);
+          }
+        } else {
+          console.error('Error fetching host:', e);
+        }
       }
     }
 

@@ -18,18 +18,9 @@ if (!global.__expressApp) {
     allowedHeaders: ['Content-Type', 'Authorization']
   }));
   
-  // Body parsing middleware - but Next.js already parses JSON, so we'll handle it manually
-  // Keep middleware for compatibility, but we'll set body before routes run
-  app.use((req, res, next) => {
-    // If body is already set (from Next.js), use it
-    // Otherwise let Express parse it (shouldn't happen but for safety)
-    if (!req.body && req.method !== 'GET' && req.method !== 'HEAD') {
-      express.json()(req, res, next);
-    } else {
-      next();
-    }
-  });
-  app.use(express.urlencoded({ extended: true }));
+  // Skip body parsing middleware - Next.js already parses JSON
+  // We'll set req.body manually before routes run
+  // This avoids conflicts with Express's body parser
 
   // Routes - mount with /api prefix
   const backendPath = path.join(process.cwd(), 'backend', 'routes');

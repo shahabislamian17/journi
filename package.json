@@ -3,9 +3,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "cd backend && npx prisma migrate deploy && npx prisma generate && cd .. && next build",
     "start": "next start",
-    "postinstall": "cd backend && npm install && npx prisma generate"
+    "postinstall": "cd backend && npm install && npx prisma generate",
+    "vercel-build": "cd backend && npx prisma migrate deploy && npx prisma generate && cd .. && next build"
   },
   "dependencies": {
     "@apollo/client": "^4.0.11",

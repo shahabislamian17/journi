@@ -23,7 +23,11 @@ router.post('/register', async (req, res) => {
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
+      select: {
+        id: true,
+        email: true
+      }
     });
 
     if (existingUser) {
@@ -82,7 +86,16 @@ router.post('/login', async (req, res) => {
 
     // Find user
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        role: true
+      }
     });
 
     if (!user) {
@@ -209,7 +222,11 @@ router.put('/password', authenticateToken, async (req, res) => {
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: req.user.id }
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        password: true
+      }
     });
 
     const isValid = await bcrypt.compare(currentPassword, user.password);
@@ -237,7 +254,11 @@ router.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
 
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
+      select: {
+        id: true,
+        email: true
+      }
     });
 
     if (!user) {
