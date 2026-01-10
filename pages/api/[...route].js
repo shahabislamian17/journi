@@ -1,15 +1,85 @@
 // Next.js API route handler - catch-all for /api/*
-// Uses a simpler approach: directly call route handler functions
+// Reuses the Express app setup from backend/server.js
 
+const express = require('express');
+const cors = require('cors');
 const path = require('path');
+const { Readable } = require('stream');
 
-// Cache routers
-const routers = {};
-function getRouter(name) {
-  if (!routers[name]) {
-    routers[name] = require(path.join(process.cwd(), 'backend', 'routes', name));
+// Create Express app (same setup as backend/server.js but without listening)
+let app;
+if (!global.__expressApp) {
+  app = express();
+  
+  // Middleware
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || '*',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
+  // Routes - mount with /api prefix since we'll strip it
+  const backendPath = path.join(process.cwd(), 'backend', 'routes');
+  app.use('/api/auth', require(path.join(backendPath, 'auth')));
+  app.use('/api/experiences', require(path.join(backendPath, 'experiences')));
+  app.use('/api/categories', require(path.join(backendPath, 'categories')));
+  app.use('/api/bookings', require(path.join(backendPath, 'bookings')));
+  app.use('/api/wishlist', require(path.join(backendPath, 'wishlist')));
+  app.use('/api/reviews', require(path.join(backendPath, 'reviews')));
+  app.use('/api/messages', require(path.join(backendPath, 'messages')));
+  app.use('/api/stays', require(path.join(backendPath, 'stays')));
+  app.use('/api/cars', require(path.join(backendPath, 'cars')));
+  app.use('/api/stripe', require(path.join(backendPath, 'stripe')));
+
+  // Health check
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', message: 'Journi API is running' });
+  });
+
+  // 404 handler
+  app.use('/api/*', (req, res) => {
+    res.status(404).json({ error: 'API endpoint not found', path: req.path });
+  });
+
+  // Error handler
+  app.use((err, req, res, next) => {
+    console.error('[Express Error]:', err);
+    res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+  });
+
+  global.__expressApp = app;
+} else {
+  app = global.__expressApp;
+}
+
+// Helper to convert Next.js request to Node.js IncomingMessage-like object
+function createNodeRequest(nextReq, fullPath) {
+  const stream = new Readable();
+  stream._read = () => {};
+  
+  if (nextReq.body) {
+    const bodyStr = typeof nextReq.body === 'string' ? nextReq.body : JSON.stringify(nextReq.body);
+    stream.push(bodyStr);
   }
-  return routers[name];
+  stream.push(null);
+
+  const nodeReq = Object.create(stream);
+  nodeReq.method = nextReq.method;
+  nodeReq.url = fullPath + (nextReq.url.includes('?') ? nextReq.url.substring(nextReq.url.indexOf('?')) : '');
+  nodeReq.path = fullPath;
+  nodeReq.originalUrl = fullPath;
+  nodeReq.headers = nextReq.headers || {};
+  nodeReq.query = nextReq.query || {};
+  nodeReq.body = nextReq.body || {};
+  nodeReq.params = {};
+  nodeReq.get = function(name) {
+    return this.headers[name?.toLowerCase()] || this.headers[name];
+  };
+  
+  return nodeReq;
 }
 
 module.exports = async function handler(req, res) {
@@ -22,61 +92,33 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // Get route segments and reconstruct full path
   const routeSegments = req.query.route || [];
-  const [routeName, ...subPath] = routeSegments;
-
-  if (!routeName) {
-    return res.status(404).json({ error: 'API endpoint not found' });
-  }
-
-  const router = getRouter(routeName);
-  if (!router) {
-    return res.status(404).json({ error: `Route '${routeName}' not found` });
-  }
-
-  const apiPath = '/' + (subPath.length > 0 ? subPath.join('/') : '');
-  const cleanQuery = { ...req.query };
-  delete cleanQuery.route;
-
-  console.log(`[API] ${req.method} /${routeName}${apiPath}`);
-
-  // Create minimal request object
-  const mockReq = Object.create(Object.prototype);
-  mockReq.method = req.method;
-  mockReq.url = apiPath + (Object.keys(cleanQuery).length ? '?' + new URLSearchParams(cleanQuery).toString() : '');
-  mockReq.path = apiPath;
-  mockReq.originalUrl = apiPath;
-  mockReq.baseUrl = '';
-  mockReq.query = cleanQuery;
-  mockReq.body = req.body || {};
-  mockReq.headers = req.headers || {};
-  mockReq.params = {};
-  mockReq.user = null;
-  mockReq.get = function(name) {
-    return this.headers[name?.toLowerCase()] || this.headers[name];
-  };
-
+  const fullPath = '/api/' + routeSegments.join('/');
+  
   // Extract params
-  if (subPath.length === 1) {
-    mockReq.params.slug = subPath[0];
-    mockReq.params.id = subPath[0];
-  }
-  if (subPath.length >= 2) {
-    mockReq.params.id = subPath[1];
+  if (routeSegments.length >= 2) {
+    // This will be handled by Express routing
   }
 
-  // Create response object
+  console.log(`[API Handler] ${req.method} ${fullPath}`);
+
+  // Create Node.js-like request
+  const nodeReq = createNodeRequest(req, fullPath);
+
+  // Create response wrapper
   let statusCode = 200;
   let headersSent = false;
-  const mockRes = {
+  const nodeRes = {
     statusCode: 200,
     headersSent: false,
-    status(code) {
+    _headers: {},
+    status: function(code) {
       statusCode = code;
       this.statusCode = code;
       return this;
     },
-    json(data) {
+    json: function(data) {
       if (headersSent) return this;
       headersSent = true;
       this.headersSent = true;
@@ -85,7 +127,7 @@ module.exports = async function handler(req, res) {
       res.json(data);
       return this;
     },
-    send(data) {
+    send: function(data) {
       if (headersSent) return this;
       headersSent = true;
       this.headersSent = true;
@@ -93,7 +135,7 @@ module.exports = async function handler(req, res) {
       res.send(data);
       return this;
     },
-    end(data) {
+    end: function(data) {
       if (headersSent) return this;
       headersSent = true;
       this.headersSent = true;
@@ -101,35 +143,44 @@ module.exports = async function handler(req, res) {
       res.end();
       return this;
     },
-    setHeader(name, value) {
+    setHeader: function(name, value) {
+      this._headers[name] = value;
       res.setHeader(name, value);
       return this;
     },
-    getHeader(name) {
-      return res.getHeader(name);
+    getHeader: function(name) {
+      return this._headers[name] || res.getHeader(name);
+    },
+    write: function(chunk) {
+      res.write(chunk);
+      return this;
+    },
+    writeHead: function(code, headers) {
+      statusCode = code;
+      this.statusCode = code;
+      if (headers) {
+        Object.entries(headers).forEach(([k, v]) => {
+          this._headers[k] = v;
+          res.setHeader(k, v);
+        });
+      }
+      res.statusCode = code;
+      return this;
     }
   };
 
-  // Call router - use process() method if available, otherwise handle()
+  // Call Express app
   return new Promise((resolve) => {
-    const done = (err) => {
+    app(nodeReq, nodeRes, (err) => {
       if (err) {
-        console.error(`[Router Error] ${routeName}:`, err);
+        console.error('[App Error]:', err);
         if (!headersSent && !res.headersSent) {
-          res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+          res.status(500).json({ error: err.message || 'Internal server error' });
         }
       } else if (!headersSent && !res.headersSent) {
-        res.status(404).json({ error: 'Route not found', path: apiPath, method: req.method });
+        res.status(404).json({ error: 'Route not found', path: fullPath });
       }
       resolve();
-    };
-
-    // Try router.handle() - this is the Express Router method
-    if (typeof router.handle === 'function') {
-      router.handle(mockReq, mockRes, done);
-    } else {
-      // Fallback: try calling router directly as middleware
-      router(mockReq, mockRes, done);
-    }
+    });
   });
 };
