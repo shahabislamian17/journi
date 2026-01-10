@@ -1,6 +1,13 @@
 // Vercel serverless function - catch-all route for /api/*
 // This routes all API requests to the backend Express app
 
+// Ensure environment variables are available
+// In Vercel, they should be automatically available, but log for debugging
+if (!process.env.DATABASE_URL) {
+  console.error('⚠️  WARNING: DATABASE_URL is not set in Vercel environment variables');
+  console.error('Set it in Vercel Dashboard > Settings > Environment Variables');
+}
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
