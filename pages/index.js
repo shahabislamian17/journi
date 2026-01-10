@@ -29,11 +29,21 @@ export async function getServerSideProps(context) {
         featured: 'true',
         limit: 10 
       }),
-      categoriesAPI.getAll(),
+      categoriesAPI.getAll().catch(err => {
+        console.error('Error fetching categories:', err);
+        return { categories: [] };
+      }),
       staysAPI.getAll({ featured: 'true' }),
       carsAPI.getAll({ featured: 'true' }),
       reviewsAPI.getWebsiteFeatured({ limit: 6 })
     ]);
+
+    // Log categories data for debugging
+    console.log('Categories fetched:', {
+      hasCategories: !!categoriesData?.categories,
+      categoriesCount: categoriesData?.categories?.length || 0,
+      categories: categoriesData?.categories
+    });
 
     // Fetch wishlist if user is authenticated - always fetch fresh
     let wishlistIds = [];
@@ -69,11 +79,22 @@ export async function getServerSideProps(context) {
       "inc/layouts/home/banner.html",
     ]);
 
+    // Ensure categories is always an array
+    const categories = Array.isArray(categoriesData?.categories) ? categoriesData.categories : [];
+    
+    console.log('Props being returned:', {
+      experiencesCount: (experiencesData.experiences?.data || []).length,
+      categoriesCount: categories.length,
+      staysCount: (staysData.stays || []).length,
+      carsCount: (carsData.cars || []).length,
+      reviewsCount: (reviewsData.reviews || []).length
+    });
+
     return {
       props: {
         experiences: experiencesData.experiences?.data || [],
         totalCount: experiencesData.experiences?.total || null,
-        categories: categoriesData.categories || [],
+        categories: categories,
         stays: staysData.stays || [],
         cars: carsData.cars || [],
         reviews: reviewsData.reviews || [],

@@ -94,47 +94,63 @@ export default function Experiences({ experiences = [], categories = [], activeC
                             </div>
                           </a>
                         </li>
-                        {categories.map((category, index) => {
-                          // Map category slugs to their icons
-                          const getCategoryIcons = (slug) => {
-                            const iconMap = {
-                              'sightseeing': { one: 'icons8-yacht', two: 'icons8-yacht-2' },
-                              'wellness': { one: 'icons8-lotus', two: 'icons8-lotus-2' },
-                              'art-culture': { one: 'icons8-collectibles', two: 'icons8-collectibles-2' },
-                              'entertainment': { one: 'icons8-entertainment', two: 'icons8-theatre-mask' },
-                              'food-drink': { one: 'icons8-champagne', two: 'icons8-champagne-2' },
-                              'sports': { one: 'icons8-tennis-ball', two: 'icons8-tennis-ball-2' },
-                              'adventure': { one: 'icons8-yacht', two: 'icons8-yacht-2' }
+                        {categories && categories.length > 0 ? (
+                          categories.map((category, index) => {
+                            // Ensure category has required fields
+                            if (!category || !category.id || !category.slug || !category.name) {
+                              console.warn('Invalid category:', category);
+                              return null;
+                            }
+
+                            // Map category slugs to their icons
+                            const getCategoryIcons = (slug) => {
+                              const iconMap = {
+                                'sightseeing': { one: 'icons8-yacht', two: 'icons8-yacht-2' },
+                                'wellness': { one: 'icons8-lotus', two: 'icons8-lotus-2' },
+                                'art-culture': { one: 'icons8-collectibles', two: 'icons8-collectibles-2' },
+                                'entertainment': { one: 'icons8-entertainment', two: 'icons8-theatre-mask' },
+                                'food-drink': { one: 'icons8-champagne', two: 'icons8-champagne-2' },
+                                'sports': { one: 'icons8-tennis-ball', two: 'icons8-tennis-ball-2' },
+                                'adventure': { one: 'icons8-yacht', two: 'icons8-yacht-2' }
+                              };
+                              return iconMap[slug] || { one: 'icons8-yacht', two: 'icons8-yacht-2' };
                             };
-                            return iconMap[slug] || { one: 'icons8-yacht', two: 'icons8-yacht-2' };
-                          };
 
-                          const icons = getCategoryIcons(category.slug);
+                            const icons = getCategoryIcons(category.slug);
 
-                          return (
-                            <li key={category.id} className={activeCategory === category.slug ? 'active' : ''}>
-                              <a className="action" href={`/ibiza/${category.slug}`}>
-                                <div className="blocks" data-blocks="2">
-                                  <div className="block">
-                                    <div className="icons">
-                                      <div className="icon one">
-                                        <i className={`icons8 ${icons.one}`}></i>
+                            return (
+                              <li key={category.id || index} className={activeCategory === category.slug ? 'active' : ''}>
+                                <a className="action" href={`/ibiza/${category.slug}`}>
+                                  <div className="blocks" data-blocks="2">
+                                    <div className="block">
+                                      <div className="icons">
+                                        <div className="icon one">
+                                          <i className={`icons8 ${icons.one}`}></i>
+                                        </div>
+                                        <div className="icon two">
+                                          <i className={`icons8 ${icons.two}`}></i>
+                                        </div>
                                       </div>
-                                      <div className="icon two">
-                                        <i className={`icons8 ${icons.two}`}></i>
+                                    </div>
+                                    <div className="block">
+                                      <div className="title">
+                                        <h4 className="one">{category.name}</h4>
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="block">
-                                    <div className="title">
-                                      <h4 className="one">{category.name}</h4>
-                                    </div>
-                                  </div>
-                                </div>
-                              </a>
-                            </li>
-                          );
-                        })}
+                                </a>
+                              </li>
+                            );
+                          })
+                        ) : (
+                          // Log when categories are missing
+                          (() => {
+                            if (typeof window !== 'undefined') {
+                              console.warn('No categories available to display. Categories prop:', categories);
+                            }
+                            return null;
+                          })()
+                        )}
                       </ul>
                     </div>
                     <div className="two">
