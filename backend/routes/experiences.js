@@ -1,7 +1,8 @@
 const express = require('express');
-const prisma = require('../lib/prisma');
+const { PrismaClient } = require('@prisma/client');
 
 const router = express.Router();
+const prisma = new PrismaClient();
 
 // Get all experiences with filters
 router.get('/', async (req, res) => {
