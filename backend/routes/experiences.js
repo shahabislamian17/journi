@@ -40,18 +40,19 @@ router.get('/', async (req, res) => {
     const skip = cursor ? 1 : 0;
     const cursorObj = cursor ? { id: cursor } : undefined;
 
-    // Get total count for pagination with timeout handling
+    // Get total count for pagination with error handling
+    // Skip count if it fails to avoid blocking the response
     let totalCount = 0;
     try {
-      totalCount = await Promise.race([
-        prisma.experience.count({ where }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Count query timeout')), 8000)
-        )
-      ]);
+      totalCount = await prisma.experience.count({ where });
     } catch (countError) {
       console.error('Error getting experience count:', countError);
-      // Continue without count if it fails
+      console.error('Count error details:', {
+        message: countError.message,
+        code: countError.code,
+        meta: countError.meta
+      });
+      // Continue without count if it fails - don't block the response
       totalCount = 0;
     }
 

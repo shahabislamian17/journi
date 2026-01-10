@@ -16,13 +16,28 @@ router.get('/', async (req, res) => {
 
     const take = limit ? parseInt(limit) : undefined;
 
-    const cars = await prisma.car.findMany({
-      where,
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take
-    });
+    let cars = [];
+    try {
+      cars = await prisma.car.findMany({
+        where,
+        orderBy: {
+          createdAt: 'desc'
+        },
+        take
+      });
+    } catch (carError) {
+      console.error('Error fetching cars:', carError);
+      console.error('Car error details:', {
+        message: carError.message,
+        code: carError.code,
+        meta: carError.meta
+      });
+      // Return empty array if query fails
+      return res.status(500).json({
+        error: 'Failed to fetch cars',
+        cars: []
+      });
+    }
 
     res.json({
       cars: cars || []
