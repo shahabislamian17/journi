@@ -9,7 +9,11 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "db:seed": "node prisma/seed.js"
+    "db:seed": "node prisma/seed.js",
+    "seed": "node prisma/seed.js",
+    "seed:stays": "node prisma/seed-stays.js",
+    "seed:cars": "node prisma/seed-cars.js",
+    "seed:reviews": "node prisma/seed-reviews.js"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",
@@ -27,12 +31,6 @@
   },
   "prisma": {
     "seed": "node prisma/seed.js"
-  },
-  "scripts": {
-    "seed": "node prisma/seed.js",
-    "seed:stays": "node prisma/seed-stays.js",
-    "seed:cars": "node prisma/seed-cars.js",
-    "seed:reviews": "node prisma/seed-reviews.js"
   }
 }
 
