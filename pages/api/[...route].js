@@ -18,8 +18,17 @@ if (!global.__expressApp) {
     allowedHeaders: ['Content-Type', 'Authorization']
   }));
   
-  // Body parsing middleware
-  app.use(express.json());
+  // Body parsing middleware - but Next.js already parses JSON, so we'll handle it manually
+  // Keep middleware for compatibility, but we'll set body before routes run
+  app.use((req, res, next) => {
+    // If body is already set (from Next.js), use it
+    // Otherwise let Express parse it (shouldn't happen but for safety)
+    if (!req.body && req.method !== 'GET' && req.method !== 'HEAD') {
+      express.json()(req, res, next);
+    } else {
+      next();
+    }
+  });
   app.use(express.urlencoded({ extended: true }));
 
   // Routes - mount with /api prefix
@@ -82,12 +91,8 @@ module.exports = async function handler(req, res) {
     query: cleanQuery 
   });
 
-  // For POST/PUT requests, ensure body is available
-  // Next.js already parses JSON body, but we need to make it available to Express middleware
-  let bodyData = req.body;
-  
-  // Create a request-like object that Express can process
-  // The key is to make it look like a proper HTTP request so Express middleware works
+  // Next.js already parses JSON body, so use it directly
+  // Create request object with body already set
   const mockReq = {
     method: req.method,
     url: fullPath + queryString,
@@ -97,21 +102,24 @@ module.exports = async function handler(req, res) {
     query: cleanQuery,
     headers: req.headers || {},
     params: {},
+    body: req.body || {}, // Body is already parsed by Next.js
     user: null,
     get: function(name) {
       return this.headers[name?.toLowerCase()] || this.headers[name];
     },
-    // For body parsing middleware - if body already exists, use it
-    // Otherwise create a stream-like object
-    body: bodyData || {},
-    // Add properties that express.json() middleware might check
     is: function(type) {
+      const contentType = this.headers['content-type'] || '';
       if (type === 'application/json' || type.includes('json')) {
-        return this.headers['content-type']?.includes('json');
+        return contentType.includes('json');
       }
-      return false;
+      return contentType.includes(type);
     }
   };
+  
+  // Ensure Content-Type header is set for POST/PUT requests
+  if ((req.method === 'POST' || req.method === 'PUT') && !mockReq.headers['content-type']) {
+    mockReq.headers['content-type'] = 'application/json';
+  }
 
   // Extract path params
   const pathParts = fullPath.split('/').filter(Boolean);
