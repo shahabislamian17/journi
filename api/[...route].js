@@ -1,5 +1,5 @@
-// Vercel serverless function for backend API
-// This handles all /api/* routes
+// Vercel serverless function - catch-all route for /api/*
+// This routes all API requests to the backend Express app
 
 const express = require('express');
 const cors = require('cors');
@@ -52,3 +52,4 @@ app.use((err, req, res, next) => {
 
 // Export for Vercel
 module.exports = app;
+

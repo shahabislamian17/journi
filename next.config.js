@@ -1,6 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  
+  // Fix for multiple lockfiles warning
+  outputFileTracingRoot: require('path').join(__dirname),
+  
+  // Webpack configuration to handle server-only modules
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+      };
+    }
+    return config;
+  },
 
   async redirects() {
     const php = (source, destination) => ({

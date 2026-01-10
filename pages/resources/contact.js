@@ -1,9 +1,10 @@
-import Layout from "../components/Layout";
-import Template from "../components/Template";
+import Layout from "../../components/Layout";
+import Template from "../../components/Template";
 import Script from "next/script";
-import { readTemplates, escapeForTemplateLiteral } from "../lib/templates";
 
 export async function getStaticProps() {
+  // Dynamic import to ensure this only runs on the server
+  const { readTemplates, escapeForTemplateLiteral } = await import("../../lib/templates");
   const templates = readTemplates(["global/announcements.html", "global/footer-base.html", "global/footer-section-three.html", "global/header.html", "inc/layouts/global/bag.html", "inc/layouts/global/concierge.html", "inc/layouts/global/dates.html", "inc/layouts/global/notifications.html", "inc/layouts/global/reviews.html", "inc/layouts/global/search.html", "inc/layouts/resources/contact/breadcrumbs.html", "inc/layouts/resources/contact/contact.html"]);
   return {
     props: {
@@ -24,6 +25,9 @@ export async function getStaticProps() {
 
 
 export default function Page({ templates, layoutOptions, needsDates, inlineScripts }) {
+  // Dynamic import for escapeForTemplateLiteral to avoid bundling issues
+  const escapeForTemplateLiteral = (str) => (str || "").replace(/`/g, "\\`").replace(/\$\{/g, "\\${");
+  
   return (
     <Layout templates={templates} {...layoutOptions}>
       <section className="notifications">
@@ -34,17 +38,17 @@ export default function Page({ templates, layoutOptions, needsDates, inlineScrip
 
 
 
-    </section>
+	</section>
 
-    <section className="search">
+	<section className="search">
 
-        
+		
 
 <Template html={templates["inc/layouts/global/search.html"]} />
 
 
 
-    </section>
+	</section>
 
     <section className="breadcrumbs">
 

@@ -1,13 +1,13 @@
-import Layout from "../components/Layout";
-import Template from "../components/Template";
+import Layout from "../../components/Layout";
+import Template from "../../components/Template";
 import Script from "next/script";
-import CategoryExperiences from "../components/CategoryExperiences";
-import { escapeForTemplateLiteral } from "../lib/utils";
-import { experiencesAPI, categoriesAPI, wishlistAPI } from "../lib/api";
+import CategoryExperiences from "../../components/CategoryExperiences";
+import { escapeForTemplateLiteral } from "../../lib/utils";
+import { experiencesAPI, categoriesAPI, wishlistAPI } from "../../lib/api";
 
 export async function getServerSideProps(context) {
   // Dynamic import to ensure this only runs on the server
-  const { readTemplates } = await import("../lib/templates");
+  const { readTemplates } = await import("../../lib/templates");
   
   // Get category from query parameter or default to 'sightseeing'
   const categorySlug = context.query.category || 'sightseeing';
@@ -77,7 +77,7 @@ export async function getServerSideProps(context) {
   } catch (error) {
     console.error('Error fetching data:', error);
     // Fallback to static templates if API fails
-    const { readTemplates } = await import("../lib/templates");
+    const { readTemplates } = await import("../../lib/templates");
     const templates = readTemplates([
       "global/announcements.html",
       "global/footer-base.html",
