@@ -27,6 +27,12 @@
   },
   "prisma": {
     "seed": "node prisma/seed.js"
+  },
+  "scripts": {
+    "seed": "node prisma/seed.js",
+    "seed:stays": "node prisma/seed-stays.js",
+    "seed:cars": "node prisma/seed-cars.js",
+    "seed:reviews": "node prisma/seed-reviews.js"
   }
 }
 

@@ -650,7 +650,7 @@ async function main() {
     }
   });
 
-  console.log('Seeding completed!');
+  console.log('Main seeding completed!');
   console.log('\nTest Data Summary:');
   console.log('Users:');
   console.log('  - test@example.com (Traveller) - Password: password123');
@@ -662,6 +662,290 @@ async function main() {
   console.log('  - 4 Bookings (various statuses)');
   console.log('  - 5 Experience Reviews');
   console.log('  - 5 Messages');
+
+  // Run additional seed files
+  console.log('\n=== Running additional seeds ===');
+  
+  // Seed stays
+  console.log('Seeding stays...');
+  try {
+    const seedStays = require('./seed-stays');
+    // Since seed-stays.js has its own main() that disconnects, we need to call it differently
+    // We'll use the PrismaClient from here instead
+    await seedStaysSeeding(prisma);
+  } catch (error) {
+    console.error('Error seeding stays:', error);
+  }
+
+  // Seed cars
+  console.log('Seeding cars...');
+  try {
+    await seedCarsSeeding(prisma);
+  } catch (error) {
+    console.error('Error seeding cars:', error);
+  }
+
+  // Seed website reviews
+  console.log('Seeding website reviews...');
+  try {
+    await seedReviewsSeeding(prisma, bcrypt);
+  } catch (error) {
+    console.error('Error seeding website reviews:', error);
+  }
+
+  console.log('\n=== All seeding completed! ===');
+}
+
+// Helper functions to seed stays, cars, and reviews using shared PrismaClient
+async function seedStaysSeeding(prisma) {
+  // Clear existing stays
+  await prisma.stay.deleteMany({});
+
+  const stays = [
+    {
+      name: 'Oku',
+      location: 'Sant Antoni de Portmany',
+      rating: 5,
+      price: 400,
+      image: '/assets/images/stays/stay-1a.jpg',
+      type: 'Hotel',
+      featured: true,
+      externalUrl: 'https://example.com/bookings/oku?ref=journi&code=COMM123'
+    },
+    {
+      name: '7 Pines Resort',
+      location: 'Sant Josep de sa Talaia',
+      rating: 5,
+      price: 250,
+      image: '/assets/images/stays/stay-2a.jpg',
+      type: 'Hotel',
+      featured: true,
+      externalUrl: 'https://example.com/bookings/7pines?ref=journi&code=COMM123'
+    },
+    {
+      name: 'Six Senses',
+      location: 'Portinatx',
+      rating: 5,
+      price: 600,
+      image: '/assets/images/stays/stay-3a.jpg',
+      type: 'Hotel',
+      featured: true,
+      externalUrl: 'https://example.com/bookings/sixsenses?ref=journi&code=COMM123'
+    },
+    {
+      name: 'Nobu Hotel Ibiza Bay',
+      location: 'Talamanca',
+      rating: 4,
+      price: 350,
+      image: '/assets/images/stays/stay-4a.jpg',
+      type: 'Hotel',
+      featured: true,
+      externalUrl: 'https://example.com/bookings/nobu?ref=journi&code=COMM123'
+    }
+  ];
+
+  for (const stay of stays) {
+    await prisma.stay.create({
+      data: stay
+    });
+  }
+
+  console.log(`Created ${stays.length} stays`);
+}
+
+async function seedCarsSeeding(prisma) {
+  // Clear existing cars
+  await prisma.car.deleteMany({});
+
+  const cars = [
+    {
+      name: 'Volkswagen Golf',
+      type: 'Compact',
+      price: 25,
+      image: '/assets/images/cars/car-1a.jpg',
+      featured: true,
+      externalUrl: 'https://example.com/rentals/vw-golf?ref=journi&code=COMM123'
+    },
+    {
+      name: 'Range Rover Velar',
+      type: 'Luxury SUV',
+      price: 100,
+      image: '/assets/images/cars/car-2a.jpg',
+      featured: true,
+      externalUrl: 'https://example.com/rentals/range-rover?ref=journi&code=COMM123'
+    },
+    {
+      name: 'BMW Z4',
+      type: 'Sport',
+      price: 100,
+      image: '/assets/images/cars/car-3a.jpg',
+      featured: true,
+      externalUrl: 'https://example.com/rentals/bmw-z4?ref=journi&code=COMM123'
+    },
+    {
+      name: 'Mercedes-Benz C-Class',
+      type: 'Luxury',
+      price: 75,
+      image: '/assets/images/cars/car-2a.jpg',
+      featured: true,
+      externalUrl: 'https://example.com/rentals/mercedes-c?ref=journi&code=COMM123'
+    }
+  ];
+
+  for (const car of cars) {
+    await prisma.car.create({
+      data: car
+    });
+  }
+
+  console.log(`Created ${cars.length} cars`);
+}
+
+async function seedReviewsSeeding(prisma, bcrypt) {
+  const hashedPassword = await bcrypt.hash('password123', 10);
+
+  // Create or get users for website reviews
+  const users = [];
+  
+  const user1 = await prisma.user.upsert({
+    where: { email: 'hugo.carretero@example.com' },
+    update: {},
+    create: {
+      email: 'hugo.carretero@example.com',
+      password: hashedPassword,
+      firstName: 'Hugo',
+      lastName: 'Carretero',
+    }
+  });
+  users.push(user1);
+
+  const user2 = await prisma.user.upsert({
+    where: { email: 'marysia.jaworska@example.com' },
+    update: {},
+    create: {
+      email: 'marysia.jaworska@example.com',
+      password: hashedPassword,
+      firstName: 'Marysia',
+      lastName: 'Jaworska',
+    }
+  });
+  users.push(user2);
+
+  const user3 = await prisma.user.upsert({
+    where: { email: 'brian.chesky@example.com' },
+    update: {},
+    create: {
+      email: 'brian.chesky@example.com',
+      password: hashedPassword,
+      firstName: 'Brian',
+      lastName: 'Chesky',
+    }
+  });
+  users.push(user3);
+
+  const user4 = await prisma.user.upsert({
+    where: { email: 'sarah.johnson@example.com' },
+    update: {},
+    create: {
+      email: 'sarah.johnson@example.com',
+      password: hashedPassword,
+      firstName: 'Sarah',
+      lastName: 'Johnson',
+    }
+  });
+  users.push(user4);
+
+  const user5 = await prisma.user.upsert({
+    where: { email: 'marco.rossi@example.com' },
+    update: {},
+    create: {
+      email: 'marco.rossi@example.com',
+      password: hashedPassword,
+      firstName: 'Marco',
+      lastName: 'Rossi',
+    }
+  });
+  users.push(user5);
+
+  const user6 = await prisma.user.upsert({
+    where: { email: 'emma.thompson@example.com' },
+    update: {},
+    create: {
+      email: 'emma.thompson@example.com',
+      password: hashedPassword,
+      firstName: 'Emma',
+      lastName: 'Thompson',
+    }
+  });
+  users.push(user6);
+
+  // Clear existing website reviews
+  await prisma.websiteReview.deleteMany({});
+
+  const websiteReviews = [
+    {
+      userId: user1.id,
+      rating: 5,
+      comment: 'Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat in id cursus mi pretium.\n\nPulvinar vivamus fringilla lacus nec laculis massa nisl malesuada.',
+      featured: true,
+      reviewCount: 3,
+      localGuide: false,
+      source: 'Google'
+    },
+    {
+      userId: user2.id,
+      rating: 5,
+      comment: 'Hendrerit semper vel class aptent taciti sociosqu ad litora torquent per conubia nostra semper inceptos himenaeos. Lorem ipsum dolor sit amet consectetur.\n\nQuisque faucibus ex sapien vitae pellentesque sem placerat pretium tellus duis convallis tempus leo eu aenean.',
+      featured: true,
+      reviewCount: 10,
+      localGuide: true,
+      source: 'Google'
+    },
+    {
+      userId: user3.id,
+      rating: 5,
+      comment: 'Sed diam urna tempor pulvinar vivamus fringilla lacus nec metus bibendum egestas. Laculis massa nisl malesuada lacinia integer nunc posuere.\n\nHendrerit semper vel class aptent taciti litora torquent per conubia nostra inceptos.',
+      featured: true,
+      reviewCount: 1,
+      localGuide: false,
+      source: 'Google'
+    },
+    {
+      userId: user4.id,
+      rating: 5,
+      comment: 'Amazing experience! The tour was well-organized and the guide was knowledgeable. Highly recommend to anyone visiting Ibiza.\n\nThe views were breathtaking and the whole experience exceeded our expectations.',
+      featured: true,
+      reviewCount: 5,
+      localGuide: false,
+      source: 'Google'
+    },
+    {
+      userId: user5.id,
+      rating: 5,
+      comment: 'Perfect day out! Everything was handled professionally from start to finish. The team made sure we had everything we needed.\n\nWould definitely book again on our next visit to Ibiza.',
+      featured: true,
+      reviewCount: 7,
+      localGuide: true,
+      source: 'Google'
+    },
+    {
+      userId: user6.id,
+      rating: 5,
+      comment: 'Incredible experience that we will remember forever. The attention to detail and customer service was outstanding.\n\nThank you for making our trip to Ibiza so special!',
+      featured: true,
+      reviewCount: 2,
+      localGuide: false,
+      source: 'Google'
+    }
+  ];
+
+  for (const review of websiteReviews) {
+    await prisma.websiteReview.create({
+      data: review
+    });
+  }
+
+  console.log(`Created ${websiteReviews.length} website reviews`);
 }
 
 main()

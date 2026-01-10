@@ -6,7 +6,8 @@
     "build": "cd backend && npx prisma migrate deploy && npx prisma generate && cd .. && next build",
     "start": "next start",
     "postinstall": "cd backend && npm install && npx prisma generate",
-    "vercel-build": "cd backend && npx prisma migrate deploy && npx prisma generate && cd .. && next build"
+    "vercel-build": "cd backend && npx prisma migrate deploy && npx prisma generate && npx prisma db seed && cd .. && next build",
+    "seed": "cd backend && npx prisma db seed"
   },
   "dependencies": {
     "@apollo/client": "^4.0.11",
