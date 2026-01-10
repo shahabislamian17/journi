@@ -259,6 +259,13 @@ module.exports = async function handler(req, res) {
     // IMPORTANT: Set body BEFORE creating the object so Express can access it
     const requestBody = req.body || {};
     
+    // Create a minimal socket-like object for Express compatibility
+    const socketObj = {
+      remoteAddress: req.headers['x-forwarded-for']?.split(',')[0] || req.socket?.remoteAddress || '127.0.0.1',
+      remotePort: 0,
+      encrypted: true
+    };
+    
     const expressReq = {
       method: req.method,
       url: fullPath + queryString,
@@ -268,13 +275,26 @@ module.exports = async function handler(req, res) {
       query: cleanQuery,
       headers: { 
         ...req.headers,
-        'content-type': req.headers['content-type'] || 'application/json'
+        'content-type': req.headers['content-type'] || (req.method === 'POST' || req.method === 'PUT' ? 'application/json' : ''),
+        'content-length': req.headers['content-length'] || (requestBody ? JSON.stringify(requestBody).length : 0).toString()
       },
       params: {},
       body: requestBody, // Set body explicitly
-      ip: req.headers['x-forwarded-for']?.split(',')[0] || req.socket?.remoteAddress || '127.0.0.1',
+      ip: socketObj.remoteAddress,
       protocol: 'https',
-      hostname: req.headers.host || 'localhost',
+      hostname: req.headers.host?.split(':')[0] || 'localhost',
+      socket: socketObj,
+      connection: socketObj,
+      httpVersion: '1.1',
+      httpVersionMajor: 1,
+      httpVersionMinor: 1,
+      readable: true,
+      readableEncoding: null,
+      readableEnded: false,
+      readableFlowing: null,
+      readableHighWaterMark: 16384,
+      readableLength: 0,
+      readableObjectMode: false,
       get: function(name) {
         const lowerName = name?.toLowerCase();
         return this.headers[lowerName] || this.headers[name] || null;
@@ -285,7 +305,11 @@ module.exports = async function handler(req, res) {
           return ct.includes('application/json');
         }
         return ct.includes(type.toLowerCase());
-      }
+      },
+      accepts: function() { return true; },
+      acceptsCharsets: function() { return true; },
+      acceptsEncodings: function() { return true; },
+      acceptsLanguages: function() { return true; }
     };
     
     // Ensure body is properly set (Express might check this)
@@ -412,11 +436,22 @@ module.exports = async function handler(req, res) {
           expressReq.params.experienceId = pathParts[4];
         }
         
-        console.log(`[Router Handle] Mount: ${mountPath}, Router path: ${routerPath}, Method: ${expressReq.method}`);
+        console.log(`[Router Call] Mount: ${mountPath}, Router path: ${routerPath}, Method: ${expressReq.method}`);
+        console.log(`[Router Call] Router type:`, typeof router, 'Is function:', typeof router === 'function');
+        
+        // Ensure router has proper properties for Express route matching
+        // Add socket property for Express compatibility
+        expressReq.socket = expressReq.socket || { remoteAddress: expressReq.ip };
+        expressReq.connection = expressReq.socket;
         
         // Call router as middleware function - Express routers are callable
-        // This should properly match POST /register
-        router(expressReq, expressRes, next);
+        // Express will internally match routes based on method and path
+        try {
+          router(expressReq, expressRes, next);
+        } catch (routerError) {
+          console.error(`[Router Error] Error calling router:`, routerError);
+          next(routerError);
+        }
       } else {
         // Fallback: try full app.handle() or call app directly
         console.log(`[App Handle] No specific router found for ${mountPath}, using full app`);
