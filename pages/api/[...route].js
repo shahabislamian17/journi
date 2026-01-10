@@ -480,18 +480,43 @@ module.exports = async function handler(req, res) {
               if (pathMatch && methodMatch) {
                 console.log(`[Manual Route Match] Found route: ${expressReq.method} ${routePath}`);
                 console.log(`[Manual Route Match] Route methods:`, methods);
-                console.log(`[Manual Route Match] Layer handle type:`, typeof layer.handle);
                 routeMatched = true;
                 
                 // Set route on request (Express does this internally)
                 expressReq.route = route;
                 
-                // Call layer.handle() - this executes the route handler
-                // Layer.handle() is a function that calls the route handler with (req, res, next)
+                // For routes, Express uses route.dispatch() to call handlers
+                // route.stack contains the handlers for this route
                 try {
-                  layer.handle(expressReq, expressRes, next);
+                  if (route.stack && route.stack.length > 0) {
+                    // Call route.dispatch() which properly executes route handlers
+                    if (typeof route.dispatch === 'function') {
+                      route.dispatch(expressReq, expressRes, next);
+                    } else {
+                      // Fallback: call handlers directly from route.stack
+                      let handlerIndex = 0;
+                      const routeNext = (err) => {
+                        if (err) return next(err);
+                        handlerIndex++;
+                        if (handlerIndex < route.stack.length) {
+                          route.stack[handlerIndex].handle(expressReq, expressRes, routeNext);
+                        } else {
+                          next();
+                        }
+                      };
+                      if (route.stack[0] && route.stack[0].handle) {
+                        route.stack[0].handle(expressReq, expressRes, routeNext);
+                      } else {
+                        // Last resort: call layer.handle()
+                        layer.handle(expressReq, expressRes, next);
+                      }
+                    }
+                  } else {
+                    // No handlers in route.stack, try layer.handle()
+                    layer.handle(expressReq, expressRes, next);
+                  }
                 } catch (layerError) {
-                  console.error(`[Layer Handle Error]`, layerError);
+                  console.error(`[Route Handler Error]`, layerError);
                   next(layerError);
                 }
                 break;
