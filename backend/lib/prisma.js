@@ -17,20 +17,30 @@ function getPrismaClient() {
   }
 
   // Validate DATABASE_URL is set
-  if (!process.env.DATABASE_URL) {
-    const error = new Error(
-      'DATABASE_URL environment variable is not set. ' +
-      'Please set it in Vercel Dashboard > Settings > Environment Variables. ' +
-      'Current env vars: ' + Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('DB')).join(', ')
+  if (!process.env.DATABASE_URL || process.env.DATABASE_URL.trim() === '') {
+    const dbRelatedVars = Object.keys(process.env).filter(k => 
+      k.includes('DATABASE') || k.includes('DB') || k.includes('PRISMA')
     );
-    console.error('[Prisma Error]', error.message);
+    const error = new Error(
+      'DATABASE_URL environment variable is NOT SET or is EMPTY. ' +
+      'This is REQUIRED for the application to work. ' +
+      'Please set it in Vercel Dashboard > Settings > Environment Variables. ' +
+      'Current database-related env vars found: ' + (dbRelatedVars.length > 0 ? dbRelatedVars.join(', ') : 'NONE')
+    );
+    console.error('[Prisma FATAL Error]', error.message);
+    console.error('[Prisma] All environment variables starting with DATABASE/DB/PRISMA:', dbRelatedVars);
     throw error;
   }
 
   // Validate DATABASE_URL format and handle different connection types
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) {
-    throw new Error('DATABASE_URL is not set in environment variables');
+  const dbUrl = process.env.DATABASE_URL.trim();
+  
+  // Check if it's a placeholder or invalid value
+  if (dbUrl === 'your-database-url-here' || dbUrl.length < 10) {
+    throw new Error(
+      'DATABASE_URL appears to be a placeholder or invalid. ' +
+      'Please set a valid PostgreSQL connection string in Vercel environment variables.'
+    );
   }
 
   // Log DATABASE_URL info (masked for security)
