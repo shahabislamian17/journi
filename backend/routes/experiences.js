@@ -42,9 +42,18 @@ router.get('/', async (req, res) => {
 
     // Get total count for pagination with error handling
     // Skip count if it fails to avoid blocking the response
+    // Use timeout to prevent hanging on connection issues
     let totalCount = 0;
     try {
-      totalCount = await prisma.experience.count({ where });
+      totalCount = await Promise.race([
+        prisma.experience.count({ where }),
+        new Promise((resolve) => {
+          setTimeout(() => {
+            console.warn('[Experiences] Count query timeout, using 0 as default');
+            resolve(0);
+          }, 5000); // 5 second timeout
+        })
+      ]);
     } catch (countError) {
       console.error('Error getting experience count:', countError);
       console.error('Count error details:', {
