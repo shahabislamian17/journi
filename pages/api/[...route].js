@@ -1,46 +1,97 @@
 // Next.js API route handler - catch-all for /api/*
-// Routes all API requests to backend Express routes
+// Manually routes to backend route handlers
 
-const express = require('express');
-const cors = require('cors');
 const path = require('path');
+const http = require('http');
 
-// Create a simple Express app just for routing
-const routerApp = express();
-routerApp.use(express.json());
-routerApp.use(express.urlencoded({ extended: true }));
-routerApp.use(cors({
-  origin: process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || '*',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Lazy load routes
+const routeModules = {};
 
-// Import and mount backend routes
-const backendPath = path.join(process.cwd(), 'backend', 'routes');
-routerApp.use('/auth', require(path.join(backendPath, 'auth')));
-routerApp.use('/experiences', require(path.join(backendPath, 'experiences')));
-routerApp.use('/categories', require(path.join(backendPath, 'categories')));
-routerApp.use('/bookings', require(path.join(backendPath, 'bookings')));
-routerApp.use('/wishlist', require(path.join(backendPath, 'wishlist')));
-routerApp.use('/reviews', require(path.join(backendPath, 'reviews')));
-routerApp.use('/messages', require(path.join(backendPath, 'messages')));
-routerApp.use('/stays', require(path.join(backendPath, 'stays')));
-routerApp.use('/cars', require(path.join(backendPath, 'cars')));
-routerApp.use('/stripe', require(path.join(backendPath, 'stripe')));
+function getRouteModule(name) {
+  if (!routeModules[name]) {
+    const backendPath = path.join(process.cwd(), 'backend', 'routes');
+    routeModules[name] = require(path.join(backendPath, name));
+  }
+  return routeModules[name];
+}
 
-// 404 handler
-routerApp.use((req, res) => {
-  res.status(404).json({ error: 'API endpoint not found', path: req.path });
-});
+// Helper to create proper Node.js request/response for Express
+function createExpressReqRes(nextReq, nextRes, apiPath, routeSegments) {
+  // Parse body if needed
+  let body = nextReq.body || {};
+  
+  // Create a mock IncomingMessage
+  const nodeReq = new http.IncomingMessage(null);
+  nodeReq.method = nextReq.method;
+  nodeReq.url = apiPath + (nextReq.url.includes('?') ? nextReq.url.substring(nextReq.url.indexOf('?')) : '');
+  nodeReq.path = apiPath;
+  nodeReq.originalUrl = apiPath;
+  nodeReq.baseUrl = '';
+  nodeReq.query = { ...nextReq.query, route: undefined };
+  nodeReq.body = body;
+  nodeReq.headers = { ...nextReq.headers };
+  nodeReq.params = {};
+  nodeReq.user = nextReq.user;
+  nodeReq.get = function(name) {
+    return this.headers[name?.toLowerCase()] || this.headers[name];
+  };
+  
+  // Extract path params
+  if (routeSegments.length >= 2) {
+    nodeReq.params.slug = routeSegments[1];
+    nodeReq.params.id = routeSegments[1];
+  }
+  if (routeSegments.length >= 3) {
+    nodeReq.params.id = routeSegments[2];
+  }
+  
+  // Create a mock ServerResponse
+  const nodeRes = new http.ServerResponse(nodeReq);
+  let statusCode = 200;
+  let headersSent = false;
+  
+  // Override methods to use Next.js response
+  nodeRes.status = function(code) {
+    statusCode = code;
+    this.statusCode = code;
+    nextRes.statusCode = code;
+    return this;
+  };
+  
+  nodeRes.json = function(data) {
+    if (headersSent) return this;
+    headersSent = true;
+    nextRes.setHeader('Content-Type', 'application/json');
+    nextRes.status(statusCode || 200);
+    return nextRes.json(data);
+  };
+  
+  nodeRes.send = function(data) {
+    if (headersSent) return this;
+    headersSent = true;
+    nextRes.status(statusCode || 200);
+    return nextRes.send(data);
+  };
+  
+  nodeRes.end = function(data) {
+    if (headersSent) return this;
+    headersSent = true;
+    if (data) nextRes.write(data);
+    return nextRes.end();
+  };
+  
+  nodeRes.setHeader = function(name, value) {
+    nextRes.setHeader(name, value);
+    return this;
+  };
+  
+  nodeRes.getHeader = function(name) {
+    return nextRes.getHeader(name);
+  };
+  
+  return { nodeReq, nodeRes };
+}
 
-// Error handler
-routerApp.use((err, req, res, next) => {
-  console.error('[API Error]:', err);
-  res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
-});
-
-// Export Next.js API route handler
 module.exports = async function handler(req, res) {
   // Handle OPTIONS (CORS preflight)
   if (req.method === 'OPTIONS') {
@@ -53,83 +104,52 @@ module.exports = async function handler(req, res) {
 
   // Get route segments: /api/auth/login -> ['auth', 'login']
   const routeSegments = req.query.route || [];
-  const apiPath = '/' + routeSegments.join('/');
+  const [routeName, ...subPath] = routeSegments;
   
-  // Preserve query string
-  const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
-  const fullPath = apiPath + queryString;
-  
-  console.log(`[API] ${req.method} ${fullPath} (segments: [${routeSegments.join(', ')}])`);
-
-  // Create request-like object for Express
-  const expressReq = {
-    method: req.method,
-    url: fullPath,
-    path: apiPath,
-    originalUrl: fullPath,
-    baseUrl: '',
-    query: { ...req.query, route: undefined }, // Remove route from query
-    body: req.body || {},
-    headers: req.headers,
-    params: {},
-    user: req.user,
-    get: (name) => req.headers[name?.toLowerCase()] || req.headers[name],
-    // For path params, extract from segments if needed
-  };
-
-  // Extract path params for routes like /:slug or /:id
-  if (routeSegments.length >= 2) {
-    // e.g., ['experiences', 'some-slug'] -> params: { slug: 'some-slug' }
-    expressReq.params.slug = routeSegments[1];
-    expressReq.params.id = routeSegments[1];
+  if (!routeName) {
+    return res.status(404).json({ error: 'API endpoint not found', path: req.url });
   }
 
-  // Create response-like object
-  let statusCode = 200;
-  const expressRes = {
-    statusCode: 200,
-    headersSent: false,
-    status: function(code) {
-      statusCode = code;
-      this.statusCode = code;
-      return this;
-    },
-    json: function(data) {
-      if (this.headersSent) return this;
-      this.headersSent = true;
-      res.setHeader('Content-Type', 'application/json');
-      res.status(statusCode || 200);
-      return res.json(data);
-    },
-    send: function(data) {
-      if (this.headersSent) return this;
-      this.headersSent = true;
-      res.status(statusCode || 200);
-      return res.send(data);
-    },
-    end: function(data) {
-      if (this.headersSent) return this;
-      this.headersSent = true;
-      return res.end(data);
-    },
-    setHeader: function(name, value) {
-      return res.setHeader(name, value);
-    },
-    getHeader: function(name) {
-      return res.getHeader(name);
-    },
-  };
+  console.log(`[API Handler] ${req.method} /${routeName}/${subPath.join('/')} (segments: [${routeSegments.join(', ')}])`);
 
-  // Call Express router
-  return new Promise((resolve) => {
-    routerApp(expressReq, expressRes, (err) => {
-      if (err) {
-        console.error('[Router Error]:', err);
-        if (!expressRes.headersSent) {
-          res.status(500).json({ error: err.message || 'Internal server error' });
+  try {
+    // Get the route module (Express router)
+    const routeModule = getRouteModule(routeName);
+    
+    // Reconstruct the path for the route
+    const apiPath = '/' + (subPath.length > 0 ? subPath.join('/') : '');
+    
+    // Create Express-compatible req/res
+    const { nodeReq, nodeRes } = createExpressReqRes(req, res, apiPath, routeSegments);
+    
+    // Call the Express router
+    return new Promise((resolve) => {
+      // Handle the request through the router
+      routeModule(nodeReq, nodeRes, (err) => {
+        if (err) {
+          console.error(`[Router Error] ${routeName}:`, err);
+          if (!nodeRes.headersSent && !res.headersSent) {
+            res.status(err.status || 500).json({ 
+              error: err.message || 'Internal server error' 
+            });
+          }
+        } else if (!nodeRes.headersSent && !res.headersSent) {
+          // If router didn't respond, send 404
+          res.status(404).json({ 
+            error: 'Route handler did not respond',
+            path: apiPath,
+            method: req.method
+          });
         }
-      }
-      resolve();
+        resolve();
+      });
     });
-  });
-}
+    
+  } catch (error) {
+    console.error(`[API Error] ${routeName}:`, error);
+    return res.status(500).json({ 
+      error: error.message || 'Internal server error',
+      route: routeName
+    });
+  }
+};
