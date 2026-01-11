@@ -37,7 +37,18 @@ function handler(req, res) {
   }
 
   // Reconstruct full path
-  const fullPath = '/api/' + segments.join('/');
+  let fullPath = '/api/' + segments.join('/');
+  
+  // Vercel/Next.js might have removed '/api' from req.url
+  // Express routes (app.use('/api/...')) NEED that prefix to match
+  // Ensure req.url starts with /api for Express to match routes correctly
+  if (!req.url.startsWith('/api')) {
+    // If req.url doesn't start with /api, use the reconstructed path
+    req.url = fullPath;
+  } else {
+    // If it does start with /api, use the reconstructed path anyway to ensure consistency
+    req.url = fullPath;
+  }
   
   // Reconstruct query string (remove the 'route' param)
   const cleanQuery = { ...req.query };
@@ -60,17 +71,14 @@ function handler(req, res) {
     expressReq.body = req.body;
   }
 
-  // Create Express response object wrapper
-  // Express needs res.send(), res.json(), etc. which Next.js provides
-  const expressRes = res;
-
   // Call Express app - it will handle routing, method matching, param extraction, etc.
   // Express will call the appropriate route handler based on path and method
+  // Wrap in Promise to prevent Vercel from killing the function early
   return new Promise((resolve, reject) => {
     // Express app is a function that takes (req, res, next)
-    expressApp(expressReq, expressRes, (err) => {
+    expressApp(expressReq, res, (err) => {
       if (err) {
-        console.error('[Express Bridge Error]:', err);
+        console.error('[BRIDGE ERROR]', err);
         if (!res.headersSent) {
           res.status(err.status || 500).json({ 
             error: err.message || 'Internal server error' 
