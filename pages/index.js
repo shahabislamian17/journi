@@ -19,8 +19,10 @@ export async function getServerSideProps(context) {
   // Disable caching for this page to ensure fresh data
   context.res.setHeader(
     'Cache-Control',
-    'public, s-maxage=0, stale-while-revalidate=0'
+    'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
   );
+  context.res.setHeader('Pragma', 'no-cache');
+  context.res.setHeader('Expires', '0');
 
   try {
     // Fetch featured experiences, categories, stays, cars, and reviews from API
