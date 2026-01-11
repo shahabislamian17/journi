@@ -637,11 +637,67 @@ module.exports = async function handler(req, res) {
           }
         }
       } else {
-        // No router found - try full app
-        console.log(`[App Handle] No specific router found for ${mountPath}, using full app`);
-        console.log(`[App Handle] Available routes:`, Object.keys(global.__routeMap || {}));
+        // No router found - check if this is a route defined directly on the app
+        // Routes like /api/health, /api/debug/env are defined with app.get()
+        console.log(`[App Routes] No router found for ${mountPath}, checking app-level routes`);
         
-        // Use app.handle() which processes all middleware and routes
+        // Check app's router stack for routes defined directly on app
+        const appRouter = app._router || app.router;
+        if (appRouter && appRouter.stack) {
+          console.log(`[App Routes] App router has ${appRouter.stack.length} layers`);
+          let appRouteMatched = false;
+          
+          // Walk through app router stack
+          for (const layer of appRouter.stack) {
+            if (layer.route) {
+              const route = layer.route;
+              const methods = route.methods || {};
+              const routePath = route.path;
+              const methodLower = expressReq.method.toLowerCase();
+              const methodMatch = methods[methodLower] === true;
+              
+              // Check if path matches (full path match for app-level routes)
+              if (fullPath === routePath && methodMatch) {
+                console.log(`[App Route Match] Found app-level route: ${expressReq.method} ${routePath}`);
+                appRouteMatched = true;
+                expressReq.route = route;
+                
+                // Call route handler
+                try {
+                  if (route.stack && route.stack.length > 0) {
+                    const handlerLayer = route.stack[0];
+                    if (handlerLayer && typeof handlerLayer.handle === 'function') {
+                      Promise.resolve(handlerLayer.handle(expressReq, expressRes, next))
+                        .catch(err => {
+                          console.error(`[App Route Handler Error]`, err);
+                          if (!responseEnded && !res.headersSent) {
+                            next(err);
+                          }
+                        });
+                      return; // Exit early
+                    }
+                  }
+                } catch (handlerError) {
+                  console.error(`[App Route Handler Error]`, handlerError);
+                  if (!responseEnded && !res.headersSent) {
+                    next(handlerError);
+                  }
+                  return;
+                }
+                break;
+              }
+            }
+          }
+          
+          if (appRouteMatched) {
+            return; // Route was matched and handler called
+          }
+        }
+        
+        // Fallback: try full app.handle()
+        console.log(`[App Handle] No app-level route matched, using full app.handle()`);
+        console.log(`[App Handle] Available routers:`, Object.keys(global.__routeMap || {}));
+        
         try {
           if (typeof app.handle === 'function') {
             app.handle(expressReq, expressRes, next);
