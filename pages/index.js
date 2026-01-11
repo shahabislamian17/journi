@@ -170,6 +170,10 @@ function escapeForTemplateLiteral(str) {
 export default function Page({ experiences, totalCount, categories, stays = [], cars = [], reviews = [], wishlistIds = [], templates, layoutOptions, needsDates, inlineScripts }) {
   const router = useRouter();
   const experiencesJson = JSON.stringify(experiences);
+  
+  // Generate a unique key based on current timestamp to force fresh render
+  // This prevents Next.js from using cached props on client-side navigation
+  const pageKey = typeof window !== 'undefined' ? Date.now() : Math.random();
 
   // Redirect experience query parameter to detail page
   useEffect(() => {
@@ -179,6 +183,20 @@ export default function Page({ experiences, totalCount, categories, stays = [], 
       router.replace(`/ibiza/sightseeing/experience?slug=${encodeURIComponent(slug)}`);
     }
   }, [router]);
+
+  // Force fresh data on page load/reload
+  useEffect(() => {
+    // Check if this is a page reload (not client-side navigation)
+    if (typeof window !== 'undefined' && window.performance) {
+      const navigationType = window.performance.getEntriesByType('navigation')[0]?.type;
+      // If it's a reload, the data should already be fresh from getServerSideProps
+      // But we can force a hard refresh if needed
+      if (navigationType === 'reload') {
+        // Data is already fresh from server, just ensure no client cache
+        router.replace(router.asPath, undefined, { shallow: false });
+      }
+    }
+  }, []); // Run once on mount
 
   // Refresh page data when navigating back to ensure fresh wishlist state
   useEffect(() => {
@@ -200,7 +218,7 @@ export default function Page({ experiences, totalCount, categories, stays = [], 
   }, [router]);
 
   return (
-    <Layout templates={templates} {...layoutOptions}>
+    <Layout key={pageKey} templates={templates} {...layoutOptions}>
       <section className="notifications">
         <Notifications />
       </section>
