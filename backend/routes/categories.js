@@ -6,14 +6,27 @@ const router = express.Router();
 // Get all categories
 router.get('/', async (req, res) => {
   try {
-    const categories = await prisma.category.findMany({
-      orderBy: { name: 'asc' }
-    });
+    let categories = [];
+    try {
+      categories = await prisma.category.findMany({
+        orderBy: { name: 'asc' }
+      });
+    } catch (dbError) {
+      console.error('Error fetching categories from database:', dbError);
+      console.error('Category error details:', {
+        message: dbError.message,
+        code: dbError.code,
+        meta: dbError.meta
+      });
+      // Return empty array on database error to prevent page crash
+      return res.json({ categories: [] });
+    }
 
     res.json({ categories });
   } catch (error) {
     console.error('Get categories error:', error);
-    res.status(500).json({ error: 'Failed to fetch categories' });
+    // Return empty array instead of 500 to allow page to load
+    res.json({ categories: [] });
   }
 });
 
