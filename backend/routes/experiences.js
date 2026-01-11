@@ -151,8 +151,10 @@ router.get('/', async (req, res) => {
 
 // Get experience by slug
 router.get('/:slug', async (req, res) => {
+  const { slug } = req.params;
+  console.log('[Experience Slug Route] Entry', { slug, method: req.method });
+  
   try {
-    const { slug } = req.params;
 
     // First try to find by exact slug match
     let experience = await prisma.experience.findUnique({
@@ -334,6 +336,12 @@ router.get('/:slug', async (req, res) => {
       console.error('Error parsing JSON fields:', e);
     }
 
+    console.log('[Experience Slug Route] Success - sending response', { 
+      experienceId: experience.id,
+      slug: experience.slug,
+      hasHost: !!host
+    });
+    
     res.json({
       experience: {
         ...experience,
@@ -344,9 +352,28 @@ router.get('/:slug', async (req, res) => {
         reviewCount: experience._count.reviews
       }
     });
+    
+    console.log('[Experience Slug Route] Exit - response sent');
   } catch (error) {
-    console.error('Get experience error:', error);
-    res.status(500).json({ error: 'Failed to fetch experience' });
+    console.error('[Experience Slug Route] Error:', error);
+    console.error('[Experience Slug Route] Error details:', {
+      message: error.message,
+      code: error.code,
+      name: error.name,
+      stack: error.stack?.split('\n').slice(0, 5).join('\n')
+    });
+    
+    // Ensure response is sent
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Failed to fetch experience',
+        message: error.message,
+        ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+      });
+      console.log('[Experience Slug Route] Exit - error response sent');
+    } else {
+      console.error('[Experience Slug Route] Exit - headers already sent, cannot send error response');
+    }
   }
 });
 

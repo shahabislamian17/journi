@@ -151,8 +151,17 @@ if (!global.__expressApp) {
 }
 
 module.exports = async function handler(req, res) {
+  // ENTRY LOG - Always log when handler is called
+  console.log('[API ENTRY]', {
+    method: req.method,
+    url: req.url,
+    route: req.query.route,
+    query: req.query
+  });
+
   // Handle OPTIONS (CORS preflight)
   if (req.method === 'OPTIONS') {
+    console.log('[API EXIT] OPTIONS - CORS preflight');
     res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
