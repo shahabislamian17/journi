@@ -40,6 +40,13 @@ export default function WishlistButton({ experienceId, initialInWishlist = false
       
       setInWishlist(isInWishlist);
     } catch (error) {
+      // Silently handle 401 (unauthorized) errors - user is not logged in
+      if (error.status === 401 || error.message?.includes('User not found') || error.message?.includes('not found')) {
+        setInWishlist(false);
+        return;
+      }
+      
+      // Only log unexpected errors
       console.error('Error fetching wishlist state:', error);
       // Fall back to initialInWishlist if fetch fails
       setInWishlist(initialInWishlist);
