@@ -749,5 +749,32 @@ module.exports = async function handler(req, res) {
       }
       resolve();
     }
+  }).then(() => {
+    // SAFETY NET: Ensure response is always sent
+    // If the Promise resolved but no response was sent, send an error
+    if (!res.headersSent) {
+      console.error('[FATAL] API handler exited without sending response', {
+        route: req.query.route,
+        url: req.url,
+        method: req.method,
+        fullPath: '/api/' + (Array.isArray(req.query.route) ? req.query.route.join('/') : req.query.route || '')
+      });
+      res.status(500).json({
+        error: 'API handler exited without sending response',
+        path: '/api/' + (Array.isArray(req.query.route) ? req.query.route.join('/') : req.query.route || ''),
+        method: req.method
+      });
+    } else {
+      console.log('[API EXIT] Response sent successfully');
+    }
+  }).catch((error) => {
+    console.error('[FATAL] Promise rejection in API handler:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: 'Unhandled error in API handler',
+        message: error.message,
+        ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+      });
+    }
   });
 };
