@@ -649,6 +649,7 @@ module.exports = async function handler(req, res) {
         // No router found - check if this is a route defined directly on the app
         // Routes like /api/health, /api/debug/env are defined with app.get()
         console.log(`[App Routes] No router found for ${mountPath}, checking app-level routes`);
+        console.log(`[App Routes] Full path: ${fullPath}, Method: ${expressReq.method}`);
         
         // Check app's router stack for routes defined directly on app
         const appRouter = app._router || app.router;
@@ -665,6 +666,8 @@ module.exports = async function handler(req, res) {
               const methodLower = expressReq.method.toLowerCase();
               const methodMatch = methods[methodLower] === true;
               
+              console.log(`[App Route Check] Comparing: fullPath="${fullPath}" vs routePath="${routePath}", methodMatch=${methodMatch}`);
+              
               // Check if path matches (full path match for app-level routes)
               if (fullPath === routePath && methodMatch) {
                 console.log(`[App Route Match] Found app-level route: ${expressReq.method} ${routePath}`);
@@ -676,6 +679,7 @@ module.exports = async function handler(req, res) {
                   if (route.stack && route.stack.length > 0) {
                     const handlerLayer = route.stack[0];
                     if (handlerLayer && typeof handlerLayer.handle === 'function') {
+                      console.log(`[App Route Handler] Calling handler for ${routePath}`);
                       Promise.resolve(handlerLayer.handle(expressReq, expressRes, next))
                         .catch(err => {
                           console.error(`[App Route Handler Error]`, err);
@@ -684,7 +688,11 @@ module.exports = async function handler(req, res) {
                           }
                         });
                       return; // Exit early
+                    } else {
+                      console.error(`[App Route Handler] Handler layer missing handle function`);
                     }
+                  } else {
+                    console.error(`[App Route Handler] Route stack is empty or missing`);
                   }
                 } catch (handlerError) {
                   console.error(`[App Route Handler Error]`, handlerError);
@@ -698,9 +706,24 @@ module.exports = async function handler(req, res) {
             }
           }
           
-          if (appRouteMatched) {
+          if (!appRouteMatched) {
+            console.log(`[App Routes] No app-level route matched for ${fullPath}`);
+            // Log all available app routes for debugging
+            const availableRoutes = [];
+            for (const layer of appRouter.stack) {
+              if (layer.route) {
+                availableRoutes.push({
+                  path: layer.route.path,
+                  methods: layer.route.methods
+                });
+              }
+            }
+            console.log(`[App Routes] Available app-level routes:`, availableRoutes);
+          } else {
             return; // Route was matched and handler called
           }
+        } else {
+          console.log(`[App Routes] App router or stack not found`);
         }
         
         // Fallback: try full app.handle()
