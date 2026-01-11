@@ -37,15 +37,22 @@ export async function getServerSideProps(context) {
         console.error('Error details:', {
           message: apiError.message,
           status: apiError.status,
-          slug: slug
+          slug: slug,
+          code: apiError.code,
+          name: apiError.name
         });
-        // If API error, return 404
-        if (apiError.status === 404 || apiError.message.includes('404')) {
+        
+        // Only return 404 if it's a genuine 404 (experience not found)
+        // Don't return 404 for database connection errors, timeouts, etc.
+        if (apiError.status === 404 && !apiError.message.includes('timeout') && !apiError.message.includes('database') && !apiError.message.includes('connection')) {
           return {
             notFound: true,
           };
         }
-        // For other errors, return 500 or continue with null experience
+        
+        // For database connection errors or timeouts, log but don't return 404
+        // This allows the page to render with empty experience (will show error state)
+        console.error('Database/connection error fetching experience, continuing with null:', apiError.message);
         experience = null;
       }
     }
