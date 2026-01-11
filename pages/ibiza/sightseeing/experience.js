@@ -18,21 +18,43 @@ export async function getServerSideProps(context) {
   
   try {
     if (slug) {
-      const experienceData = await experiencesAPI.getBySlug(slug);
-      experience = experienceData.experience || null;
-      
-      // Fetch reviews for this experience
-      if (experience?.id) {
-        try {
-          const reviewsData = await reviewsAPI.getByExperience(experience.id);
-          reviews = reviewsData.reviews || [];
-        } catch (reviewError) {
-          console.error('Error fetching reviews:', reviewError);
+      try {
+        const experienceData = await experiencesAPI.getBySlug(slug);
+        experience = experienceData?.experience || null;
+        
+        // Fetch reviews for this experience
+        if (experience?.id) {
+          try {
+            const reviewsData = await reviewsAPI.getByExperience(experience.id);
+            reviews = reviewsData?.reviews || [];
+          } catch (reviewError) {
+            console.error('Error fetching reviews:', reviewError);
+            // Continue without reviews
+          }
         }
+      } catch (apiError) {
+        console.error('Error fetching experience from API:', apiError);
+        console.error('Error details:', {
+          message: apiError.message,
+          status: apiError.status,
+          slug: slug
+        });
+        // If API error, return 404
+        if (apiError.status === 404 || apiError.message.includes('404')) {
+          return {
+            notFound: true,
+          };
+        }
+        // For other errors, return 500 or continue with null experience
+        experience = null;
       }
     }
   } catch (error) {
-    console.error('Error fetching experience:', error);
+    console.error('Unexpected error in getServerSideProps:', error);
+    // Return 404 for any unexpected errors to prevent showing error page
+    return {
+      notFound: true,
+    };
   }
 
   // If experience not found, return 404
