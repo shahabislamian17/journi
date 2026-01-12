@@ -1,19 +1,11 @@
 // Express server entry point
 // Used for both: local development and Vercel deployment
 require('dotenv').config();
-
-// Always export app for Vercel (it will be used as serverless function)
-// For local development, check if we should start server
 const app = require('./app');
 
-// Check if running on Vercel or as serverless function
-const isVercel = process.env.VERCEL || process.env.VERCEL_ENV || process.env.AWS_LAMBDA_FUNCTION_NAME;
-
-if (isVercel) {
-  // Vercel deployment - export app for serverless function
-  // Vercel will call this as a function handler
-  module.exports = app;
-} else {
+// For Vercel: Always export the app (it's used as serverless function handler)
+// For local: Start the server
+if (!process.env.VERCEL && !process.env.VERCEL_ENV) {
   // Local development - start server
   const { PrismaClient } = require('@prisma/client');
   const prisma = new PrismaClient();
@@ -28,4 +20,8 @@ if (isVercel) {
     await prisma.$disconnect();
   });
 }
+
+// Export app for Vercel serverless function
+// @vercel/node will use this as the handler
+module.exports = app;
 
