@@ -1,7 +1,6 @@
 'use client';
 
 import { useRouter } from 'next/router';
-import { notify, NOTIFICATION_TYPES } from '../../../../../../components/Notification';
 
 export default function Navigation() {
   const router = useRouter();
@@ -14,9 +13,6 @@ export default function Navigation() {
     
     // Clear token cookie
     document.cookie = 'token=; path=/; max-age=0; SameSite=Lax';
-    
-    // Show notification
-    notify('You have been logged out successfully', NOTIFICATION_TYPES.SUCCESS);
     
     // Redirect to login page
     setTimeout(() => {

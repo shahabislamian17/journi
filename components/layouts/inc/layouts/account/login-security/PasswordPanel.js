@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { authAPI } from '../../../../../../lib/api';
 import { useRouter } from 'next/router';
-import { notify, NOTIFICATION_TYPES } from '../../../../../Notification';
 
 export default function PasswordPanel() {
   const router = useRouter();
@@ -30,19 +29,16 @@ export default function PasswordPanel() {
     try {
       // Validate passwords
       if (!formData.currentPassword || !formData.newPassword) {
-        notify('Please fill in all fields', NOTIFICATION_TYPES.ERROR);
         setIsLoading(false);
         return;
       }
 
       if (formData.newPassword.length < 6) {
-        notify('New password must be at least 6 characters', NOTIFICATION_TYPES.ERROR);
         setIsLoading(false);
         return;
       }
 
       if (formData.currentPassword === formData.newPassword) {
-        notify('New password must be different from current password', NOTIFICATION_TYPES.ERROR);
         setIsLoading(false);
         return;
       }
@@ -70,9 +66,6 @@ export default function PasswordPanel() {
           errorMessage = apiError.data.message;
         }
         
-        // Show notification with the error message
-        notify(errorMessage, NOTIFICATION_TYPES.ERROR);
-        
         // Return early to prevent any further execution
         return;
       }
@@ -82,8 +75,6 @@ export default function PasswordPanel() {
         return;
       }
       
-      notify('Password updated successfully!', NOTIFICATION_TYPES.SUCCESS);
-      
       // Clear form
       setFormData({
         currentPassword: '',
@@ -92,7 +83,6 @@ export default function PasswordPanel() {
       
       // Optionally redirect to login after a delay
       setTimeout(() => {
-        notify('Please log in with your new password', NOTIFICATION_TYPES.INFO);
         // Clear token and redirect to login
         localStorage.removeItem('token');
         document.cookie = 'token=; path=/; max-age=0';
@@ -101,7 +91,6 @@ export default function PasswordPanel() {
     } catch (error) {
       // Fallback catch - should not reach here if Promise.resolve.catch works
       console.error('Unexpected error changing password:', error);
-      notify('An unexpected error occurred. Please try again.', NOTIFICATION_TYPES.ERROR);
     } finally {
       setIsLoading(false);
     }

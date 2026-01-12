@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { wishlistAPI } from '../lib/api';
-import { notify, NOTIFICATION_TYPES } from './Notification';
 
 export default function WishlistButton({ experienceId, initialInWishlist = false, onRemove }) {
   const router = useRouter();
@@ -136,7 +135,6 @@ export default function WishlistButton({ experienceId, initialInWishlist = false
     // Validate experienceId
     if (!experienceId) {
       console.error('Experience ID is missing');
-      notify('Error: Experience ID is missing. Please refresh the page and try again.', NOTIFICATION_TYPES.ERROR);
       return;
     }
 
@@ -156,8 +154,7 @@ export default function WishlistButton({ experienceId, initialInWishlist = false
     }
     
     if (!token) {
-      // Redirect to login or show message
-      notify('Please log in to add items to your wishlist', NOTIFICATION_TYPES.WARNING);
+      // Redirect to login
       setTimeout(() => {
       window.location.href = '/account/log-in';
       }, 2000);
@@ -192,7 +189,6 @@ export default function WishlistButton({ experienceId, initialInWishlist = false
         console.log('Removing from wishlist:', validExpId);
         await wishlistAPI.remove(validExpId);
         setInWishlist(false);
-        notify('Removed from wishlist', NOTIFICATION_TYPES.SUCCESS);
         
         // Dispatch event to sync other WishlistButton components
         if (typeof window !== 'undefined') {
@@ -210,7 +206,6 @@ export default function WishlistButton({ experienceId, initialInWishlist = false
         console.log('Adding to wishlist:', validExpId);
         await wishlistAPI.add(validExpId);
         setInWishlist(true);
-        notify('Added to wishlist', NOTIFICATION_TYPES.SUCCESS);
         
         // Dispatch event to sync other WishlistButton components
         if (typeof window !== 'undefined') {
@@ -221,7 +216,6 @@ export default function WishlistButton({ experienceId, initialInWishlist = false
       }
     } catch (error) {
       console.error('Error updating wishlist:', error);
-      notify(error.message || 'Failed to update wishlist. Please try again.', NOTIFICATION_TYPES.ERROR);
     } finally {
       setIsLoading(false);
     }

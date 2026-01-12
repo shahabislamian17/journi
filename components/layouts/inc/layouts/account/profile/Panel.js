@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { authAPI } from '../../../../../../lib/api';
 import { useRouter } from 'next/router';
-import { notify, NOTIFICATION_TYPES } from '../../../../../Notification';
 
 export default function Panel({ user }) {
   const router = useRouter();
@@ -70,7 +69,6 @@ export default function Panel({ user }) {
       } catch (error) {
         console.error('Error fetching user profile client-side:', error);
         // If error, token might be invalid, redirect to login
-        notify('Please log in to view your profile', NOTIFICATION_TYPES.WARNING);
         setTimeout(() => {
           router.push('/account/log-in');
         }, 2000);
@@ -117,13 +115,11 @@ export default function Panel({ user }) {
         role: role, // Send as role to API
       });
       
-      notify('Profile updated successfully!', NOTIFICATION_TYPES.SUCCESS);
       setTimeout(() => {
         router.reload();
       }, 1500);
     } catch (error) {
       console.error('Error updating profile:', error);
-      notify(error.message || 'Failed to update profile. Please try again.', NOTIFICATION_TYPES.ERROR);
     } finally {
       setIsLoading(false);
     }

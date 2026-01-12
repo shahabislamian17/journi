@@ -2,7 +2,6 @@ import Head from "next/head";
 import Script from "next/script";
 import { useEffect } from "react";
 import Template from "./Template";
-import NotificationContainer from "./Notification";
 import Header from "./Header";
 
 export default function Layout({
@@ -102,25 +101,6 @@ export default function Layout({
 
       {/* Footer + overlay */}
       <Template html={footerHtml} />
-
-      {/* Notification System */}
-      <NotificationContainer />
-
-      {/* Make notify function available globally for vanilla JS */}
-      <Script id="notification-global" strategy="beforeInteractive" dangerouslySetInnerHTML={{
-        __html: `
-          window.showNotification = function(message, type = 'info', duration = 4000) {
-            // Create a temporary event to trigger notification
-            if (typeof window.notify === 'function') {
-              window.notify(message, type, duration);
-            } else {
-              // Fallback: queue notifications until Notification component loads
-              window.__notificationQueue = window.__notificationQueue || [];
-              window.__notificationQueue.push({ message, type, duration });
-            }
-          };
-        `
-      }} />
 
       {/* Global scripts */}
       {includeCalendarJs ? <Script src="/assets/js/calendar.js" strategy="afterInteractive" /> : null}
