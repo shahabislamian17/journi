@@ -2,6 +2,7 @@ import Layout from "../components/Layout";
 import Template from "../components/Template";
 import Script from "next/script";
 import WishlistExperiences from "../components/WishlistExperiences";
+import Bag from "../components/layouts/inc/layouts/global/Bag";
 import { escapeForTemplateLiteral } from "../lib/utils";
 import { wishlistAPI } from "../lib/api";
 
@@ -99,7 +100,7 @@ export default function Page({ wishlist: serverWishlist, templates, layoutOption
       <WishlistExperiences wishlist={serverWishlist || []} />
 
       <section className="bag">
-        <Template html={templates["inc/layouts/global/bag.html"]} />
+        <Bag />
       </section>
 
       <section className="reviews">
