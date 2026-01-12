@@ -5,37 +5,11 @@ import WishlistButton from '../../../../../components/WishlistButton';
 
 export default function DynamicBanner({ experience }) {
   const [experienceData, setExperienceData] = useState(experience);
-  const [wishlistIds, setWishlistIds] = useState([]);
 
   useEffect(() => {
     // Get experience data from window if not passed as prop
     if (!experienceData && typeof window !== 'undefined' && window.__API_EXPERIENCE__) {
       setExperienceData(window.__API_EXPERIENCE__);
-    }
-
-    // Fetch wishlist IDs
-    const fetchWishlist = async () => {
-      try {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-        if (token) {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/wishlist`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          if (response.ok) {
-            const wishlistData = await response.json();
-            const ids = wishlistData.wishlist?.map(item => item.experienceId) || [];
-            setWishlistIds(ids);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching wishlist:', error);
-      }
-    };
-
-    if (typeof window !== 'undefined') {
-      fetchWishlist();
     }
   }, [experienceData]);
 
@@ -119,11 +93,6 @@ export default function DynamicBanner({ experience }) {
 
   const images = experienceData.images || [];
   const expId = experienceData.id || experienceData.experienceId || experienceData._id;
-  const isInWishlist = wishlistIds.some(wishlistId => {
-    return wishlistId === expId || 
-           String(wishlistId) === String(expId) ||
-           Number(wishlistId) === Number(expId);
-  });
 
   // Format duration
   const duration = experienceData.duration && experienceData.duration.trim() 
@@ -245,8 +214,7 @@ export default function DynamicBanner({ experience }) {
               <div className="block" data-block="2">
                 {expId ? (
                   <WishlistButton 
-                    experienceId={expId} 
-                    initialInWishlist={isInWishlist}
+                    experienceId={expId}
                   />
                 ) : (
                   <div className="icons">

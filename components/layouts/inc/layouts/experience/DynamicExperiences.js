@@ -7,7 +7,6 @@ import WishlistButton from '../../../../../components/WishlistButton';
 
 export default function DynamicExperiences({ currentExperience }) {
   const [similarExperiences, setSimilarExperiences] = useState([]);
-  const [wishlistIds, setWishlistIds] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,25 +41,6 @@ export default function DynamicExperiences({ currentExperience }) {
           .slice(0, 5);
         
         setSimilarExperiences(filtered);
-
-        // Fetch wishlist IDs
-        try {
-          const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-          if (token) {
-            const wishlistResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/wishlist`, {
-              headers: {
-                'Authorization': `Bearer ${token}`
-              }
-            });
-            if (wishlistResponse.ok) {
-              const wishlistData = await wishlistResponse.json();
-              const ids = wishlistData.wishlist?.map(item => item.experienceId) || [];
-              setWishlistIds(ids);
-            }
-          }
-        } catch (wishlistError) {
-          console.error('Error fetching wishlist:', wishlistError);
-        }
       } catch (error) {
         console.error('Error fetching similar experiences:', error);
       } finally {
@@ -223,12 +203,6 @@ export default function DynamicExperiences({ currentExperience }) {
                       if (!expId) {
                         return null;
                       }
-                      
-                      const isInWishlist = wishlistIds.some(wishlistId => {
-                        return wishlistId === expId || 
-                               String(wishlistId) === String(expId) ||
-                               Number(wishlistId) === Number(expId);
-                      });
 
                       return (
                         <div key={expId} className="slide" data-block={`${index + 1}A`}>
@@ -239,8 +213,7 @@ export default function DynamicExperiences({ currentExperience }) {
                                   <div className="blocks" data-blocks="3">
                                     <div className="block" data-block="1AAA">
                                       <WishlistButton 
-                                        experienceId={expId} 
-                                        initialInWishlist={isInWishlist}
+                                        experienceId={expId}
                                       />
                                     </div>
                                     <div className="block" data-block="1AAB">
