@@ -43,6 +43,21 @@ function getPrismaClient() {
     );
   }
 
+  // Validate URL starts with postgres:// or postgresql://
+  if (!dbUrl.startsWith('postgres://') && !dbUrl.startsWith('postgresql://')) {
+    console.error('[Prisma] Invalid DATABASE_URL format:', {
+      urlLength: dbUrl.length,
+      urlPreview: dbUrl.substring(0, 50) + '...',
+      startsWithPostgres: dbUrl.startsWith('postgres'),
+      startsWithPostgresql: dbUrl.startsWith('postgresql')
+    });
+    throw new Error(
+      'DATABASE_URL must start with "postgres://" or "postgresql://". ' +
+      'Current value appears to be invalid. ' +
+      'Please check your Vercel environment variables.'
+    );
+  }
+
   // Log DATABASE_URL info (masked for security)
   const urlMatch = dbUrl.match(/@([^:]+)/);
   const host = urlMatch ? urlMatch[1] : 'unknown';
