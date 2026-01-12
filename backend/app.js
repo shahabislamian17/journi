@@ -80,9 +80,27 @@ app.get('/api/debug/routes', (req, res) => {
   });
 });
 
-// 404 handler for API routes
+// 404 handler for API routes (specific to /api/* paths)
 app.use('/api/*', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found', path: req.path });
+});
+
+// Global catch-all handler - MUST be last, before error handler
+// This ensures Express always returns JSON 404, not HTML
+// Prevents Next.js from rendering its default HTML 404 page
+app.use((req, res) => {
+  console.log('[Express] Route not found:', {
+    method: req.method,
+    url: req.url,
+    path: req.path,
+    originalUrl: req.originalUrl
+  });
+  res.status(404).json({ 
+    error: 'Route not found in Express', 
+    method: req.method, 
+    path: req.url,
+    originalPath: req.originalUrl
+  });
 });
 
 // Error handling middleware

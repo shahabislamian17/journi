@@ -21,7 +21,7 @@ function handler(req, res) {
   console.log('[API ENTRY]', {
     method: req.method,
     url: req.url,
-    path: req.url,
+    originalUrl: req.url,
     route: req.query.route
   });
 
@@ -36,19 +36,8 @@ function handler(req, res) {
     segments = [routeSegments];
   }
 
-  // Reconstruct full path
+  // Reconstruct full path - ALWAYS include /api prefix
   let fullPath = '/api/' + segments.join('/');
-  
-  // Vercel/Next.js might have removed '/api' from req.url
-  // Express routes (app.use('/api/...')) NEED that prefix to match
-  // Ensure req.url starts with /api for Express to match routes correctly
-  if (!req.url.startsWith('/api')) {
-    // If req.url doesn't start with /api, use the reconstructed path
-    req.url = fullPath;
-  } else {
-    // If it does start with /api, use the reconstructed path anyway to ensure consistency
-    req.url = fullPath;
-  }
   
   // Reconstruct query string (remove the 'route' param)
   const cleanQuery = { ...req.query };
@@ -57,12 +46,17 @@ function handler(req, res) {
     ? '?' + new URLSearchParams(cleanQuery).toString() 
     : '';
 
+  // CRITICAL: Fix the URL - Express needs the /api prefix to match routes
+  // Vercel/Next.js might strip /api from req.url, so we always use our reconstructed path
+  // This ensures Express routes (app.use('/api/reviews', ...)) can match correctly
+  const finalUrl = fullPath + queryString;
+  
   // Update request object for Express
   // Express expects req.url and req.path to match its route definitions
   const expressReq = Object.create(req);
-  expressReq.url = fullPath + queryString;
+  expressReq.url = finalUrl;
   expressReq.path = fullPath;
-  expressReq.originalUrl = fullPath + queryString;
+  expressReq.originalUrl = finalUrl;
   expressReq.baseUrl = '';
   expressReq.params = {};
 
@@ -71,6 +65,13 @@ function handler(req, res) {
     expressReq.body = req.body;
   }
 
+  // Log the path being sent to Express for debugging
+  console.log('[Bridge] Passing to Express:', {
+    method: expressReq.method,
+    url: expressReq.url,
+    path: expressReq.path
+  });
+
   // Call Express app - it will handle routing, method matching, param extraction, etc.
   // Express will call the appropriate route handler based on path and method
   // Wrap in Promise to prevent Vercel from killing the function early
@@ -78,7 +79,7 @@ function handler(req, res) {
     // Express app is a function that takes (req, res, next)
     expressApp(expressReq, res, (err) => {
       if (err) {
-        console.error('[BRIDGE ERROR]', err);
+        console.error('[Bridge Error]:', err);
         if (!res.headersSent) {
           res.status(err.status || 500).json({ 
             error: err.message || 'Internal server error' 
@@ -88,7 +89,7 @@ function handler(req, res) {
       }
       // Response should have been sent by Express
       if (!res.headersSent) {
-        console.error('[Express Bridge] No response sent by Express');
+        console.error('[Bridge] No response sent by Express');
         res.status(500).json({ error: 'No response from Express handler' });
       }
       resolve();
