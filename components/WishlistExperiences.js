@@ -46,7 +46,21 @@ export default function WishlistExperiences({ wishlist: initialWishlist = [] }) 
           console.log('WishlistExperiences - fetched client-side:', data.wishlist.length, 'items');
         }
       } catch (error) {
-        console.error('Error fetching wishlist client-side:', error);
+        // Handle "User not found" or authentication errors gracefully
+        if (error.status === 401 || error.message?.includes('User not found') || error.message?.includes('not found')) {
+          // User is not authenticated or token is invalid
+          // Set wishlist to empty array
+          setWishlist([]);
+          console.log('WishlistExperiences - user not authenticated, wishlist cleared');
+        } else {
+          console.error('Error fetching wishlist client-side:', error);
+          // On other errors, keep the initial wishlist if available
+          if (initialWishlist && initialWishlist.length > 0) {
+            setWishlist(initialWishlist);
+          } else {
+            setWishlist([]);
+          }
+        }
       } finally {
         setIsLoading(false);
       }

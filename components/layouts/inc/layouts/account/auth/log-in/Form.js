@@ -45,8 +45,8 @@ export default function Form() {
         const maxAge = formData.rememberMe ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60; // 30 days or 7 days
         document.cookie = `token=${response.token}; path=/; max-age=${maxAge}; SameSite=Lax`;
 
-        // Redirect to profile or home page
-        router.push('/account/profile');
+        // Redirect to main page (home)
+        router.push('/');
         return; // Prevent any further execution
       }
     } catch (error) {
