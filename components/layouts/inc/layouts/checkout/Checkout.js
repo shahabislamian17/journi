@@ -75,6 +75,14 @@ export default function Checkout() {
       const initializeStripe = async () => {
         try {
           const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_publishable_key_here';
+          
+          // Validate that it's a publishable key (starts with pk_), not a secret key
+          if (!stripePublishableKey.startsWith('pk_')) {
+            console.error('Invalid Stripe key: Must be a publishable key (pk_test_... or pk_live_...), not a secret key (sk_test_... or sk_live_...)');
+            console.error('Please set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in your Vercel environment variables with a publishable key from Stripe Dashboard.');
+            return;
+          }
+          
           const stripeInstance = window.Stripe(stripePublishableKey);
           const isMobile = document.documentElement.classList.contains('mobile');
           
