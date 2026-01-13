@@ -2,14 +2,16 @@ import Layout from "../components/Layout";
 import Template from "../components/Template";
 import Script from "next/script";
 import WishlistExperiences from "../components/WishlistExperiences";
+import Reviews from "../components/Reviews";
 import Bag from "../components/layouts/inc/layouts/global/Bag";
 import { escapeForTemplateLiteral } from "../lib/utils";
-import { wishlistAPI } from "../lib/api";
+import { wishlistAPI, reviewsAPI } from "../lib/api";
 
 export async function getServerSideProps(context) {
   const { readTemplates } = await import("../lib/templates");
   
   let wishlist = [];
+  let reviews = [];
   
   try {
     // In production, get token from cookies/headers
@@ -40,11 +42,21 @@ export async function getServerSideProps(context) {
     wishlist = [];
   }
 
+  // Fetch reviews
+  try {
+    const reviewsData = await reviewsAPI.getWebsiteFeatured({ limit: 6 });
+    reviews = reviewsData.reviews || [];
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    reviews = [];
+  }
+
   const templates = readTemplates([
     "global/announcements.html",
     "global/footer-base.html",
     "global/footer-section-three.html",
     "global/header.html",
+    "global/menu.html",
     "inc/layouts/global/bag.html",
     "inc/layouts/global/concierge.html",
     "inc/layouts/global/dates.html",
@@ -58,6 +70,7 @@ export async function getServerSideProps(context) {
   return {
     props: {
       wishlist,
+      reviews,
       templates,
       layoutOptions: {
         title: "Wishlist | Journi",
@@ -74,7 +87,7 @@ export async function getServerSideProps(context) {
 }
 
 
-export default function Page({ wishlist: serverWishlist, templates, layoutOptions, needsDates, inlineScripts }) {
+export default function Page({ wishlist: serverWishlist, reviews = [], templates, layoutOptions, needsDates, inlineScripts }) {
   const wishlistJson = JSON.stringify(serverWishlist);
   
   // Debug: Log wishlist data in development
@@ -89,10 +102,6 @@ export default function Page({ wishlist: serverWishlist, templates, layoutOption
         <Template html={templates["inc/layouts/global/notifications.html"]} />
       </section>
 
-      <section className="search">
-        <Template html={templates["inc/layouts/global/search.html"]} />
-      </section>
-
       <section className="banner">
         <Template html={templates["inc/layouts/wishlist/banner.html"]} />
       </section>
@@ -104,7 +113,7 @@ export default function Page({ wishlist: serverWishlist, templates, layoutOption
       </section>
 
       <section className="reviews">
-        <Template html={templates["inc/layouts/global/reviews.html"]} />
+        <Reviews reviews={reviews} />
       </section>
 
       <section className="concierge">

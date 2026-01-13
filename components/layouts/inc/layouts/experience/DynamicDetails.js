@@ -102,15 +102,7 @@ export default function DynamicDetails({ experience, reviews = [] }) {
   };
 
   const handleSelectSlot = (slot) => {
-    // Check if user is logged in
     if (typeof window === 'undefined') return;
-    
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('Please login to add items to your bag');
-      router.push('/account/login');
-      return;
-    }
 
     // Get experience image
     const primaryImage = experienceData.images?.find(img => img.isPrimary) || experienceData.images?.[0];

@@ -94,8 +94,28 @@ export default function Experiences({ experiences = [], categories = [], activeC
                             </div>
                           </a>
                         </li>
-                        {categories && categories.length > 0 ? (
-                          categories.map((category, index) => {
+                        {categories && categories.length > 0 ? (() => {
+                          // Define the desired order (excluding adventure)
+                          const categoryOrder = ['sightseeing', 'wellness', 'art-culture', 'entertainment', 'food-drink', 'sports'];
+                          
+                          // Filter out adventure and sort by desired order
+                          const filteredAndSorted = categories
+                            .filter(category => category && category.slug && category.slug !== 'adventure')
+                            .sort((a, b) => {
+                              const indexA = categoryOrder.indexOf(a.slug);
+                              const indexB = categoryOrder.indexOf(b.slug);
+                              // If both are in the order list, sort by their position
+                              if (indexA !== -1 && indexB !== -1) {
+                                return indexA - indexB;
+                              }
+                              // If only one is in the order list, prioritize it
+                              if (indexA !== -1) return -1;
+                              if (indexB !== -1) return 1;
+                              // If neither is in the order list, maintain original order
+                              return 0;
+                            });
+
+                          return filteredAndSorted.map((category, index) => {
                             // Ensure category has required fields
                             if (!category || !category.id || !category.slug || !category.name) {
                               console.warn('Invalid category:', category);
@@ -110,8 +130,7 @@ export default function Experiences({ experiences = [], categories = [], activeC
                                 'art-culture': { one: 'icons8-collectibles', two: 'icons8-collectibles-2' },
                                 'entertainment': { one: 'icons8-entertainment', two: 'icons8-theatre-mask' },
                                 'food-drink': { one: 'icons8-champagne', two: 'icons8-champagne-2' },
-                                'sports': { one: 'icons8-tennis-ball', two: 'icons8-tennis-ball-2' },
-                                'adventure': { one: 'icons8-yacht', two: 'icons8-yacht-2' }
+                                'sports': { one: 'icons8-tennis-ball', two: 'icons8-tennis-ball-2' }
                               };
                               return iconMap[slug] || { one: 'icons8-yacht', two: 'icons8-yacht-2' };
                             };
@@ -141,8 +160,8 @@ export default function Experiences({ experiences = [], categories = [], activeC
                                 </a>
                               </li>
                             );
-                          })
-                        ) : (
+                          });
+                        })() : (
                           // Log when categories are missing
                           (() => {
                             if (typeof window !== 'undefined') {
@@ -337,7 +356,7 @@ export default function Experiences({ experiences = [], categories = [], activeC
                                               <div className="icon">
                                                 <i className="icons8 icons8-star-2"></i>
                                               </div>
-                                              <div className="text">{experience.rating ? experience.rating.toFixed(1) : '0.0'}</div>
+                                              <div className="text">{experience.rating != null ? experience.rating : '0'}</div>
                                             </div>
                                           </div>
                                         </div>
@@ -348,15 +367,17 @@ export default function Experiences({ experiences = [], categories = [], activeC
                                         <div className="blocks" data-blocks="6">
                                           <div className="block" data-block="1ADA">
                                             <div className="price">
-                                              <div className="text">From €{experience.price || '0'}</div>
+                                              <div className="text">aDFASFSADFASDF €{experience.price || '0'}</div>
                                             </div>
                                           </div>
-                                          <div className="block" data-block="1ADB">
-                                            <div className="labels">
-                                              {experience.featured && <div className="label">Featured</div>}
-                                              {experience.isNew && <div className="label">New</div>}
+                                          {((experience.featured === true) || (experience.isNew === true)) && (
+                                            <div className="block" data-block="1ADB">
+                                              <div className="labels">
+                                                {experience.featured && <div className="label">Featured</div>}
+                                                {experience.isNew && <div className="label">New</div>}
+                                              </div>
                                             </div>
-                                          </div>
+                                          )}
                                         </div>
                                       </div>
                                     </div>

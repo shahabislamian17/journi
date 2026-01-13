@@ -1,19 +1,637 @@
+// Dates Template (for Vue component)
+// Check if DatesTemplate already exists (from pages), otherwise define it
+if (typeof DatesTemplate === 'undefined') {
+    window.DatesTemplate = `
+    <div class="blocks" data-blocks="5">
+        <div class="block" data-block="2CA">
+            <div class="blocks" data-blocks="6">
+                <div class="block" data-block="2CAA">
+                    <div class="close">
+                        <div class="button circle" data-button="2A">
+                            <div class="action">
+                                <div class="icon">
+                                    <i class="icons8 icons8-less-than"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="block" data-block="2CAB">
+                    <div class="title">
+                        <h3 class="six">Dates</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="block" data-block="2CB">
+            <div class="blocks" data-blocks="7">
+                <div class="block" data-block="2CBA">
+                    <div class="buttons" v-if="! util.isMobile()">
+                        <div class="button circle one" data-button="3A" @click="navigateDates('previous')" v-if="canNavigatePreviousDates">
+                            <div class="action">
+                                <div class="icon">
+                                    <i class="icons8 icons8-less-than"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="button circle two" data-button="3A" @click="navigateDates('next')">
+                            <div class="action">
+                                <div class="icon">
+                                    <i class="icons8 icons8-more-than"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="block" data-block="2CBB">
+                    <div class="dates">
+                        <div class="blocks" data-blocks="7">
+                            <div class="block" data-block="2CCA" v-for="month in months" :key="month.monthIndex + '-' + month.year">
+                                <div class="month">
+                                    <div class="name">
+                                        <div class="text">{{ month.monthName + ' ' + month.year }}</div>
+                                    </div>
+                                    <div class="days">
+                                        <ul class="one">
+                                            <li><span>M</span></li>
+                                            <li><span>T</span></li>
+                                            <li><span>W</span></li>
+                                            <li><span>T</span></li>
+                                            <li><span>F</span></li>
+                                            <li><span>S</span></li>
+                                            <li><span>S</span></li>
+                                        </ul>
+                                        <ul class="two">
+                                            <template v-for="(week, i) in month.weeks">
+                                                <template v-for="day in week">
+                                                    <li v-if="i == 0 && parseInt( day.day ) > 7" class="alt"><span></span></li>
+                                                    <li v-else @click="selectDay(day)" :class="setDayClass(day.date)">
+                                                        <span v-if="day">{{ day.day }}</span>
+                                                    </li>
+                                                </template>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+`;
+}
+
+// Vue Dates Component
+if (typeof Vue !== 'undefined') {
+    Vue.component('dates', {
+        props: ['query'],
+        data() {
+            return {
+                months: [],
+                weekNames: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                selectedDay: null,
+                checkInDate: '',
+                checkOutDate: '',
+                currentDate: new Date(),
+                minMonthIndex: 0,
+                year: 0,
+                source: '',
+                showDates: false
+            };
+        },
+        mounted() {
+            const _this = this;
+            setTimeout(() => {
+                _this.checkInDate = _this.query.checkInDate ? new Date(_this.query.checkInDate) : '';
+                _this.checkOutDate = _this.query.checkOutDate ? new Date(_this.query.checkOutDate) : '';
+                if (_this.util.isMobile && _this.util.isMobile()) {
+                    _this.minMonthIndex = _this.currentDate.getMonth();
+                    _this.year = _this.currentDate.getFullYear();
+                } else {
+                    _this.minMonthIndex = _this.checkInDate ? _this.checkInDate.getMonth() : _this.currentDate.getMonth();
+                    _this.year = _this.checkInDate ? _this.checkInDate.getFullYear() : _this.currentDate.getFullYear();
+                }
+                _this.generateDates();
+            }, 1);
+            if (typeof $ !== 'undefined') {
+                $(window).resize(function() {
+                    _this.generateDates();
+                });
+            }
+            window.Dates = this;
+        },
+        computed: {
+            util() {
+                const util = (typeof window !== 'undefined' && window.Util) ? window.Util : {};
+                if (!util.isMobile) {
+                    util.isMobile = function() {
+                        return window.innerWidth <= 900;
+                    };
+                }
+                return util;
+            },
+            canNavigatePreviousDates() {
+                if (this.minMonthIndex == this.currentDate.getMonth() && this.year == this.currentDate.getFullYear()) {
+                    return false;
+                }
+                return true;
+            }
+        },
+        methods: {
+            hideModals() {
+                if (typeof $ !== 'undefined') {
+                    $('html').removeAttr('data-modal');
+                }
+                this.showDates = false;
+            },
+            generateDates() {
+                const months = [];
+                let year = this.year;
+                let perPage = (this.util.isMobile && this.util.isMobile()) ? (this.minMonthIndex + 24) : this.minMonthIndex + 2;
+                for (let i = this.minMonthIndex; i < perPage; i++) {
+                    year = (months.length > 0 && months[months.length - 1].monthIndex == 11) ? year + 1 : year;
+                    const month = new Date(year, i, 1);
+                    const monthIndex = month.getMonth();
+                    const monthName = month.toLocaleString('default', { month: 'long' });
+                    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+                    const days = [];
+                    const firstDayOfMonth = new Date(year, monthIndex, 1);
+                    const firstDayWeekIndex = this.weekNames.findIndex((item) => item == firstDayOfMonth.toDateString().split(' ')[0]);
+                    const previousYear = monthIndex == 12 ? year - 1 : year;
+                    const prevMonthIndex = monthIndex == 11 ? 0 : (monthIndex - 1);
+                    const previousMonthDays = new Date(previousYear, prevMonthIndex + 1, 0).getDate();
+                    for (let j = firstDayWeekIndex - 1; j >= 0; j--) {
+                        const day = previousMonthDays - j;
+                        const date = new Date(previousYear, prevMonthIndex, day);
+                        days.push({
+                            date: date,
+                            day: day
+                        });
+                    }
+                    for (let j = 1; j <= daysInMonth; j++) {
+                        const day = new Date(year, monthIndex, j);
+                        days.push({
+                            date: day,
+                            day: j < 10 ? '0' + j : j
+                        });
+                    }
+                    let weeks = [];
+                    while (days.length) {
+                        weeks.push(days.splice(0, 7));
+                    }
+                    months.push({
+                        monthIndex,
+                        monthName,
+                        weeks,
+                        year: year
+                    });
+                }
+                this.months = months;
+            },
+            setDayClass(date) {
+                if (date.toDateString() != this.currentDate.toDateString() && date < this.currentDate) {
+                    return 'alt';
+                }
+                if (this.checkInDate && this.checkInDate.toDateString() == date.toDateString()) {
+                    return 'start active';
+                }
+                if (this.checkOutDate && this.checkOutDate.toDateString() == date.toDateString()) {
+                    return 'end active';
+                }
+                if (this.checkInDate && this.checkOutDate && date >= this.checkInDate && date <= this.checkOutDate) {
+                    return 'active alt';
+                }
+                return '';
+            },
+            selectDay(day) {
+                if (day.date.toDateString() != this.currentDate.toDateString() && day.date < this.currentDate) {
+                    return;
+                }
+                if (this.source == 'check-out' && this.checkInDate && (day.date < (new Date(this.checkInDate)))) {
+                    this.checkInDate = day.date;
+                    this.checkOutDate = '';
+                } else {
+                    if (!this.checkInDate) {
+                        this.checkInDate = day.date;
+                    } else {
+                        if (this.source == 'check-in' && (this.checkOutDate || (day.date < this.checkInDate))) {
+                            this.checkInDate = day.date;
+                            this.checkOutDate = '';
+                        } else {
+                            this.checkOutDate = day.date;
+                            this.hideModals();
+                        }
+                    }
+                }
+                this.selectedDay = day.date;
+                this.generateDates();
+                // Update parent query with formatted strings for display
+                const formattedCheckIn = this.parseDate(this.checkInDate).replace(/\s\d{4}$/, '');
+                const formattedCheckOut = this.parseDate(this.checkOutDate).replace(/\s\d{4}$/, '');
+                this.query.checkInDate = formattedCheckIn;
+                this.query.checkOutDate = formattedCheckOut;
+                // Also store Date objects in parent for proper conversion
+                if (this.$parent && this.$parent.query) {
+                    this.$parent.query.checkInDateObj = this.checkInDate ? new Date(this.checkInDate) : null;
+                    this.$parent.query.checkOutDateObj = this.checkOutDate ? new Date(this.checkOutDate) : null;
+                }
+            },
+            parseDate(date) {
+                if (!date) {
+                    return '';
+                }
+                let arr = date.toString().split(' ');
+                return arr[2] + ' ' + arr[1] + ' ' + arr[3];
+            },
+            navigateDates(navigation) {
+                switch (navigation) {
+                    case 'previous':
+                        if (this.minMonthIndex == this.currentDate.getMonth() && this.year == this.currentDate.getFullYear()) {
+                            return;
+                        }
+                        if (this.minMonthIndex > 0) {
+                            this.minMonthIndex--;
+                        } else {
+                            if (this.year > this.currentDate.getFullYear()) {
+                                this.minMonthIndex = 11;
+                                this.year--;
+                            }
+                        }
+                        break;
+                    case 'next':
+                        if (this.minMonthIndex == 11) {
+                            this.minMonthIndex = 0;
+                            this.year++;
+                        } else {
+                            this.minMonthIndex++;
+                        }
+                        break;
+                }
+                this.generateDates();
+            },
+            showDates(source) {
+                this.source = source;
+                if (typeof $ !== 'undefined') {
+                    $('.dates').addClass('active');
+                }
+                this.generateDates();
+            }
+        },
+        template: typeof DatesTemplate !== 'undefined' ? DatesTemplate : (typeof window.DatesTemplate !== 'undefined' ? window.DatesTemplate : '')
+    });
+
+    // Vue Search Instance
 var Search = new Vue({
-    'el': '#search',
+        el: '#search',
      data: {        
         query: {
             search: '',
             checkInDate: '',
             checkOutDate: '',
-            rooms: [],
-            nationality: ''
-        },
+                checkInDateObj: null, // Store actual Date object
+                checkOutDateObj: null // Store actual Date object
+            },
+            guests: {
+                adults: 1,
+                children: 0
+            }
     },
     mounted() {
+            this.updateGuestsDisplay();
+            // Prevent form submission
+            const form = document.getElementById('search');
+            if (form) {
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.performSearch();
+                    return false;
+                });
+                // Also prevent Enter key in readonly inputs
+                const inputs = form.querySelectorAll('input[readonly]');
+                inputs.forEach(input => {
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.performSearch();
+                            return false;
+                        }
+                    });
+                });
+            }
     },
     computed: {
         util() {
-            return Util ? Util : {};
+                const util = (typeof window !== 'undefined' && window.Util) ? window.Util : {};
+                if (!util.isMobile) {
+                    util.isMobile = function() {
+                        return window.innerWidth <= 900;
+                    };
+                }
+                return util;
+            }
+        },
+        methods: {
+            updateGuestsDisplay() {
+                const total = this.guests.adults + this.guests.children;
+                const guestInput = document.querySelector('input[name="guests"]');
+                if (guestInput) {
+                    if (total === 0) {
+                        guestInput.value = '';
+                    } else if (total === 1) {
+                        guestInput.value = '1 Guest';
+                    } else {
+                        guestInput.value = total + ' Guests';
+                    }
+                }
+            },
+            updateGuestCount(type, action) {
+                if (type === 'adults') {
+                    if (action === 'increment') {
+                        this.guests.adults++;
+                    } else if (action === 'decrement' && this.guests.adults > 1) {
+                        this.guests.adults--;
+                    }
+                } else if (type === 'children') {
+                    if (action === 'increment') {
+                        this.guests.children++;
+                    } else if (action === 'decrement' && this.guests.children > 0) {
+                        this.guests.children--;
+                    }
+                }
+                this.updateGuestsDisplay();
+            },
+            performSearch() {
+                const destination = document.querySelector('input[name="destination"]')?.value || 'Ibiza';
+                const adults = this.guests.adults || 1;
+                const children = this.guests.children || 0;
+                
+                // Use Date objects if available, otherwise try to parse formatted strings
+                let checkInDateISO = null;
+                let checkOutDateISO = null;
+                
+                if (this.query.checkInDateObj && this.query.checkInDateObj instanceof Date) {
+                    checkInDateISO = this.query.checkInDateObj.toISOString().split('T')[0];
+                } else if (this.query.checkInDate && this.query.checkInDate.trim() !== '') {
+                    // Try to parse formatted date string (e.g., "15 Jan")
+                    const dateStr = this.query.checkInDate.trim();
+                    try {
+                        // Try parsing as "DD MMM" format
+                        const parts = dateStr.split(' ');
+                        if (parts.length >= 2) {
+                            const day = parseInt(parts[0]);
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            const month = monthNames.indexOf(parts[1]);
+                            if (month >= 0 && day > 0) {
+                                const currentYear = new Date().getFullYear();
+                                const date = new Date(currentYear, month, day);
+                                if (!isNaN(date.getTime())) {
+                                    checkInDateISO = date.toISOString().split('T')[0];
+                                }
+                            }
+                        }
+                        // Fallback: try direct Date parsing
+                        if (!checkInDateISO) {
+                            const date = new Date(dateStr);
+                            if (!isNaN(date.getTime())) {
+                                checkInDateISO = date.toISOString().split('T')[0];
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Could not parse checkInDate:', dateStr);
+                    }
+                }
+                
+                if (this.query.checkOutDateObj && this.query.checkOutDateObj instanceof Date) {
+                    checkOutDateISO = this.query.checkOutDateObj.toISOString().split('T')[0];
+                } else if (this.query.checkOutDate && this.query.checkOutDate.trim() !== '') {
+                    const dateStr = this.query.checkOutDate.trim();
+                    try {
+                        const parts = dateStr.split(' ');
+                        if (parts.length >= 2) {
+                            const day = parseInt(parts[0]);
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            const month = monthNames.indexOf(parts[1]);
+                            if (month >= 0 && day > 0) {
+                                const currentYear = new Date().getFullYear();
+                                const date = new Date(currentYear, month, day);
+                                if (!isNaN(date.getTime())) {
+                                    checkOutDateISO = date.toISOString().split('T')[0];
+                                }
+                            }
+                        }
+                        if (!checkOutDateISO) {
+                            const date = new Date(dateStr);
+                            if (!isNaN(date.getTime())) {
+                                checkOutDateISO = date.toISOString().split('T')[0];
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Could not parse checkOutDate:', dateStr);
+                    }
+                }
+                
+                // Build search URL
+                const params = new URLSearchParams();
+                if (destination && destination.trim() !== '' && destination !== 'Ibiza') {
+                    params.append('destination', destination);
+                }
+                if (checkInDateISO) {
+                    params.append('checkInDate', checkInDateISO);
+                }
+                if (checkOutDateISO) {
+                    params.append('checkOutDate', checkOutDateISO);
+                }
+                if (adults > 1) {
+                    params.append('adults', adults);
+                }
+                if (children > 0) {
+                    params.append('children', children);
+                }
+                
+                // Navigate to search results
+                const queryString = params.toString();
+                const searchUrl = queryString ? `/?${queryString}` : '/';
+                console.log('Search URL:', searchUrl);
+                window.location.href = searchUrl;
+            }
         }
-    },
-});
+    });
+
+    // Make Search available globally
+    window.Search = Search;
+}
+
+// jQuery Event Handlers
+if (typeof $ !== 'undefined') {
+    $(function() {
+        // Open modals when input fields are clicked
+        $('.search .content .sections .section.two .blocks .block .form .blocks .block .fields .blocks .block .input').click(function() {
+            var $modals = $('.search .content .sections .section.two .blocks .block .form .blocks .block .modals');
+            $modals.addClass('delay');
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    $modals.addClass('active');
+                });
+            });
+        });
+
+        // Close modals
+        $('.search .content .sections .section.two .blocks .block .form .blocks .block .overlay, .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .blocks .block .close').click(function() {
+            var $modals = $('.search .content .sections .section.two .blocks .block .form .blocks .block .modals');
+            $modals.removeClass('active');
+            setTimeout(function() {
+                $modals.removeClass('delay');
+            }, 750);
+        });
+
+        // Close specific modal
+        $('.search .content .sections .section.two .blocks .block .form .blocks .block .overlay, .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .blocks .block .close').click(function() {
+            var $modal = $(this).closest('.modal');
+            $modal.removeClass('active');
+            setTimeout(function() {
+                $modal.removeClass('delay');
+            }, 750);
+        });
+
+        // Open search section (mobile)
+        $('.search .content .sections .section.three .blocks .block .form').click(function() {
+            $('body').attr('data-modal', 'search');
+            var $modal = $('.search');
+            $modal.addClass('delay');
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    $modal.addClass('active');
+                });
+            });
+        });
+
+        // Close search section
+        $('footer ~ .overlay, .search .sections .section.two .blocks .block[data-block="1"] .blocks .block .close').click(function() {
+            $('body').removeClass('active');
+            $('body').removeAttr('data-modal');
+            var $modal = $('.search');
+            $modal.removeClass('active');
+            setTimeout(function() {
+                $modal.removeClass('delay');
+            }, 750);
+        });
+
+        // Destination input click
+        $('.search .content .sections .section.two .blocks .block .form .fields .blocks .block input[name="destination"]').click(function() {
+            $('[data-modal]').removeClass('delay active');
+            $('body').attr('data-modal', 'search');
+            var $modal = $('[data-modal="destination"]');
+            $modal.addClass('delay');
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    $modal.addClass('active');
+                });
+            });
+        });
+
+        // Dates input click
+        $('.search .content .sections .section.two .blocks .block .form .fields .blocks .block input[name="dates"]').click(function() {
+            $('[data-modal]').removeClass('delay active');
+            $('body').attr('data-modal', 'search');
+            var $modal = $('[data-modal="dates"]');
+            $modal.addClass('delay');
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    $modal.addClass('active');
+                });
+            });
+            if (window.Search) {
+                window.Search.showDates = true;
+            }
+        });
+
+        // Guests input click
+        $('.search .content .sections .section.two .blocks .block .form .fields .blocks .block input[name="guests"]').click(function() {
+            $('[data-modal]').removeClass('delay active');
+            $('body').attr('data-modal', 'search');
+            var $modal = $('[data-modal="guests"]');
+            $modal.addClass('delay');
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    $modal.addClass('active');
+                });
+            });
+        });
+
+        // Destination selection
+        $(document).on('click', '.search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal[data-modal="destination"] .list ul li:not(.alt)', function() {
+            var destinationName = $(this).find('.text span.one').text();
+            $('input[name="destination"]').val(destinationName);
+            var $modal = $(this).closest('.modal');
+            $modal.removeClass('active');
+            setTimeout(function() {
+                $modal.removeClass('delay');
+            }, 750);
+        });
+
+        // Guest counter increment/decrement
+        $(document).on('click', '.search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal[data-modal="guests"] .button.circle.alt', function() {
+            var action = $(this).attr('data-action');
+            var type = $(this).attr('data-type');
+            var $input = $(this).siblings('input.amount[data-type="' + type + '"]');
+            var currentValue = parseInt($input.val()) || 0;
+            
+            if (action === 'increment') {
+                if (type === 'adults') {
+                    currentValue++;
+                } else if (type === 'children') {
+                    currentValue++;
+                }
+            } else if (action === 'decrement') {
+                if (type === 'adults' && currentValue > 1) {
+                    currentValue--;
+                } else if (type === 'children' && currentValue > 0) {
+                    currentValue--;
+                }
+            }
+            
+            $input.val(currentValue);
+            
+            // Update Vue instance
+            if (window.Search) {
+                window.Search.guests[type] = currentValue;
+                window.Search.updateGuestsDisplay();
+            } else {
+                // Fallback if Vue not available
+                var adults = parseInt($('.modal[data-modal="guests"] input[data-type="adults"]').val()) || 0;
+                var children = parseInt($('.modal[data-modal="guests"] input[data-type="children"]').val()) || 0;
+                var total = adults + children;
+                var guestInput = $('input[name="guests"]');
+                if (total === 0) {
+                    guestInput.val('');
+                } else if (total === 1) {
+                    guestInput.val('1 Guest');
+                } else {
+                    guestInput.val(total + ' Guests');
+                }
+            }
+        });
+
+        // Search button click
+        $(document).on('click', '.search .content .sections .section.two .blocks .block .form .blocks .block .buttons .button[data-button="1A"], .search .content .sections .section.two .blocks .block .form .blocks .block .buttons .button[data-button="1C"]', function(e) {
+            e.preventDefault();
+            if (window.Search && window.Search.performSearch) {
+                window.Search.performSearch();
+            }
+        });
+
+        // Close overlay
+        $('footer ~ .overlay').click(function() {
+            $('body').removeAttr('data-modal');
+            var $modal = $('[data-modal]');
+            $modal.removeClass('active');
+            setTimeout(function() {
+                $modal.removeClass('delay');
+            }, 200);
+        });
+    });
+}

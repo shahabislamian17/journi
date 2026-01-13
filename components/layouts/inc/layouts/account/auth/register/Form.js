@@ -64,7 +64,9 @@ export default function Form() {
     }
   };
 
-  const togglePasswordVisibility = () => {
+  const togglePasswordVisibility = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     setShowPassword(!showPassword);
   };
 
@@ -76,11 +78,10 @@ export default function Form() {
         const container = selectElement.closest('.select');
         if (container && formData.accountType && formData.accountType.trim() !== '') {
           container.setAttribute('data-input', 'focus');
-          // Add padding to prevent label overlap
-          selectElement.style.paddingTop = '1.8em';
+          // Don't add inline styles - CSS handles padding automatically
         } else if (container && (!formData.accountType || formData.accountType.trim() === '')) {
           container.removeAttribute('data-input');
-          selectElement.style.paddingTop = '';
+          // Don't manipulate inline styles - CSS handles everything
         }
       }
     }
@@ -189,11 +190,11 @@ export default function Form() {
                             </div>
                             <div className="block" data-block="1BB">
                               <div className="toggle" onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
-                                <div className="icons">
-                                  <div className={`icon ${!showPassword ? 'active' : ''}`} data-icon="1">
+                                <div className={`icons ${showPassword ? 'active' : ''}`}>
+                                  <div className="icon" data-icon="1">
                                     <i className="icons8 icons8-eye"></i>
                                   </div>
-                                  <div className={`icon ${showPassword ? 'active' : ''}`} data-icon="2">
+                                  <div className="icon" data-icon="2">
                                     <i className="icons8 icons8-eye-2"></i>
                                   </div>
                                 </div>

@@ -49,20 +49,15 @@
       if (hasValue || inputIsAutofilled) {
         input.dataset.autofilled = inputIsAutofilled ? 'true' : (hasValue ? 'false' : 'false');
       }
-      // For selects, also update padding to prevent overlap
-      if (input.tagName === 'SELECT' && hasValue) {
-        input.style.paddingTop = '1.8em';
-      }
+      // Don't add inline styles - let CSS handle padding
+      // CSS rules in style.css handle padding for selects with labels
     } else {
       // Only remove if not focused
       if (!isFocused) {
         container.removeAttribute('data-input');
         container.removeAttribute('data-autofilled');
         input.dataset.autofilled = 'false';
-        // Reset padding for selects
-        if (input.tagName === 'SELECT') {
-          input.style.paddingTop = '';
-        }
+        // Don't manipulate inline styles - CSS handles everything
       }
     }
   }

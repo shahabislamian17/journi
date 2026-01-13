@@ -4,11 +4,14 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Script from 'next/script';
 import { bagAPI } from '../../../../../lib/bag';
+import { authAPI } from '../../../../../lib/api';
 
 export default function Checkout() {
   const router = useRouter();
   const [bagItems, setBagItems] = useState([]);
   const [subtotal, setSubtotal] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     surname: '',
@@ -23,6 +26,7 @@ export default function Checkout() {
   const [paymentEl, setPaymentEl] = useState(null);
   const stripeContainerRef = useRef(null);
   const placeButtonRef = useRef(null);
+  const paymentSectionRef = useRef(null);
 
   useEffect(() => {
     // Load bag items on mount
@@ -48,38 +52,74 @@ export default function Checkout() {
     };
   }, [router]);
 
-  // Load user data if logged in
+  // Check if user is logged in and load user data
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
+    const checkAuthAndLoadUser = async () => {
+      if (typeof window === 'undefined') return;
+      
+      const token = localStorage.getItem('token') || 
+                   document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      
+      if (token) {
+        setIsLoggedIn(true);
         try {
-          const user = JSON.parse(userStr);
-          setFormData(prev => ({
-            ...prev,
-            firstName: user.firstName || '',
-            surname: user.lastName || '',
-            email: user.email || '',
-            phoneNumber: user.phone || '',
-          }));
-        } catch (e) {
-          console.error('Error parsing user data:', e);
+          // Fetch user data from API
+          const user = await authAPI.getMe({ token });
+          if (user && user.user) {
+            setFormData(prev => ({
+              ...prev,
+              firstName: user.user.firstName || '',
+              surname: user.user.lastName || '',
+              email: user.user.email || '',
+              phoneNumber: user.user.phone || '',
+            }));
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          // If API fails, try localStorage as fallback
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            try {
+              const user = JSON.parse(userStr);
+              setFormData(prev => ({
+                ...prev,
+                firstName: user.firstName || '',
+                surname: user.lastName || '',
+                email: user.email || '',
+                phoneNumber: user.phone || '',
+              }));
+            } catch (e) {
+              console.error('Error parsing user data:', e);
+            }
+          }
         }
+      } else {
+        setIsLoggedIn(false);
       }
-    }
+    };
+    
+    checkAuthAndLoadUser();
   }, []);
 
   // Initialize Stripe when script loads - matching PHP flow exactly
   useEffect(() => {
-    if (stripeLoaded && stripeContainerRef.current && typeof window !== 'undefined' && window.Stripe) {
+    if (stripeLoaded && typeof window !== 'undefined' && window.Stripe) {
       const initializeStripe = async () => {
         try {
           const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_publishable_key_here';
           
+          console.log('Initializing Stripe with key:', stripePublishableKey.substring(0, 20) + '...');
+          
           // Validate that it's a publishable key (starts with pk_), not a secret key
           if (!stripePublishableKey.startsWith('pk_')) {
             console.error('Invalid Stripe key: Must be a publishable key (pk_test_... or pk_live_...), not a secret key (sk_test_... or sk_live_...)');
-            console.error('Please set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in your Vercel environment variables with a publishable key from Stripe Dashboard.');
+            console.error('Please set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in your .env.local file with a publishable key from Stripe Dashboard.');
+            console.error('For local development, create a .env.local file with: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here');
+            return;
+          }
+          
+          if (!stripeContainerRef.current) {
+            console.error('Stripe container not found');
             return;
           }
           
@@ -198,6 +238,8 @@ export default function Checkout() {
           });
 
           paymentElement.mount('.stripe');
+          
+          console.log('Stripe payment element mounted successfully');
 
           setStripe(stripeInstance);
           setElements(elementsInstance);
@@ -208,13 +250,42 @@ export default function Checkout() {
           if (placeButton) {
             placeButtonRef.current = placeButton;
             placeButton.addEventListener('click', handlePlaceBooking);
+          } else {
+            console.warn('Place booking button not found');
           }
         } catch (err) {
           console.error('Error initializing Stripe:', err);
         }
       };
-
-      initializeStripe();
+      
+      // Wait a bit for the container to be ready, then initialize
+      if (stripeContainerRef.current) {
+        initializeStripe();
+      } else {
+        // Wait for container to be ready
+        const checkContainer = setInterval(() => {
+          if (stripeContainerRef.current) {
+            clearInterval(checkContainer);
+            initializeStripe();
+          }
+        }, 100);
+        
+        // Timeout after 5 seconds
+        setTimeout(() => {
+          clearInterval(checkContainer);
+          if (!stripeContainerRef.current) {
+            console.error('Stripe container not found after 5 seconds');
+          }
+        }, 5000);
+        
+        return () => {
+          clearInterval(checkContainer);
+        };
+      }
+    } else if (stripeLoaded && typeof window !== 'undefined' && !window.Stripe) {
+      console.error('Stripe script loaded but window.Stripe is not available');
+    } else if (!stripeLoaded) {
+      console.log('Waiting for Stripe script to load...');
     }
 
     return () => {
@@ -245,12 +316,45 @@ export default function Checkout() {
     }));
   };
 
+  const handleScrollToPayment = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (paymentSectionRef.current) {
+      paymentSectionRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    } else if (stripeContainerRef.current) {
+      stripeContainerRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  };
+
+  const togglePasswordVisibility = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowPassword(!showPassword);
+  };
+
   const handlePlaceBooking = async (e) => {
     e.preventDefault();
     
+    // Wait for Stripe to be ready with a timeout
     if (!stripe || !elements || !paymentEl) {
-      alert('Payment not ready. Please wait a moment and try again.');
-      return;
+      // Wait up to 2 seconds for Stripe to initialize
+      let attempts = 0;
+      while ((!stripe || !elements || !paymentEl) && attempts < 20) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      
+      if (!stripe || !elements || !paymentEl) {
+        alert('Payment system is initializing. Please wait a moment and try again.');
+        return;
+      }
     }
 
     // Submit payment form first
@@ -265,6 +369,12 @@ export default function Checkout() {
       alert('Please fill in all required fields');
       return;
     }
+    
+    // Validate password only if user is not logged in
+    if (!isLoggedIn && !formData.password) {
+      alert('Please enter a password to create an account');
+      return;
+    }
 
     // Validate terms agreement
     if (!formData.agreeToTerms) {
@@ -273,6 +383,14 @@ export default function Checkout() {
     }
 
     try {
+      // Calculate total amount from bag items (in pence/cents)
+      const totalAmount = Math.round(subtotal * 100); // Convert to pence/cents
+      
+      if (totalAmount <= 0) {
+        alert('Invalid booking amount. Please check your bag items.');
+        return;
+      }
+
       // Create PaymentIntent via API (matching PHP setup.php)
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const res = await fetch(`${API_URL}/api/stripe/setup`, {
@@ -288,12 +406,16 @@ export default function Checkout() {
           email: formData.email,
           phone: formData.phoneNumber,
           user_ref: typeof window !== 'undefined' ? localStorage.getItem('token') ? 'user' : 'guest' : 'guest',
-          customer_id: typeof window !== 'undefined' ? sessionStorage.getItem('stripe_customer_id') || '' : ''
+          customer_id: typeof window !== 'undefined' ? sessionStorage.getItem('stripe_customer_id') || '' : '',
+          amount: totalAmount // Pass the calculated amount
         })
       });
 
       if (!res.ok) {
-        alert('Setup error. Please try again.');
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        const errorMessage = errorData?.error || `Setup error (${res.status}). Please try again.`;
+        console.error('Stripe setup error:', errorMessage);
+        alert(errorMessage);
         return;
       }
 
@@ -319,6 +441,19 @@ export default function Checkout() {
       if (!clientSecret) {
         alert('Missing client secret.');
         return;
+      }
+
+      // Store bag items and form data in sessionStorage before redirect
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('checkout_bag_items', JSON.stringify(bagItems));
+        sessionStorage.setItem('checkout_form_data', JSON.stringify({
+          firstName: formData.firstName,
+          surname: formData.surname,
+          email: formData.email,
+          phoneNumber: formData.phoneNumber,
+          password: formData.password,
+          isLoggedIn: isLoggedIn
+        }));
       }
 
       // Confirm payment and redirect
@@ -356,8 +491,14 @@ export default function Checkout() {
     <>
       <Script
         src="https://js.stripe.com/v3/"
-        onLoad={() => setStripeLoaded(true)}
-        strategy="lazyOnload"
+        onLoad={() => {
+          console.log('Stripe script loaded');
+          setStripeLoaded(true);
+        }}
+        onError={(e) => {
+          console.error('Stripe script failed to load:', e);
+        }}
+        strategy="afterInteractive"
       />
       <div className="container">
         <div className="content">
@@ -431,39 +572,42 @@ export default function Checkout() {
                                   />
                                 </div>
                               </div>
-                              <div className="block" data-block="2BD" data-inputs="1">
-                                <div className="blocks" data-blocks="5">
-                                  <div className="block" data-block="2BDA">
-                                    <div className="input">
-                                      <label>Password</label>
-                                      <input 
-                                        type="password" 
-                                        name="password"
-                                        value={formData.password}
-                                        onChange={handleInputChange}
-                                      />
+                              {!isLoggedIn && (
+                                <div className="block" data-block="2BD" data-inputs="1">
+                                  <div className="blocks" data-blocks="5">
+                                    <div className="block" data-block="2BDA">
+                                      <div className="input">
+                                        <label>Password</label>
+                                        <input 
+                                          type={showPassword ? "text" : "password"} 
+                                          name="password"
+                                          value={formData.password}
+                                          onChange={handleInputChange}
+                                          required
+                                        />
+                                      </div>
                                     </div>
-                                  </div>
-                                  <div className="block" data-block="2BDB">
-                                    <div className="toggle">
-                                      <div className="icons">
-                                        <div className="icon" data-icon="1">
-                                          <i className="icons8 icons8-eye"></i>
-                                        </div>
-                                        <div className="icon" data-icon="2">
-                                          <i className="icons8 icons8-eye-2"></i>
+                                    <div className="block" data-block="2BDB">
+                                      <div className="toggle" onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
+                                        <div className={`icons ${showPassword ? 'active' : ''}`}>
+                                          <div className="icon" data-icon="1">
+                                            <i className="icons8 icons8-eye"></i>
+                                          </div>
+                                          <div className="icon" data-icon="2">
+                                            <i className="icons8 icons8-eye-2"></i>
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
+                              )}
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="fieldset">
+                      <div className="fieldset" ref={paymentSectionRef}>
                         <div className="blocks" data-blocks="6">
                           <div className="block" data-block="2A">
                             <div className="blocks" data-blocks="7">
@@ -638,7 +782,7 @@ export default function Checkout() {
                 <div className="block" data-block="3">
                   <div className="buttons">
                     <div className="button small" data-button="2A">
-                      <div className="action">
+                      <div className="action" onClick={handleScrollToPayment} style={{ cursor: 'pointer' }}>
                         <div className="text">
                           <span className="one">Scroll</span>
                           <span className="two">View More</span>

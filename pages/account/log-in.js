@@ -2,12 +2,13 @@ import Layout from "../../components/Layout";
 import Template from "../../components/Template";
 import Script from "next/script";
 import LoginForm from "../../components/layouts/inc/layouts/account/auth/log-in/Form";
+import Bag from "../../components/layouts/inc/layouts/global/Bag";
 import { escapeForTemplateLiteral } from "../../lib/utils";
 
 export async function getStaticProps() {
   const { readTemplates } = await import("../../lib/templates");
 
-  const templates = readTemplates(["global/announcements.html", "global/footer-base.html", "global/footer-section-three.html", "global/header.html", "inc/layouts/account/auth/log-in/breadcrumbs.html", "inc/layouts/global/bag.html", "inc/layouts/global/dates.html", "inc/layouts/global/notifications.html"]);
+  const templates = readTemplates(["global/announcements.html", "global/footer-base.html", "global/footer-section-three.html", "global/header.html", "inc/layouts/account/auth/log-in/breadcrumbs.html", "inc/layouts/global/dates.html", "inc/layouts/global/notifications.html"]);
   return {
     props: {
       templates,
@@ -17,7 +18,7 @@ export async function getStaticProps() {
         includeCalendarCss: true,
         includeCalendarJs: true,
         showCalendarButton: true,
-        showAnnouncements: false,
+        showAnnouncements: true,
       },
       needsDates: false,
       inlineScripts: [],
@@ -54,13 +55,7 @@ export default function Page({ templates, layoutOptions, needsDates, inlineScrip
     </section>
 
     <section className="bag">
-
-        
-
-<Template html={templates["inc/layouts/global/bag.html"]} />
-
-
-
+      <Bag />
     </section>
       
       <Script id="dates-template" strategy="afterInteractive" dangerouslySetInnerHTML={{

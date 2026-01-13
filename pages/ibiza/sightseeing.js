@@ -83,6 +83,7 @@ export async function getServerSideProps(context) {
       "global/footer-base.html",
       "global/footer-section-three.html",
       "global/header.html",
+      "global/menu.html",
       "inc/layouts/category/banner.html",
       "inc/layouts/category/description.html",
       "inc/layouts/global/bag.html",

@@ -4,6 +4,7 @@ import Script from "next/script";
 import { bookingsAPI } from "../../lib/api";
 import { escapeForTemplateLiteral } from "../../lib/utils";
 import DynamicPanel from "../../components/layouts/inc/layouts/account/bookings/DynamicPanel";
+import Bag from "../../components/layouts/inc/layouts/global/Bag";
 
 export async function getServerSideProps(context) {
   const { readTemplates } = await import("../../lib/templates");
@@ -82,7 +83,7 @@ export default function Page({ bookings, templates, layoutOptions, needsDates, i
       </section>
 
       <section className="bag">
-        <Template html={templates["inc/layouts/global/bag.html"]} />
+        <Bag />
       </section>
 
       <section className="calendar">

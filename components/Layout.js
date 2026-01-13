@@ -97,6 +97,12 @@ export default function Layout({
       <Template html={templates["global/header.html"] || ""} />
       <Header />
 
+      {/* Global search section - sticky below header */}
+      <Template html={templates["inc/layouts/global/search.html"] || ""} />
+
+      {/* Global menu drawer */}
+      <Template html={templates["global/menu.html"] || ""} />
+
       {children}
 
       {/* Footer + overlay */}

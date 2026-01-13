@@ -1,522 +1,653 @@
-    <div class="container">
+<section class="search">
 
-        <div class="content">
+	<div class="container">
 
-            <div class="sections">
+		<div class="content">
 
-                <div class="section one">
+			<div class="sections">
 
-                    <div class="blocks" data-blocks="1">
+				<div class="section one">
 
-                        <div class="block" data-block="1">
+					<div class="blocks" data-blocks="1">
 
-                            <div class="view">
+						<div class="block" data-block="1">
 
-                                <div class="links">
+							<div class="view">
 
-                                    <ul>
+								<div class="links">
 
-                                        <li>
+									<ul>
 
-                                            <div class="text">View As</div>
+										<li>
 
-                                        </li>
+											<div class="text">View As</div>
 
-                                        <li class="active">
+										</li>
 
-                                            <div class="icon">
+										<li class="active">
 
-                                                <i class="icons8 icons8-index"></i>
+											<div class="icon">
 
-                                            </div>
+												<i class="icons8 icons8-index"></i>
 
-                                            <div class="text">List</div>
+											</div>
 
-                                        </li>
+											<div class="text">List</div>
 
-                                        <li>
+										</li>
 
-                                            <div class="icon">
+										<li>
 
-                                                <i class="icons8 icons8-schedule"></i>
+											<div class="icon">
 
-                                            </div>
+												<i class="icons8 icons8-schedule"></i>
 
-                                            <div class="text">Calendar</div>
+											</div>
 
-                                        </li>
+											<div class="text">Calendar</div>
 
-                                    </ul>
+										</li>
 
-                                </div>
+									</ul>
 
-                            </div>
+								</div>
 
-                        </div>
+							</div>
 
-                    </div>
+						</div>
 
-                </div>
+					</div>
 
-                <div class="section two">
+				</div>
 
-                    <div class="blocks" data-blocks="1">
+				<div class="section two">
 
-                        <div class="block" data-block="1">
+					<div class="blocks" data-blocks="1">
 
-                            <form id="search" class="form vue">
+						<div class="block" data-block="1">
 
-                                <div class="blocks" data-blocks="2">
+							<div class="blocks" data-blocks="2">
 
-                                    <div class="block" data-block="1A">
+								<div class="block" data-block="1A">
 
-                                        <div class="fields">
+									<div class="close">
 
-                                            <div class="blocks" data-blocks="3">
+										<div class="button circle" data-button="2A">
 
-                                                <div class="block" data-block="1AA">
+											<div class="action">
 
-                                                    <div class="input">
+												<div class="icon">
 
-                                                        <div class="icon">
+													<i class="icons8 icons8-less-than"></i>
 
-                                                            <i class="icons8 icons8-location"></i>
+												</div>
 
-                                                        </div>
+											</div>
 
-                                                        <input type="text" name="destination" placeholder="Destination" value="Ibiza" readonly required>
+										</div>
 
-                                                    </div>
+									</div>
 
-                                                </div>
+								</div>
 
-                                                <div class="block" data-block="1AB">
+								<div class="block" data-block="1B">
 
-                                                    <div class="input">
+									<div class="title">
 
-                                                        <div class="icon">
+										<h3 class="six">Experiences</h3>
 
-                                                            <i class="icons8 icons8-calendar"></i>
+									</div>
 
-                                                        </div>
+								</div>
 
-                                                        <input type="text" name="dates" placeholder="Dates" readonly required :value="(query.checkInDate && query.checkOutDate ? ( query.checkInDate.replace(/\s\d{4}$/, '') + ' - ' + query.checkOutDate.replace(/\s\d{4}$/, '') ) : '')">
+							</div>
 
-                                                    </div>
+						</div>
 
-                                                </div>
+						<div class="block" data-block="2">
 
-                                                <div class="block" data-block="1AC">
+							<form id="search" class="form vue">
 
-                                                    <div class="input">
+								<div class="blocks" data-blocks="3">
 
-                                                        <div class="icon">
+									<div class="block" data-block="2A">
 
-                                                            <i class="icons8 icons8-guardian"></i>
+										<div class="fields">
 
-                                                        </div>
+											<div class="blocks" data-blocks="4">
 
-                                                        <input type="text" name="guests" placeholder="Guests" readonly required>
+												<div class="block" data-block="2AA">
 
-                                                    </div>
+													<div class="input" data-input="focus">
 
-                                                </div>
+														<div class="icon">
 
-                                            </div>
+															<i class="icons8 icons8-location"></i>
 
-                                        </div>
+														</div>
 
-                                    </div>
+														<input type="text" name="destination" placeholder="Destination" value="Ibiza" readonly="readonly" required="required">
 
-                                    <div class="block" data-block="1B">
+													</div>
 
-                                        <div class="buttons">
+												</div>
 
-                                            <button class="button circle" data-button="1C">
+												<div class="block" data-block="2AB">
 
-                                                <div class="action">
+													<div class="input">
 
-                                                    <div class="icon">
+														<div class="icon">
 
-                                                        <i class="icons8 icons8-search"></i>
+															<i class="icons8 icons8-calendar"></i>
 
-                                                    </div>
+														</div>
 
-                                                </div>
+														<input type="text" name="dates" placeholder="Dates" readonly="readonly" required="required" :value="(query.checkInDate && query.checkOutDate ? ( query.checkInDate.replace(/\s\d{4}$/, '') + ' - ' + query.checkOutDate.replace(/\s\d{4}$/, '') ) : '')">
 
-                                            </button>
+													</div>
 
-                                        </div>
+												</div>
 
-                                    </div>
+												<div class="block" data-block="2AC">
 
-                                    <div class="block" data-block="1C">
+													<div class="input">
 
-                                        <div class="modals">
+														<div class="icon">
 
-                                            <div class="modal" data-modal="destination">
+															<i class="icons8 icons8-guardian"></i>
 
-                                                <div class="blocks" data-blocks="4">
+														</div>
 
-                                                    <div class="block" data-block="1CA">
+														<input type="text" name="guests" placeholder="Guests" readonly="readonly" required="required">
 
-                                                        <div class="title">Destinations</div>
+													</div>
 
-                                                    </div>
+												</div>
 
-                                                    <div class="block" data-block="1CB">
+											</div>
 
-                                                        <div class="list">
+										</div>
 
-                                                            <ul>
+									</div>
 
-                                                                <li>
+									<div class="block" data-block="2B">
 
-                                                                    <div class="icon">
+										<div class="buttons">
 
-                                                                        <i class="icons8 icons8-location"></i>
+											<div class="button circle" data-button="1C">
 
-                                                                    </div>
+												<div class="action">
 
-                                                                    <div class="text">
+													<div class="icon">
 
-                                                                        <span class="one">Ibiza</span>
-                                                                        <span class="two">Spain</span>
+														<i class="icons8 icons8-search"></i>
 
-                                                                    </div>
+													</div>
 
-                                                                </li>
+												</div>
 
-                                                                <li class="alt">
+											</div>
 
-                                                                    <div class="icon">
+											<div class="button medium" data-button="1A">
 
-                                                                        <i class="icons8 icons8-location"></i>
+												<div class="action">
 
-                                                                    </div>
+													<div class="text">Search</div>
 
-                                                                    <div class="text">
+												</div>
 
-                                                                        <span class="one">Madrid</span>
-                                                                        <span class="two">Spain</span>
+											</div>
 
-                                                                    </div>
+										</div>
 
-                                                                </li>
+									</div>
 
-                                                                <li class="alt">
+									<div class="block" data-block="2C">
 
-                                                                    <div class="icon">
+										<div class="modals">
 
-                                                                        <i class="icons8 icons8-location"></i>
+											<div class="modal" data-modal="destination">
 
-                                                                    </div>
+												<div class="blocks" data-blocks="5">
 
-                                                                    <div class="text">
+													<div class="block" data-block="2CA">
 
-                                                                        <span class="one">Barcelona</span>
-                                                                        <span class="two">Spain</span>
+														<div class="blocks" data-blocks="6">
 
-                                                                    </div>
+															<div class="block" data-block="2CAA">
 
-                                                                </li>
+																<div class="close">
 
-                                                                <li class="alt">
+																	<div class="button circle" data-button="2A">
 
-                                                                    <div class="icon">
+																		<div class="action">
 
-                                                                        <i class="icons8 icons8-location"></i>
+																			<div class="icon">
 
-                                                                    </div>
+																				<i class="icons8 icons8-less-than"></i>
 
-                                                                    <div class="text">
+																			</div>
 
-                                                                        <span class="one">Seville</span>
-                                                                        <span class="two">Spain</span>
+																		</div>
 
-                                                                    </div>
+																	</div>
 
-                                                                </li>
+																</div>
 
-                                                                <li class="alt">
+															</div>
 
-                                                                    <div class="icon">
+															<div class="block" data-block="2CAB">
 
-                                                                        <i class="icons8 icons8-location"></i>
+																<div class="title">
 
-                                                                    </div>
+																	<h3 class="six">Destinations</h3>
 
-                                                                    <div class="text">
+																</div>
 
-                                                                        <span class="one">Palma</span>
-                                                                        <span class="two">Spain</span>
+															</div>
 
-                                                                    </div>
+														</div>
 
-                                                                </li>
+													</div>
 
-                                                            </ul>
+													<div class="block" data-block="2CB">
 
-                                                        </div>
+														<div class="list">
 
-                                                    </div>
+															<ul>
 
-                                                </div>
+																<li>
 
-                                            </div>
+																	<div class="icon">
 
-                                            <div class="modal dates" data-modal="dates">
+																		<i class="icons8 icons8-location"></i>
 
-                                                <dates :query="query"></dates>
+																	</div>
 
-                                            </div>
+																	<div class="text">
 
-                                            <div class="modal" data-modal="guests">
+																		<span class="one">Ibiza</span>
 
-                                                <div class="blocks" data-blocks="5">
+																		<span class="two">Spain</span>
 
-                                                    <div class="block" data-block="1CA">
+																	</div>
 
-                                                        <div class="title">Guests</div>
+																</li>
 
-                                                    </div>
+																<li class="alt">
 
-                                                    <div class="block" data-block="1CB">
+																	<div class="icon">
 
-                                                        <div class="numbers">
+																		<i class="icons8 icons8-location"></i>
 
-                                                            <div class="blocks" data-blocks="6">
+																	</div>
 
-                                                                <div class="block" data-block="1CBA">
+																	<div class="text">
 
-                                                                    <div class="number">
+																		<span class="one">Madrid</span>
 
-                                                                        <div class="blocks" data-blocks="7">
+																		<span class="two">Spain</span>
 
-                                                                            <div class="block" data-block="1CBAA">
+																	</div>
 
-                                                                                <div class="icon">
+																</li>
 
-                                                                                    <i class="icons8 icons8-guardian"></i>
+																<li class="alt">
 
-                                                                                </div>
+																	<div class="icon">
 
-                                                                                <div class="text">
+																		<i class="icons8 icons8-location"></i>
 
-                                                                                    <span class="one">Adults</span>
-                                                                                    <span class="two">Ages 18+</span>
+																	</div>
 
-                                                                                </div>
+																	<div class="text">
 
-                                                                            </div>
+																		<span class="one">Barcelona</span>
 
-                                                                            <div class="block" data-block="1CBAB">
+																		<span class="two">Spain</span>
 
-                                                                                <div class="buttons">
+																	</div>
 
-                                                                                    <div class="button circle alt" data-button="2A">
+																</li>
 
-                                                                                        <div class="action">
+																<li class="alt">
 
-                                                                                            <div class="icon">-</div>
+																	<div class="icon">
 
-                                                                                        </div>
+																		<i class="icons8 icons8-location"></i>
 
-                                                                                    </div>
+																	</div>
 
-                                                                                    <input name="quantity" value="1" class="amount" readonly>
+																	<div class="text">
 
-                                                                                    <div class="button circle alt" data-button="2A">
+																		<span class="one">Seville</span>
 
-                                                                                        <div class="action">
+																		<span class="two">Spain</span>
 
-                                                                                            <div class="icon">+</div>
+																	</div>
 
-                                                                                        </div>
+																</li>
 
-                                                                                    </div>
+																<li class="alt">
 
-                                                                                </div>
+																	<div class="icon">
 
-                                                                            </div>
+																		<i class="icons8 icons8-location"></i>
 
-                                                                        </div>
+																	</div>
 
-                                                                    </div>
+																	<div class="text">
 
-                                                                </div>
+																		<span class="one">Palma</span>
 
-                                                                <div class="block" data-block="1CBB">
+																		<span class="two">Spain</span>
 
-                                                                    <div class="number">
+																	</div>
 
-                                                                        <div class="blocks" data-blocks="8">
+																</li>
 
-                                                                            <div class="block" data-block="1CBBA">
+															</ul>
 
-                                                                                <div class="icon">
+														</div>
 
-                                                                                    <i class="icons8 icons8-guardian"></i>
+													</div>
 
-                                                                                </div>
+												</div>
 
-                                                                                <div class="text">
+											</div>
 
-                                                                                    <span class="one">Children</span>
-                                                                                    <span class="two">Ages 0-17</span>
+											<div class="modal dates" data-modal="dates">
 
-                                                                                </div>
+												<dates :query="query"></dates>
 
-                                                                            </div>
+											</div>
 
-                                                                            <div class="block" data-block="1CBBB">
+											<div class="modal" data-modal="guests">
 
-                                                                                <div class="buttons">
+												<div class="blocks" data-blocks="5">
 
-                                                                                    <div class="button circle alt" data-button="2A">
+													<div class="block" data-block="2CA">
 
-                                                                                        <div class="action">
+														<div class="blocks" data-blocks="6">
 
-                                                                                            <div class="icon">-</div>
+															<div class="block" data-block="2CAA">
 
-                                                                                        </div>
+																<div class="close">
 
-                                                                                    </div>
+																	<div class="button circle" data-button="2A">
 
-                                                                                    <input name="quantity" value="0" class="amount" readonly>
+																		<div class="action">
 
-                                                                                    <div class="button circle alt" data-button="2A">
+																			<div class="icon">
 
-                                                                                        <div class="action">
+																				<i class="icons8 icons8-less-than"></i>
 
-                                                                                            <div class="icon">+</div>
+																			</div>
 
-                                                                                        </div>
+																		</div>
 
-                                                                                    </div>
+																	</div>
 
-                                                                                </div>
+																</div>
 
-                                                                            </div>
+															</div>
 
-                                                                        </div>
+															<div class="block" data-block="2CAB">
 
-                                                                    </div>
+																<div class="title">
 
-                                                                </div>
+																	<h3 class="six">Guests</h3>
 
-                                                            </div>
+																</div>
 
-                                                        </div>
+															</div>
 
-                                                    </div>
+														</div>
 
-                                                </div>
+													</div>
 
-                                            </div>
+													<div class="block" data-block="2CB">
 
-                                        </div>
+														<div class="numbers">
 
-                                    </div>
+															<div class="blocks" data-blocks="7">
 
-                                </div>
+																<div class="block" data-block="2CBA">
 
-                            </form>
+																	<div class="number">
 
-                        </div>
+																		<div class="blocks" data-blocks="8">
 
-                    </div>
+																			<div class="block" data-block="2CBAA">
 
-                </div>
+																				<div class="icon">
 
-                <div class="section three">
+																					<i class="icons8 icons8-guardian"></i>
 
-                    <div class="blocks" data-blocks="1">
+																				</div>
 
-                        <div class="block" data-block="1">
+																				<div class="text">
 
-                            <div class="form">
+																					<span class="one">Adults</span>
 
-                                <div class="fields">
+																					<span class="two">Ages 18+</span>
 
-                                    <div class="blocks" data-blocks="2">
+																				</div>
 
-                                        <div class="block" data-block="1A">
+																			</div>
 
-                                            <div class="icon">
+																			<div class="block" data-block="2CBAB">
 
-                                                <i class="icons8 icons8-location"></i>
+																				<div class="buttons">
 
-                                            </div>
+																					<div class="button circle alt" data-button="2A" data-action="decrement" data-type="adults">
 
-                                        </div>
+																						<div class="action">
 
-                                        <div class="block" data-block="1B">
+																							<div class="icon">-</div>
 
-                                            <div class="blocks" data-blocks="3">
+																						</div>
 
-                                                <div class="block" data-block="1BA">
+																					</div>
 
-                                                    <div class="text">Ibiza</div>
+																					<input name="quantity" value="1" class="amount" data-type="adults" readonly="readonly">
 
-                                                </div>
+																					<div class="button circle alt" data-button="2A" data-action="increment" data-type="adults">
 
-                                                <div class="block" data-block="1BB">
+																						<div class="action">
 
-                                                    <div class="blocks" data-blocks="4">
+																							<div class="icon">+</div>
 
-                                                        <div class="block" data-block="1BBA">
+																						</div>
 
-                                                            <div class="text">Dates</div>
+																					</div>
 
-                                                        </div>
+																				</div>
 
-                                                        <div class="block" data-block="1BBB">
+																			</div>
 
-                                                            <div class="text">Guests</div>
+																		</div>
 
-                                                        </div>
+																	</div>
 
-                                                    </div>
+																</div>
 
-                                                </div>
+																<div class="block" data-block="2CBB">
 
-                                            </div>
+																	<div class="number">
 
-                                        </div>
+																		<div class="blocks" data-blocks="9">
 
-                                    </div>
+																			<div class="block" data-block="2CBBA">
 
-                                </div>
+																				<div class="icon">
 
-                                <div class="buttons">
+																					<i class="icons8 icons8-guardian"></i>
 
-                                    <div class="button circle" data-button="1C">
+																				</div>
 
-                                        <div class="action">
+																				<div class="text">
 
-                                            <div class="icon">
+																					<span class="one">Children</span>
 
-                                                <i class="icons8 icons8-search"></i>
+																					<span class="two">Ages 0-17</span>
 
-                                            </div>
+																				</div>
 
-                                        </div>
+																			</div>
 
-                                    </div>
+																			<div class="block" data-block="2CBBB">
 
-                                </div>
+																				<div class="buttons">
 
-                            </div>
+																					<div class="button circle alt" data-button="2A" data-action="decrement" data-type="children">
 
-                        </div>
+																						<div class="action">
 
-                    </div>
+																							<div class="icon">-</div>
 
-                </div>
+																						</div>
 
-            </div>
+																					</div>
 
-        </div>
+																					<input name="quantity" value="0" class="amount" data-type="children" readonly="readonly">
 
-    </div>
+																					<div class="button circle alt" data-button="2A" data-action="increment" data-type="children">
+
+																						<div class="action">
+
+																							<div class="icon">+</div>
+
+																						</div>
+
+																					</div>
+
+																				</div>
+
+																			</div>
+
+																		</div>
+
+																	</div>
+
+																</div>
+
+															</div>
+
+														</div>
+
+													</div>
+
+												</div>
+
+											</div>
+
+										</div>
+
+										<div class="overlay"></div>
+
+									</div>
+
+								</div>
+
+							</form>
+
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="section three">
+
+					<div class="blocks" data-blocks="1">
+
+						<div class="block" data-block="1">
+
+							<div class="form">
+
+								<div class="fields">
+
+									<div class="blocks" data-blocks="2">
+
+										<div class="block" data-block="1A">
+
+											<div class="icon">
+
+												<i class="icons8 icons8-location"></i>
+
+											</div>
+
+										</div>
+
+										<div class="block" data-block="1B">
+
+											<div class="blocks" data-blocks="3">
+
+												<div class="block" data-block="1BA">
+
+													<div class="text">Ibiza</div>
+
+												</div>
+
+												<div class="block" data-block="1BB">
+
+													<div class="blocks" data-blocks="4">
+
+														<div class="block" data-block="1BBA">
+
+															<div class="text">Dates</div>
+
+														</div>
+
+														<div class="block" data-block="1BBB">
+
+															<div class="text">Guests</div>
+
+														</div>
+
+													</div>
+
+												</div>
+
+											</div>
+
+										</div>
+
+									</div>
+
+								</div>
+
+								<div class="buttons">
+
+									<div class="button circle" data-button="1C">
+
+										<div class="action">
+
+											<div class="icon">
+
+												<i class="icons8 icons8-search"></i>
+
+											</div>
+
+										</div>
+
+									</div>
+
+								</div>
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+</section>

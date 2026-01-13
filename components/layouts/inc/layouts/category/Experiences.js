@@ -606,7 +606,7 @@ export default function Experiences() {
     
                                                                            <div className="price">
     
-                                                                               <div className="text">From €125</div>
+                                                                               <div className="text">SDGSDFFG €125</div>
     
                                                                            </div>
     

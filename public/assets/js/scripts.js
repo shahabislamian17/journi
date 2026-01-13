@@ -31,7 +31,8 @@
 
         let swiper = null;
 
-        if ( slideGlobalOneCount > 1 ) {
+        // Only initialize if not already initialized and has more than 1 slide
+        if ( slideGlobalOneCount > 1 && swiperGlobalOneElement && !swiperGlobalOneElement.swiper ) {
             const swiperGlobalOne = new Swiper( '.announcements .slider', {
                 containerModifierClass: 'slide-',
                 slideActiveClass: 'active',
@@ -42,17 +43,21 @@
                 slideVisibleClass: 'visible',
                 wrapperClass: 'slides',
                 autoHeight: true,
-                loop: true,
-                centeredSlides: true,
+                loop: slideGlobalOneCount > 1, // Only loop if more than 1 slide
+                centeredSlides: false, // Changed to false to prevent all slides showing
                 speed: 1250,
                 spaceBetween: 0,
                 direction: 'horizontal',
                 slidesPerView: 1,
+                effect: 'slide', // Explicitly set slide effect
                 autoplay: {
                     delay: 5000,
                     disableOnInteraction: false,
                     pauseOnMouseEnter: false,
-                }
+                },
+                // Prevent multiple initializations
+                observer: true,
+                observeParents: true
             });
         }
 
@@ -330,12 +335,8 @@
             const $selectedOption = $( '.home .select option:selected, .category .select option:selected', this );
             const selectedText = $selectedOption.text();
             $mirror.text( selectedText );
-            const isMobile = document.documentElement.classList.contains( 'mobile' );
-            const padding = isMobile ? 88 : 86;
-            const width = $mirror.outerWidth() + padding;
-            $( '.home .select select, .category .select select' ).css({
-                width: width + 'px'
-            });
+            // Removed inline width style - let CSS handle width
+            // CSS should handle select width automatically
 
         });
 
@@ -1173,9 +1174,48 @@
     //         console.error( 'Error fetching category experiences:', error );
     //     } );
     $( document ).on( 'click', '.experiences .content .sections .section.one .blocks .block .links .one ul li a.action', function( e ) {
-        // Allow Featured link to navigate normally
+        // Handle Featured link to show all experiences
         if ( $( this ).attr( 'data-featured-link' ) === 'true' ) {
-            return true; // Allow default navigation
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Update active state
+            $( '.experiences .content .sections .section.one .blocks .block .links .one ul li' ).removeClass( 'active' );
+            $( this ).closest( 'li' ).addClass( 'active' );
+            
+            // Update URL without page reload
+            if ( typeof window !== 'undefined' && window.history && window.history.pushState ) {
+                const currentPath = window.location.pathname;
+                const params = new URLSearchParams();
+                const newUrl = currentPath + ( params.toString() ? '?' + params.toString() : '' );
+                window.history.pushState( { category: 'featured' }, '', newUrl );
+            }
+            
+            // Render all experiences from window.__API_EXPERIENCES__
+            if ( window.__API_EXPERIENCES__ && Array.isArray( window.__API_EXPERIENCES__ ) ) {
+                const mappedExperiences = window.__API_EXPERIENCES__.map( experience => {
+                    const primaryImage = experience.images && experience.images.length > 0 ? experience.images[0] : null;
+                    return {
+                        id: experience.id,
+                        slug: experience.slug,
+                        title: experience.title,
+                        duration: experience.duration || (experience.hours ? `${experience.hours} Hours` : 'N/A'),
+                        rating: experience.rating || '0',
+                        price: experience.price || '0',
+                        image: primaryImage?.medium || primaryImage?.large || primaryImage?.original || 
+                               '/assets/images/experiences/experience-1a.jpg',
+                        featured: experience.featured || false,
+                        new: experience.isNew || false,
+                        inWishlist: false
+                    };
+                } );
+                
+                // This will also update the count automatically
+                renderExperiencesFromAPI( mappedExperiences ).catch( error => {
+                    console.error( 'Error rendering featured experiences:', error );
+                } );
+            }
+            return false;
         }
         e.preventDefault();
         e.stopPropagation();
@@ -1233,6 +1273,7 @@
                         } );
                         
                         // Call render function to update UI with filtered experiences
+                        // This will also update the count automatically
                         renderExperiencesFromAPI( mappedExperiences ).catch( error => {
                             console.error( 'Error rendering experiences:', error );
                         } );
@@ -1382,6 +1423,15 @@
     //   featured: true,
     //   new: false
     // }
+    // Function to update the "Showing X of Y" count text
+    function updateExperiencesCount( currentCount, totalCount ) {
+        const $countText = $( '.experiences .content .sections .section.two .blocks .block .text p.small.five' );
+        if ( $countText.length > 0 ) {
+            const total = totalCount !== null && totalCount !== undefined ? totalCount : ( window.__API_TOTAL_COUNT__ || currentCount );
+            $countText.text( `Showing ${currentCount} of ${total} experiences.` );
+        }
+    }
+    
     async function renderExperiencesFromAPI( experiences ) {
         const $experiencesContainer = $( '.experiences .content .sections .section.three .container .content .blocks .block .experiences' );
         
@@ -1393,11 +1443,18 @@
         // Clear existing experiences
         $experiencesContainer.find( '.blocks .block' ).remove();
         
+        // Handle empty state
+        if ( !experiences || experiences.length === 0 ) {
+            $experiencesContainer.html( '<div class="blocks" data-blocks="3"></div>' );
+            updateExperiencesCount( 0, window.__API_TOTAL_COUNT__ || 0 );
+            return;
+        }
+        
         // Get wishlist IDs to check which experiences are in wishlist
         const wishlistIds = await getWishlistIds();
         
         // Build HTML for each experience
-        let experiencesHTML = '<div class="blocks" data-blocks="2">';
+        let experiencesHTML = '<div class="blocks" data-blocks="3">';
         
         experiences.forEach( ( experience, index ) => {
             const blockNumber = index + 1;
@@ -1477,12 +1534,14 @@
                                             <div class="text">From €${experience.price || '0'}</div>
                                         </div>
                                     </div>
+                                    ${((experience.featured === true) || (experience.new === true)) ? `
                                     <div class="block" data-block="1ADB">
                                         <div class="labels">
                                             ${experience.featured ? '<div class="label">Featured</div>' : ''}
                                             ${experience.new ? '<div class="label">New</div>' : ''}
                                         </div>
                                     </div>
+                                    ` : ''}
                                 </div>
                             </div>
                         </div>
@@ -1497,6 +1556,9 @@
         // Insert HTML
         $experiencesContainer.html( experiencesHTML );
         
+        // Update the count text
+        updateExperiencesCount( experiences.length, window.__API_TOTAL_COUNT__ || experiences.length );
+        
         // Re-initialize any event handlers or plugins if needed
         // For example, if you have Swiper sliders or other interactive elements
     }
@@ -1506,9 +1568,34 @@
         // Check if we're on a category page (has .category class or experiences section)
         // BUT exclude wishlist page (wishlist page has its own React component that handles data)
         const isWishlistPage = $( 'body' ).hasClass( 'wishlist' );
+        const isHomePage = $( 'body' ).hasClass( 'home' );
         const isCategoryPage = !isWishlistPage && ( $( 'body' ).hasClass( 'category' ) || $( '.experiences' ).length > 0 );
         
-        if ( isCategoryPage ) {
+        // If on home page and window.__API_EXPERIENCES__ exists, render from that
+        if ( isHomePage && window.__API_EXPERIENCES__ && Array.isArray( window.__API_EXPERIENCES__ ) ) {
+            const mappedExperiences = window.__API_EXPERIENCES__.map( experience => {
+                const primaryImage = experience.images && experience.images.length > 0 ? experience.images[0] : null;
+                return {
+                    id: experience.id,
+                    slug: experience.slug,
+                    title: experience.title,
+                    duration: experience.duration || (experience.hours ? `${experience.hours} Hours` : 'N/A'),
+                    rating: experience.rating || '0',
+                    price: experience.price || '0',
+                    image: primaryImage?.medium || primaryImage?.large || primaryImage?.original || 
+                           '/assets/images/experiences/experience-1a.jpg',
+                    featured: experience.featured || false,
+                    new: experience.isNew || false,
+                    inWishlist: false // Will be updated if user is authenticated
+                };
+            } );
+            
+            // Call render function to update UI with experiences
+            // This will also update the count automatically
+            renderExperiencesFromAPI( mappedExperiences ).catch( error => {
+                console.error( 'Error rendering experiences from window.__API_EXPERIENCES__:', error );
+            } );
+        } else if ( isCategoryPage ) {
             // Get category from URL params
             const urlParams = new URLSearchParams( window.location.search );
             const categoryFromUrl = urlParams.get( 'category' );
@@ -1602,4 +1689,177 @@
             window.location.href = '/wishlist';
         }
     });
+
+    // ============================================
+    // MENU DRAWER FUNCTIONALITY
+    // ============================================
+    
+    // Menu toggle trigger
+    $(document).on('click', 'header .content .sections .section.three .blocks .block .icons .icon[data-icon="1"]', function() {
+        var $icon = $(this);
+        var $menu = $('.menu[data-menu="3"]');
+        var timers = $menu.data('timers') || [];
+        while (timers.length) {
+            clearTimeout(timers.pop());
+        }
+        $menu.off('transitionend.menuClose webkitTransitionEnd.menuClose');
+        var action = $menu.attr('data-action') || '0';
+        if (action !== '0') {
+            closeMenuOne();
+        } else {
+            $icon.attr('data-action', '1');
+            $menu.attr('data-action', '1');
+            timers.push(setTimeout(function() {
+                $menu.attr('data-action', '2');
+            }, 100));
+            timers.push(setTimeout(function() {
+                $menu.attr('data-action', '3');
+            }, 600));
+        }
+        $menu.data('timers', timers);
+    });
+
+    // Close menu on close button or overlay click
+    $(document).on('click', '.menu .sections .section.one .blocks .block .close, .menu .overlay', function() {
+        closeMenuTwo();
+    });
+
+    // Handle navigation link clicks
+    $(document).on('click', '.menu .content .sections .section.two .blocks .block .slider .slides .slide .blocks .block .links ul li .blocks .block ul li a', function() {
+        var linkAction = $(this).attr('data-action');
+        if (linkAction !== '2') {
+            return;
+        }
+        if (window.innerWidth >= 900) {
+            closeMenuTwo();
+        } else {
+            closeMenuOne();
+        }
+    });
+
+    function closeMenuOne() {
+        var $icon = $('[data-icon="1"]');
+        var $menu = $('.menu[data-menu="3"]');
+        var timers = $menu.data('timers') || [];
+        while (timers.length) {
+            clearTimeout(timers.pop());
+        }
+        $menu.off('transitionend.menuClose webkitTransitionEnd.menuClose');
+        var action = $menu.attr('data-action') || '0';
+        if (action === '0') {
+            $menu.data('timers', timers);
+            return;
+        }
+        $icon.attr('data-action', '0');
+        $menu.attr('data-action', '2');
+        timers.push(setTimeout(function() {
+            $menu.attr('data-action', '1');
+        }, 100));
+        var finishClose = function() {
+            $menu.attr('data-action', '0');
+            $icon.attr('data-action', '0');
+            timers.push(setTimeout(function() {
+                $menu.removeAttr('data-action');
+                $icon.removeAttr('data-action');
+            }, 200));
+            $menu.data('timers', timers);
+        };
+        var fallback = setTimeout(function() {
+            finishClose();
+        }, 650);
+        timers.push(fallback);
+        $menu.one('transitionend.menuClose webkitTransitionEnd.menuClose', function(e) {
+            if (e.originalEvent && e.originalEvent.propertyName !== 'height') {
+                return;
+            }
+            clearTimeout(fallback);
+            finishClose();
+        });
+        $menu.data('timers', timers);
+    }
+
+    function closeMenuTwo() {
+        var $icon = $('[data-icon="1"]');
+        var $menu = $('.menu[data-menu="3"]');
+        var timers = $menu.data('timers') || [];
+        while (timers.length) {
+            clearTimeout(timers.pop());
+        }
+        $menu.off('transitionend.menuClose webkitTransitionEnd.menuClose');
+        var action = $menu.attr('data-action') || '0';
+        if (action === '0') {
+            $menu.data('timers', timers);
+            return;
+        }
+        $icon.attr('data-action', '0');
+        $menu.attr('data-action', '4');
+        var finishClose = function() {
+            $menu.attr('data-action', '0');
+            $icon.attr('data-action', '0');
+            timers.push(setTimeout(function() {
+                $menu.removeAttr('data-action');
+                $icon.removeAttr('data-action');
+            }, 200));
+            $menu.data('timers', timers);
+        };
+        var fallback = setTimeout(function() {
+            finishClose();
+        }, 650);
+        timers.push(fallback);
+        $menu.one('transitionend.menuClose webkitTransitionEnd.menuClose', function(e) {
+            if (e.originalEvent && e.originalEvent.propertyName !== 'height') {
+                return;
+            }
+            clearTimeout(fallback);
+            finishClose();
+        });
+        $menu.data('timers', timers);
+    }
+
+    // Initialize Swiper for menu slider
+    const menuSliderElement = document.querySelector('.menu .slider');
+    if (menuSliderElement && !menuSliderElement.swiper) {
+        const swiperMenu = new Swiper('.menu .slider', {
+            containerModifierClass: 'slide-',
+            slideActiveClass: 'active',
+            slideBlankClass: 'blank',
+            slideClass: 'slide',
+            slideNextClass: 'next',
+            slidePrevClass: 'previous',
+            slideVisibleClass: 'visible',
+            wrapperClass: 'slides',
+            autoHeight: true,
+            slidesPerGroup: 1,
+            spaceBetween: 0,
+            loop: false,
+            speed: 750,
+            allowTouchMove: false,
+            navigation: {
+                disabledClass: 'disabled',
+                nextEl: '.menu .content .slider .slides .slide .links ul li a[data-action="1"]',
+                prevEl: '.menu .content .slider .slides .slide .close',
+            }
+        });
+    }
+
+    // Handle logout from account navigation (for bookings, messages pages using HTML template)
+    $( document ).on( 'click', '.account .navigation .list ul li[data-link="logout"] a.action', function( e ) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Clear token from localStorage
+        if ( typeof localStorage !== 'undefined' ) {
+            localStorage.removeItem( 'token' );
+        }
+        
+        // Clear token cookie
+        document.cookie = 'token=; path=/; max-age=0; SameSite=Lax';
+        
+        // Redirect to login page
+        setTimeout( function() {
+            if ( typeof window !== 'undefined' && window.location ) {
+                window.location.href = '/account/log-in';
+            }
+        }, 100 );
+    } );
 

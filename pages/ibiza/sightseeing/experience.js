@@ -75,7 +75,8 @@ export async function getServerSideProps(context) {
     "global/announcements.html", 
     "global/footer-base.html", 
     "global/footer-section-three.html", 
-    "global/header.html", 
+    "global/header.html",
+    "global/menu.html", 
     "inc/layouts/experience/banner.html", 
     "inc/layouts/experience/breadcrumbs.html", 
     "inc/layouts/experience/details.html", 
@@ -125,16 +126,6 @@ export default function Page({ experience, reviews = [], templates, layoutOption
 		
 
 <Template html={templates["inc/layouts/global/notifications.html"]} />
-
-
-
-	</section>
-
-	<section className="search">
-
-		
-
-<Template html={templates["inc/layouts/global/search.html"]} />
 
 
 

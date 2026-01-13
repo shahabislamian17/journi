@@ -136,7 +136,7 @@ export default function DynamicBanner({ experience }) {
                               <div className="icon">
                                 <i className="icons8 icons8-star-2"></i>
                               </div>
-                              <div className="text">{experienceData.rating?.toFixed(1) || '0.0'}</div>
+                              <div className="text">{experienceData.rating != null ? experienceData.rating : '0'}</div>
                             </div>
                           </div>
                         </div>

@@ -45,8 +45,8 @@ export default function Form() {
         const maxAge = formData.rememberMe ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60; // 30 days or 7 days
         document.cookie = `token=${response.token}; path=/; max-age=${maxAge}; SameSite=Lax`;
 
-        // Redirect to main page (home)
-        router.push('/');
+        // Redirect to bookings page
+        router.push('/account/bookings');
         return; // Prevent any further execution
       }
     } catch (error) {
@@ -65,7 +65,9 @@ export default function Form() {
     }
   };
 
-  const togglePasswordVisibility = () => {
+  const togglePasswordVisibility = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     setShowPassword(!showPassword);
   };
 
@@ -153,11 +155,11 @@ export default function Form() {
                             </div>
                             <div className="block" data-block="1BB">
                               <div className="toggle" onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
-                                <div className="icons">
-                                  <div className={`icon ${!showPassword ? 'active' : ''}`} data-icon="1">
+                                <div className={`icons ${showPassword ? 'active' : ''}`}>
+                                  <div className="icon" data-icon="1">
                                     <i className="icons8 icons8-eye"></i>
                                   </div>
-                                  <div className={`icon ${showPassword ? 'active' : ''}`} data-icon="2">
+                                  <div className="icon" data-icon="2">
                                     <i className="icons8 icons8-eye-2"></i>
                                   </div>
                                 </div>

@@ -12,7 +12,12 @@ router.get('/', async (req, res) => {
       isNew,
       limit = 10,
       cursor,
-      search
+      search,
+      destination,
+      checkInDate,
+      checkOutDate,
+      adults,
+      children
     } = req.query;
 
     const where = {};
@@ -34,6 +39,37 @@ router.get('/', async (req, res) => {
         { title: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } }
       ];
+    }
+
+    // Filter by destination (location)
+    if (destination) {
+      where.location = { contains: destination, mode: 'insensitive' };
+    }
+
+    // Filter by date range and guest capacity (via availability slots)
+    const totalGuests = (parseInt(adults) || 1) + (parseInt(children) || 0);
+    if (checkInDate || checkOutDate || totalGuests > 1) {
+      where.availabilitySlots = {
+        some: {
+          available: true,
+          ...(checkInDate && checkOutDate ? {
+            date: {
+              gte: new Date(checkInDate),
+              lte: new Date(checkOutDate)
+            }
+          } : checkInDate ? {
+            date: { gte: new Date(checkInDate) }
+          } : checkOutDate ? {
+            date: { lte: new Date(checkOutDate) }
+          } : {}),
+          ...(totalGuests > 1 ? {
+            OR: [
+              { maxGuests: { gte: totalGuests } },
+              { maxGuests: null } // If maxGuests is null, assume unlimited
+            ]
+          } : {})
+        }
+      };
     }
 
     const take = parseInt(limit) || 10;
@@ -90,6 +126,28 @@ router.get('/', async (req, res) => {
               rating: true
             }
           },
+          availabilitySlots: (checkInDate || checkOutDate || totalGuests > 1) ? {
+            where: {
+              available: true,
+              ...(checkInDate && checkOutDate ? {
+                date: {
+                  gte: new Date(checkInDate),
+                  lte: new Date(checkOutDate)
+                }
+              } : checkInDate ? {
+                date: { gte: new Date(checkInDate) }
+              } : checkOutDate ? {
+                date: { lte: new Date(checkOutDate) }
+              } : {}),
+              ...(totalGuests > 1 ? {
+                OR: [
+                  { maxGuests: { gte: totalGuests } },
+                  { maxGuests: null }
+                ]
+              } : {})
+            },
+            take: 10
+          } : false,
           _count: {
             select: {
               reviews: true
@@ -122,15 +180,29 @@ router.get('/', async (req, res) => {
     const data = hasMore ? experiences.slice(0, take) : experiences;
     const nextCursor = hasMore ? data[data.length - 1].id : null;
 
-    // Calculate average rating
+    // Use exact rating from database (don't round)
     const experiencesWithRating = data.map(exp => {
-      const avgRating = exp.reviews.length > 0
-        ? exp.reviews.reduce((sum, r) => sum + r.rating, 0) / exp.reviews.length
-        : exp.rating;
+      // Always use the database rating field directly (don't calculate from reviews)
+      // The database rating is the source of truth
+      const rating = exp.rating != null ? exp.rating : 0;
+
+      // Log for debugging
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Rating Debug]', {
+          id: exp.id,
+          title: exp.title,
+          dbRating: exp.rating,
+          reviewsCount: exp.reviews.length,
+          calculatedAvg: exp.reviews.length > 0
+            ? exp.reviews.reduce((sum, r) => sum + r.rating, 0) / exp.reviews.length
+            : null,
+          finalRating: rating
+        });
+      }
 
       return {
         ...exp,
-        rating: Math.round(avgRating * 10) / 10,
+        rating: rating, // Use exact database value
         reviewCount: exp._count.reviews
       };
     });
@@ -321,10 +393,23 @@ router.get('/:slug', async (req, res) => {
       }
     }
 
-    // Calculate average rating
-    const avgRating = experience.reviews.length > 0
-      ? experience.reviews.reduce((sum, r) => sum + r.rating, 0) / experience.reviews.length
-      : experience.rating;
+    // Use exact rating from database (don't calculate from reviews)
+    // The database rating field is the source of truth
+    const rating = experience.rating != null ? experience.rating : 0;
+
+    // Log for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Rating Debug - Slug]', {
+        id: experience.id,
+        slug: experience.slug,
+        dbRating: experience.rating,
+        reviewsCount: experience.reviews.length,
+        calculatedAvg: experience.reviews.length > 0
+          ? experience.reviews.reduce((sum, r) => sum + r.rating, 0) / experience.reviews.length
+          : null,
+        finalRating: rating
+      });
+    }
 
     // Parse JSON fields
     let languages = [];
@@ -339,7 +424,8 @@ router.get('/:slug', async (req, res) => {
     console.log('[Experience Slug Route] Success - sending response', { 
       experienceId: experience.id,
       slug: experience.slug,
-      hasHost: !!host
+      hasHost: !!host,
+      rating: rating
     });
     
     res.json({
@@ -348,7 +434,7 @@ router.get('/:slug', async (req, res) => {
         host, // Include host data if available
         languages,
         includedItems,
-        rating: Math.round(avgRating * 10) / 10,
+        rating: rating, // Use exact database value
         reviewCount: experience._count.reviews
       }
     });

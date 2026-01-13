@@ -256,7 +256,7 @@ export default function DynamicExperiences({ currentExperience }) {
                                       <div className="icon">
                                         <i className="icons8 icons8-star-2"></i>
                                       </div>
-                                      <div className="text">{experience.rating?.toFixed(1) || '0.0'}</div>
+                                      <div className="text">{experience.rating != null ? experience.rating : '0'}</div>
                                     </div>
                                   </div>
                                 </div>
@@ -269,12 +269,14 @@ export default function DynamicExperiences({ currentExperience }) {
                                       <div className="text">From €{experience.price || '0'}</div>
                                     </div>
                                   </div>
-                                  <div className="block" data-block="1ADB">
-                                    <div className="labels">
-                                      {experience.featured && <div className="label">Featured</div>}
-                                      {experience.isNew && <div className="label">New</div>}
+                                  {(experience.featured || experience.isNew) && (
+                                    <div className="block" data-block="1ADB">
+                                      <div className="labels">
+                                        {experience.featured && <div className="label">Featured</div>}
+                                        {experience.isNew && <div className="label">New</div>}
+                                      </div>
                                     </div>
-                                  </div>
+                                  )}
                                 </div>
                               </div>
                             </div>

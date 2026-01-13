@@ -163,21 +163,21 @@ export default function WishlistExperiences({ wishlist: initialWishlist = [] }) 
                               }
                               
                               return (
-                                <div key={expId} className="block" data-block={`${index + 1}A`}>
+                                <div key={expId} className="block" data-block="1A">
                                   <div className="experience" data-experience-id={expId}>
                                     <div className="blocks" data-blocks="3">
                                       {/* Banner/Image */}
-                                      <div className="block" data-block={`${index + 1}AA`}>
+                                      <div className="block" data-block="1AA">
                                         <div className="banner">
                                           <div className="blocks" data-blocks="4">
-                                            <div className="block" data-block={`${index + 1}AAA`}>
+                                            <div className="block" data-block="1AAA">
                                               <WishlistButton 
                                                 experienceId={expId} 
                                                 initialInWishlist={true}
                                                 onRemove={() => handleRemove(expId)}
                                               />
                                             </div>
-                                            <div className="block" data-block={`${index + 1}AAB`}>
+                                            <div className="block" data-block="1AAB">
                                               <Link href={`/ibiza/sightseeing/experience?slug=${experience.slug || experience.id}`}>
                                                 <div className="images">
                                                   <div 
@@ -192,7 +192,7 @@ export default function WishlistExperiences({ wishlist: initialWishlist = [] }) 
                                       </div>
 
                                       {/* Title */}
-                                      <div className="block" data-block={`${index + 1}AB`}>
+                                      <div className="block" data-block="1AB">
                                         <Link href={`/ibiza/sightseeing/experience?slug=${experience.slug}`}>
                                           <div className="title">
                                             <h3 className="three">{experience.title}</h3>
@@ -201,9 +201,9 @@ export default function WishlistExperiences({ wishlist: initialWishlist = [] }) 
                                       </div>
 
                                       {/* Duration and Rating */}
-                                      <div className="block" data-block={`${index + 1}AC`}>
+                                      <div className="block" data-block="1AC">
                                         <div className="blocks" data-blocks="5">
-                                          <div className="block" data-block={`${index + 1}ACA`}>
+                                          <div className="block" data-block="1ACA">
                                             <div className="duration">
                                               <div className="text">
                                                 {experience.duration && experience.duration.trim() 
@@ -214,31 +214,33 @@ export default function WishlistExperiences({ wishlist: initialWishlist = [] }) 
                                               </div>
                                             </div>
                                           </div>
-                                          <div className="block" data-block={`${index + 1}ACB`}>
+                                          <div className="block" data-block="1ACB">
                                             <div className="rating">
                                               <div className="icon">
                                                 <i className="icons8 icons8-star-2"></i>
                                               </div>
-                                              <div className="text">{experience.rating?.toFixed(1) || '0.0'}</div>
+                                              <div className="text">{experience.rating != null ? experience.rating : '0'}</div>
                                             </div>
                                           </div>
                                         </div>
                                       </div>
 
                                       {/* Price and Labels */}
-                                      <div className="block" data-block={`${index + 1}AD`}>
+                                      <div className="block" data-block="1AD">
                                         <div className="blocks" data-blocks="6">
-                                          <div className="block" data-block={`${index + 1}ADA`}>
+                                          <div className="block" data-block="1ADA">
                                             <div className="price">
                                               <div className="text">From €{experience.price || '0'}</div>
                                             </div>
                                           </div>
-                                          <div className="block" data-block={`${index + 1}ADB`}>
-                                            <div className="labels">
-                                              {experience.featured && <div className="label">Featured</div>}
-                                              {experience.isNew && <div className="label">New</div>}
+                                          {((experience.featured === true) || (experience.isNew === true)) && (
+                                            <div className="block" data-block="1ADB">
+                                              <div className="labels">
+                                                {experience.featured && <div className="label">Featured</div>}
+                                                {experience.isNew && <div className="label">New</div>}
+                                              </div>
                                             </div>
-                                          </div>
+                                          )}
                                         </div>
                                       </div>
                                     </div>

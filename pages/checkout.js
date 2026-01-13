@@ -56,11 +56,11 @@ export default function Page({ templates, layoutOptions }) {
           </div>
         </div>
       </section>
-      <Layout templates={templates} {...layoutOptions}>
-        <section className="payment">
+    <Layout templates={templates} {...layoutOptions}>
+      <section className="payment">
           <Checkout />
-        </section>
-      </Layout>
+    </section>
+    </Layout>
     </>
   );
 }

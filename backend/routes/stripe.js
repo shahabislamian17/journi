@@ -4,7 +4,13 @@ const Stripe = require('stripe');
 const router = express.Router();
 
 // Initialize Stripe with secret key from environment variable
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_your_secret_key_here');
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || 'sk_test_your_secret_key_here';
+
+if (!stripeSecretKey || stripeSecretKey === 'sk_test_your_secret_key_here') {
+  console.warn('WARNING: STRIPE_SECRET_KEY not set or using placeholder. Stripe operations will fail.');
+}
+
+const stripe = new Stripe(stripeSecretKey);
 
 // Create PaymentIntent and Customer
 router.post('/setup', async (req, res) => {
@@ -13,7 +19,13 @@ router.post('/setup', async (req, res) => {
     res.set('Content-Type', 'application/json');
     res.set('Cache-Control', 'no-store');
 
-    const { mode, first_name, surname, email, phone, user_ref, customer_id } = req.body;
+    // Validate Stripe is configured
+    const currentStripeKey = process.env.STRIPE_SECRET_KEY || 'sk_test_your_secret_key_here';
+    if (!currentStripeKey || currentStripeKey === 'sk_test_your_secret_key_here') {
+      return res.status(500).json({ error: 'Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable.' });
+    }
+
+    const { mode, first_name, surname, email, phone, user_ref, customer_id, amount } = req.body;
 
     if (mode !== 'create_payment_intent') {
       return res.status(400).json({ error: 'Invalid mode.' });
@@ -25,6 +37,9 @@ router.post('/setup', async (req, res) => {
     const userPhone = phone || null;
     const userRef = user_ref || 'guest';
     const incomingCustomerId = (customer_id || '').trim();
+    
+    // Use provided amount or default to 50000 (500.00)
+    const paymentAmount = amount && amount > 0 ? parseInt(amount, 10) : 50000;
 
     let customer = null;
 
@@ -52,10 +67,9 @@ router.post('/setup', async (req, res) => {
       });
     }
 
-    // Create PaymentIntent
-    // Note: Amount should be calculated from bag items, for now using 50000 (500.00)
+    // Create PaymentIntent with calculated amount
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 50000, // TODO: Calculate from bag items
+      amount: paymentAmount,
       currency: 'gbp',
       customer: customer.id,
       capture_method: 'manual',
@@ -64,7 +78,7 @@ router.post('/setup', async (req, res) => {
       },
       description: 'Booking',
       metadata: {
-        booking_total: '500'
+        booking_total: (paymentAmount / 100).toFixed(2)
       }
     });
 
@@ -75,7 +89,8 @@ router.post('/setup', async (req, res) => {
     });
   } catch (error) {
     console.error('Stripe setup error:', error);
-    res.status(500).json({ error: 'Payment error.' });
+    const errorMessage = error.message || 'Payment error.';
+    res.status(500).json({ error: errorMessage });
   }
 });
 

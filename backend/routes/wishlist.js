@@ -42,17 +42,16 @@ router.get('/', authenticateToken, async (req, res) => {
 
     console.log('Get wishlist - found items:', wishlistItems.length);
 
-    // Calculate ratings
+    // Use exact rating from database (don't calculate from reviews)
     const itemsWithRating = wishlistItems.map(item => {
-      const avgRating = item.experience.reviews.length > 0
-        ? item.experience.reviews.reduce((sum, r) => sum + r.rating, 0) / item.experience.reviews.length
-        : item.experience.rating;
+      // Always use the database rating field directly
+      const rating = item.experience.rating != null ? item.experience.rating : 0;
 
       return {
         ...item,
         experience: {
           ...item.experience,
-          rating: Math.round(avgRating * 10) / 10,
+          rating: rating, // Use exact database value, no rounding
           reviewCount: item.experience._count.reviews
         }
       };

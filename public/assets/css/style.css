@@ -341,7 +341,7 @@ h3.six {
 @media {
     .mobile h3.six {
         font-size: 1.06875em;
-        font-weight: 515;
+        font-weight: 500;
         letter-spacing: -0.0125em;
     }
 }
@@ -3403,6 +3403,12 @@ header .content .sections .section.three .blocks .block .icons .icon .number {
     width: 100%;
 }
 
+@media {
+    .mobile .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .blocks .block .title {
+        top: calc(50% - 1px);
+    }
+}
+
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .title {
     float: left;
     width: 100%;
@@ -3454,9 +3460,9 @@ header .content .sections .section.three .blocks .block .icons .icon .number {
 
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .list ul li.alt:after {
     background: #F9F9FA;
-    border-radius: 20px;
+    border-radius: 10px;
     content: 'Coming Soon';
-    font-size: 8px;
+    font-size: 0.6125em;
     font-variation-settings: 'opsz' 24;
     font-weight: 425;
     letter-spacing: 0;
@@ -3469,11 +3475,34 @@ header .content .sections .section.three .blocks .block .icons .icon .number {
     -webkit-transform: translateY(-50%);
 }
 
+@media {
+    .mobile .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .list ul li.alt:after {
+        border-radius: 11px;
+        font-size: 0.625em;
+        font-weight: 445;
+        margin: 0 0 0 19px;
+    }
+}
+
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .list ul li .icon {
     float: left;
     font-size: 1.0875em;
     line-height: 36px;
     margin: 0 10px 0 0;
+}
+
+@media (max-width: 1250px) {
+    .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .list ul li .icon {
+        font-size: 1.15em;
+        margin: 0 11px 0 0;
+    }
+}
+
+@media {
+    .mobile .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .list ul li .icon {
+        font-size: 1.2em;
+        margin: 0 12px 0 0;
+    }
 }
 
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .list ul li .text {
@@ -3482,6 +3511,22 @@ header .content .sections .section.three .blocks .block .icons .icon .number {
     font-weight: 400;
     letter-spacing: -0.0025em;
     line-height: 18px;
+}
+
+@media (max-width: 1250px) {
+    .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .list ul li .text {
+        font-size: 0.875em;
+        letter-spacing: -0.001625em;
+    }
+}
+
+@media {
+    .mobile .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .list ul li .text {
+        font-size: 0.925em;
+        font-weight: 435;
+        letter-spacing: -0.001em;
+        line-height: 19px;
+    }
 }
 
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .list ul li .text span {
@@ -3554,12 +3599,42 @@ header .content .sections .section.three .blocks .block .icons .icon .number {
     margin: 0 10px 0 0;
 }
 
+@media (max-width: 1250px) {
+    .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .numbers .blocks .block .number .blocks .block .icon {
+        font-size: 1.15em;
+        margin: 0 11px 0 0;
+    }
+}
+
+@media {
+    .mobile .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .numbers .blocks .block .number .blocks .block .icon {
+        font-size: 1.2em;
+        margin: 0 12px 0 0;
+    }
+}
+
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .numbers .blocks .block .number .blocks .block .text {
     float: left;
     font-size: 0.825em;
     font-weight: 400;
     letter-spacing: -0.0025em;
     line-height: 18px;
+}
+
+@media (max-width: 1250px) {
+    .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .numbers .blocks .block .number .blocks .block .text {
+        font-size: 0.875em;
+        letter-spacing: -0.001625em;
+    }
+}
+
+@media {
+    .mobile .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .numbers .blocks .block .number .blocks .block .text {
+        font-size: 0.925em;
+        font-weight: 435;
+        letter-spacing: -0.001em;
+        line-height: 19px;
+    }
 }
 
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .numbers .blocks .block .number .blocks .block .text span {
@@ -3623,14 +3698,18 @@ header .content .sections .section.three .blocks .block .icons .icon .number {
     z-index: 750;
 }
 
-.search .content .sections .section.two .blocks .block .form .blocks .block .modals.delay ~ .overlay {
-    display: block;
-    pointer-events: auto;
-    visibility: visible;
+@media (max-width: 1250px) {
+    .search .content .sections .section.two .blocks .block .form .blocks .block .modals.delay ~ .overlay {
+        display: block;
+        pointer-events: auto;
+        visibility: visible;
+    }
 }
 
-.search .content .sections .section.two .blocks .block .form .blocks .block .modals.active ~ .overlay {
-    opacity: 1;
+@media (max-width: 1250px) {
+    .search .content .sections .section.two .blocks .block .form .blocks .block .modals.active ~ .overlay {
+        opacity: 1;
+    }
 }
 
 .search .content .sections .section.three {
