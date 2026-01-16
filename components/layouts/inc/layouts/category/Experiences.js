@@ -1,4 +1,14 @@
+import { useEffect, useRef } from 'react';
+
 export default function Experiences() {
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    if (overlayRef.current) {
+      overlayRef.current.className = "overlay";
+    }
+  }, []);
+
   return (
         <div className="container">
     
@@ -606,7 +616,7 @@ export default function Experiences() {
     
                                                                            <div className="price">
     
-                                                                               <div className="text">SDGSDFFG €125</div>
+                                                                               <div className="text">From €125</div>
     
                                                                            </div>
     
@@ -4426,7 +4436,7 @@ export default function Experiences() {
     
                            </div>
     
-                           <div className="overlay"></div>
+                           <div ref={overlayRef}></div>
     
                        </section>
     

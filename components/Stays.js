@@ -89,14 +89,14 @@ export default function Stays({ stays: initialStays = [] }) {
                 <div className="slider" ref={sliderRef}>
                   <div className="navigation">
                     <div className="buttons">
-                      <div className="button circle border one">
+                      <div className="button circle one" data-button="2A">
                         <div className="action">
                           <div className="icon">
                             <i className="icons8 icons8-less-than"></i>
                           </div>
                         </div>
                       </div>
-                      <div className="button circle border two">
+                      <div className="button circle two" data-button="2A">
                         <div className="action">
                           <div className="icon">
                             <i className="icons8 icons8-more-than"></i>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { bagAPI } from '../../../../../lib/bag';
 
@@ -8,6 +8,13 @@ export default function Bag() {
   const router = useRouter();
   const [bagItems, setBagItems] = useState([]);
   const [subtotal, setSubtotal] = useState(0);
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    if (overlayRef.current) {
+      overlayRef.current.className = "overlay";
+    }
+  }, []);
 
   useEffect(() => {
     // Load bag items on mount and on updates
@@ -324,7 +331,7 @@ export default function Bag() {
         </div>
       </div>
         <div 
-          className="overlay" 
+          ref={overlayRef}
           onClick={handleCloseBag}
         ></div>
     </div>

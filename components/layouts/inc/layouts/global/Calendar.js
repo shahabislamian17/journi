@@ -1,4 +1,14 @@
+import { useEffect, useRef } from 'react';
+
 export default function Calendar() {
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    if (overlayRef.current) {
+      overlayRef.current.className = "overlay";
+    }
+  }, []);
+
   return (
         <div className="container">
     
@@ -2546,7 +2556,7 @@ export default function Calendar() {
     
         </div>
     
-        <div className="overlay"></div>
+        <div ref={overlayRef}></div>
     
   );
 }

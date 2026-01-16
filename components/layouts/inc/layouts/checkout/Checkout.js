@@ -77,22 +77,22 @@ export default function Checkout() {
         } catch (error) {
           console.error('Error fetching user data:', error);
           // If API fails, try localStorage as fallback
-          const userStr = localStorage.getItem('user');
-          if (userStr) {
-            try {
-              const user = JSON.parse(userStr);
-              setFormData(prev => ({
-                ...prev,
-                firstName: user.firstName || '',
-                surname: user.lastName || '',
-                email: user.email || '',
-                phoneNumber: user.phone || '',
-              }));
-            } catch (e) {
-              console.error('Error parsing user data:', e);
-            }
-          }
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          setFormData(prev => ({
+            ...prev,
+            firstName: user.firstName || '',
+            surname: user.lastName || '',
+            email: user.email || '',
+            phoneNumber: user.phone || '',
+          }));
+        } catch (e) {
+          console.error('Error parsing user data:', e);
         }
+      }
+    }
       } else {
         setIsLoggedIn(false);
       }
@@ -257,7 +257,7 @@ export default function Checkout() {
           console.error('Error initializing Stripe:', err);
         }
       };
-      
+
       // Wait a bit for the container to be ready, then initialize
       if (stripeContainerRef.current) {
         initializeStripe();
@@ -266,7 +266,7 @@ export default function Checkout() {
         const checkContainer = setInterval(() => {
           if (stripeContainerRef.current) {
             clearInterval(checkContainer);
-            initializeStripe();
+      initializeStripe();
           }
         }, 100);
         
@@ -353,7 +353,7 @@ export default function Checkout() {
       
       if (!stripe || !elements || !paymentEl) {
         alert('Payment system is initializing. Please wait a moment and try again.');
-        return;
+      return;
       }
     }
 
@@ -573,34 +573,34 @@ export default function Checkout() {
                                 </div>
                               </div>
                               {!isLoggedIn && (
-                                <div className="block" data-block="2BD" data-inputs="1">
-                                  <div className="blocks" data-blocks="5">
-                                    <div className="block" data-block="2BDA">
-                                      <div className="input">
-                                        <label>Password</label>
-                                        <input 
+                              <div className="block" data-block="2BD" data-inputs="1">
+                                <div className="blocks" data-blocks="5">
+                                  <div className="block" data-block="2BDA">
+                                    <div className="input">
+                                      <label>Password</label>
+                                      <input 
                                           type={showPassword ? "text" : "password"} 
-                                          name="password"
-                                          value={formData.password}
-                                          onChange={handleInputChange}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleInputChange}
                                           required
-                                        />
-                                      </div>
+                                      />
                                     </div>
-                                    <div className="block" data-block="2BDB">
+                                  </div>
+                                  <div className="block" data-block="2BDB">
                                       <div className="toggle" onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
                                         <div className={`icons ${showPassword ? 'active' : ''}`}>
-                                          <div className="icon" data-icon="1">
-                                            <i className="icons8 icons8-eye"></i>
-                                          </div>
-                                          <div className="icon" data-icon="2">
-                                            <i className="icons8 icons8-eye-2"></i>
-                                          </div>
+                                        <div className="icon" data-icon="1">
+                                          <i className="icons8 icons8-eye"></i>
+                                        </div>
+                                        <div className="icon" data-icon="2">
+                                          <i className="icons8 icons8-eye-2"></i>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
+                              </div>
                               )}
                             </div>
                           </div>

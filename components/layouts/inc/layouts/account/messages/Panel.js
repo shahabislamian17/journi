@@ -1,4 +1,14 @@
+import { useEffect, useRef } from 'react';
+
 export default function Panel() {
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    if (overlayRef.current) {
+      overlayRef.current.className = "overlay";
+    }
+  }, []);
+
   return (
         <div className="container">
     
@@ -388,7 +398,7 @@ export default function Panel() {
     
                                 </div>
     
-                                <div className="overlay"></div>
+                                <div ref={overlayRef}></div>
     
                             </div>
     

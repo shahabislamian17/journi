@@ -30,7 +30,7 @@ export async function getServerSideProps(context) {
     // Don't redirect on error - let client-side handle it
   }
 
-  const templates = readTemplates(["global/announcements.html", "global/footer-base.html", "global/footer-section-three.html", "global/header.html", "inc/layouts/account/profile/breadcrumbs.html", "inc/layouts/account/profile/panel.html", "inc/layouts/global/bag.html", "inc/layouts/global/calendar.html", "inc/layouts/global/dates.html", "inc/layouts/global/notifications.html"]);
+  const templates = readTemplates(["global/announcements.html", "global/footer-base.html", "global/footer-section-three.html", "global/header.html", "global/menu.html", "inc/layouts/account/profile/breadcrumbs.html", "inc/layouts/account/profile/panel.html", "inc/layouts/global/bag.html", "inc/layouts/global/calendar.html", "inc/layouts/global/dates.html", "inc/layouts/global/notifications.html"]);
   return {
     props: {
       user,
@@ -41,7 +41,7 @@ export async function getServerSideProps(context) {
         includeCalendarCss: true,
         includeCalendarJs: true,
         showCalendarButton: true,
-        showAnnouncements: false,
+        showAnnouncements: true,
       },
       needsDates: false,
       inlineScripts: [],

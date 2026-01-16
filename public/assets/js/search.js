@@ -104,8 +104,55 @@ if (typeof Vue !== 'undefined') {
         mounted() {
             const _this = this;
             setTimeout(() => {
-                _this.checkInDate = _this.query.checkInDate ? new Date(_this.query.checkInDate) : '';
-                _this.checkOutDate = _this.query.checkOutDate ? new Date(_this.query.checkOutDate) : '';
+                // Read from parent query prop first, then try URL params
+                if (_this.query && _this.query.checkInDateObj) {
+                    _this.checkInDate = new Date(_this.query.checkInDateObj);
+                } else if (_this.query && _this.query.checkInDate) {
+                    // Try to parse formatted date string
+                    const dateStr = _this.query.checkInDate;
+                    const parts = dateStr.split(' ');
+                    if (parts.length >= 2) {
+                        const day = parseInt(parts[0]);
+                        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        const month = monthNames.indexOf(parts[1]);
+                        if (month >= 0 && day > 0) {
+                            const currentYear = new Date().getFullYear();
+                            _this.checkInDate = new Date(currentYear, month, day);
+                        }
+                    }
+                } else {
+                    // Try reading from URL params
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const checkInDateISO = urlParams.get('checkInDate');
+                    if (checkInDateISO) {
+                        _this.checkInDate = new Date(checkInDateISO);
+                    }
+                }
+                
+                if (_this.query && _this.query.checkOutDateObj) {
+                    _this.checkOutDate = new Date(_this.query.checkOutDateObj);
+                } else if (_this.query && _this.query.checkOutDate) {
+                    // Try to parse formatted date string
+                    const dateStr = _this.query.checkOutDate;
+                    const parts = dateStr.split(' ');
+                    if (parts.length >= 2) {
+                        const day = parseInt(parts[0]);
+                        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        const month = monthNames.indexOf(parts[1]);
+                        if (month >= 0 && day > 0) {
+                            const currentYear = new Date().getFullYear();
+                            _this.checkOutDate = new Date(currentYear, month, day);
+                        }
+                    }
+                } else {
+                    // Try reading from URL params
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const checkOutDateISO = urlParams.get('checkOutDate');
+                    if (checkOutDateISO) {
+                        _this.checkOutDate = new Date(checkOutDateISO);
+                    }
+                }
+                
                 if (_this.util.isMobile && _this.util.isMobile()) {
                     _this.minMonthIndex = _this.currentDate.getMonth();
                     _this.year = _this.currentDate.getFullYear();
@@ -121,6 +168,27 @@ if (typeof Vue !== 'undefined') {
                 });
             }
             window.Dates = this;
+        },
+        watch: {
+            // Watch for changes in parent query prop
+            'query.checkInDateObj': {
+                handler(newVal) {
+                    if (newVal && newVal instanceof Date) {
+                        this.checkInDate = new Date(newVal);
+                        this.generateDates();
+                    }
+                },
+                immediate: false
+            },
+            'query.checkOutDateObj': {
+                handler(newVal) {
+                    if (newVal && newVal instanceof Date) {
+                        this.checkOutDate = new Date(newVal);
+                        this.generateDates();
+                    }
+                },
+                immediate: false
+            }
         },
         computed: {
             util() {
@@ -206,32 +274,42 @@ if (typeof Vue !== 'undefined') {
                 return '';
             },
             selectDay(day) {
+                // Prevent selection of past dates
                 if (day.date.toDateString() != this.currentDate.toDateString() && day.date < this.currentDate) {
                     return;
                 }
-                if (this.source == 'check-out' && this.checkInDate && (day.date < (new Date(this.checkInDate)))) {
+                
+                // Three-click cycle: first click = start date, second click = end date, third click = reset
+                if (!this.checkInDate) {
+                    // First click: Set check-in date
                     this.checkInDate = day.date;
                     this.checkOutDate = '';
-                } else {
-                    if (!this.checkInDate) {
+                } else if (!this.checkOutDate) {
+                    // Second click: Set check-out date
+                    // If clicked date is before check-in, make it the new check-in
+                    if (day.date < this.checkInDate) {
                         this.checkInDate = day.date;
+                        this.checkOutDate = '';
                     } else {
-                        if (this.source == 'check-in' && (this.checkOutDate || (day.date < this.checkInDate))) {
-                            this.checkInDate = day.date;
-                            this.checkOutDate = '';
-                        } else {
-                            this.checkOutDate = day.date;
-                            this.hideModals();
-                        }
+                        // Set check-out date and close modal
+                        this.checkOutDate = day.date;
+                        this.hideModals();
                     }
+                } else {
+                    // Third click: Reset both dates and set new check-in
+                    this.checkInDate = day.date;
+                    this.checkOutDate = '';
                 }
+                
                 this.selectedDay = day.date;
                 this.generateDates();
+                
                 // Update parent query with formatted strings for display
-                const formattedCheckIn = this.parseDate(this.checkInDate).replace(/\s\d{4}$/, '');
-                const formattedCheckOut = this.parseDate(this.checkOutDate).replace(/\s\d{4}$/, '');
+                const formattedCheckIn = this.checkInDate ? this.parseDate(this.checkInDate).replace(/\s\d{4}$/, '') : '';
+                const formattedCheckOut = this.checkOutDate ? this.parseDate(this.checkOutDate).replace(/\s\d{4}$/, '') : '';
                 this.query.checkInDate = formattedCheckIn;
                 this.query.checkOutDate = formattedCheckOut;
+                
                 // Also store Date objects in parent for proper conversion
                 if (this.$parent && this.$parent.query) {
                     this.$parent.query.checkInDateObj = this.checkInDate ? new Date(this.checkInDate) : null;
@@ -299,6 +377,8 @@ var Search = new Vue({
             }
     },
     mounted() {
+            // Read URL parameters and populate form (booking.com style)
+            this.initializeFromURL();
             this.updateGuestsDisplay();
             // Prevent form submission
             const form = document.getElementById('search');
@@ -335,6 +415,75 @@ var Search = new Vue({
             }
         },
         methods: {
+            initializeFromURL() {
+                // Read URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                // Set destination
+                const destination = urlParams.get('destination');
+                if (destination) {
+                    const destinationInput = document.querySelector('input[name="destination"]');
+                    if (destinationInput) {
+                        destinationInput.value = destination;
+                    }
+                }
+                
+                // Set dates from URL
+                const checkInDateISO = urlParams.get('checkInDate');
+                const checkOutDateISO = urlParams.get('checkOutDate');
+                
+                if (checkInDateISO) {
+                    try {
+                        const checkInDate = new Date(checkInDateISO);
+                        if (!isNaN(checkInDate.getTime())) {
+                            this.query.checkInDateObj = checkInDate;
+                            // Format date for display (e.g., "15 Jan")
+                            const day = checkInDate.getDate();
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            const month = monthNames[checkInDate.getMonth()];
+                            this.query.checkInDate = `${day} ${month}`;
+                        }
+                    } catch (e) {
+                        console.warn('Could not parse checkInDate from URL:', checkInDateISO);
+                    }
+                }
+                
+                if (checkOutDateISO) {
+                    try {
+                        const checkOutDate = new Date(checkOutDateISO);
+                        if (!isNaN(checkOutDate.getTime())) {
+                            this.query.checkOutDateObj = checkOutDate;
+                            // Format date for display (e.g., "20 Jan")
+                            const day = checkOutDate.getDate();
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            const month = monthNames[checkOutDate.getMonth()];
+                            this.query.checkOutDate = `${day} ${month}`;
+                        }
+                    } catch (e) {
+                        console.warn('Could not parse checkOutDate from URL:', checkOutDateISO);
+                    }
+                }
+                
+                // Set guests
+                const adults = urlParams.get('adults');
+                const children = urlParams.get('children');
+                if (adults) {
+                    this.guests.adults = parseInt(adults) || 1;
+                }
+                if (children) {
+                    this.guests.children = parseInt(children) || 0;
+                }
+                
+                // Update guest inputs in modal if they exist
+                const adultsInput = document.querySelector('.modal[data-modal="guests"] input[data-type="adults"]');
+                const childrenInput = document.querySelector('.modal[data-modal="guests"] input[data-type="children"]');
+                if (adultsInput) {
+                    adultsInput.value = this.guests.adults;
+                }
+                if (childrenInput) {
+                    childrenInput.value = this.guests.children;
+                }
+            },
             updateGuestsDisplay() {
                 const total = this.guests.adults + this.guests.children;
                 const guestInput = document.querySelector('input[name="guests"]');
@@ -463,20 +612,42 @@ var Search = new Vue({
 
     // Make Search available globally
     window.Search = Search;
+    
+    // Also initialize from URL immediately if DOM is ready
+    if (typeof window !== 'undefined' && document.readyState === 'complete') {
+        setTimeout(() => {
+            if (window.Search && window.Search.initializeFromURL) {
+                window.Search.initializeFromURL();
+            }
+        }, 100);
+    } else if (typeof window !== 'undefined') {
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (window.Search && window.Search.initializeFromURL) {
+                    window.Search.initializeFromURL();
+                }
+            }, 100);
+        });
+    }
 }
 
 // jQuery Event Handlers
 if (typeof $ !== 'undefined') {
     $(function() {
+        // Use delegated events for better reliability
         // Open modals when input fields are clicked
-        $('.search .content .sections .section.two .blocks .block .form .blocks .block .fields .blocks .block .input').click(function() {
+        $(document).on('click', '.search .content .sections .section.two .blocks .block .form .blocks .block .fields .blocks .block .input', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             var $modals = $('.search .content .sections .section.two .blocks .block .form .blocks .block .modals');
+            if ($modals.length) {
             $modals.addClass('delay');
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
                     $modals.addClass('active');
                 });
             });
+            }
         });
 
         // Close modals
@@ -520,46 +691,58 @@ if (typeof $ !== 'undefined') {
             }, 750);
         });
 
-        // Destination input click
-        $('.search .content .sections .section.two .blocks .block .form .fields .blocks .block input[name="destination"]').click(function() {
+        // Destination input click - use delegated event
+        $(document).on('click', '.search .content .sections .section.two .blocks .block .form .fields .blocks .block input[name="destination"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             $('[data-modal]').removeClass('delay active');
             $('body').attr('data-modal', 'search');
-            var $modal = $('[data-modal="destination"]');
+            var $modal = $('.search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal[data-modal="destination"]');
+            if ($modal.length) {
             $modal.addClass('delay');
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
                     $modal.addClass('active');
                 });
             });
-        });
-
-        // Dates input click
-        $('.search .content .sections .section.two .blocks .block .form .fields .blocks .block input[name="dates"]').click(function() {
-            $('[data-modal]').removeClass('delay active');
-            $('body').attr('data-modal', 'search');
-            var $modal = $('[data-modal="dates"]');
-            $modal.addClass('delay');
-            requestAnimationFrame(function() {
-                requestAnimationFrame(function() {
-                    $modal.addClass('active');
-                });
-            });
-            if (window.Search) {
-                window.Search.showDates = true;
             }
         });
 
-        // Guests input click
-        $('.search .content .sections .section.two .blocks .block .form .fields .blocks .block input[name="guests"]').click(function() {
+        // Dates input click - use delegated event
+        $(document).on('click', '.search .content .sections .section.two .blocks .block .form .fields .blocks .block input[name="dates"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             $('[data-modal]').removeClass('delay active');
             $('body').attr('data-modal', 'search');
-            var $modal = $('[data-modal="guests"]');
+            var $modal = $('.search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal[data-modal="dates"]');
+            if ($modal.length) {
             $modal.addClass('delay');
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
                     $modal.addClass('active');
                 });
             });
+                if (window.Dates && window.Dates.showDates) {
+                    window.Dates.showDates('check-in');
+                }
+            }
+        });
+
+        // Guests input click - use delegated event
+        $(document).on('click', '.search .content .sections .section.two .blocks .block .form .fields .blocks .block input[name="guests"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $('[data-modal]').removeClass('delay active');
+            $('body').attr('data-modal', 'search');
+            var $modal = $('.search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal[data-modal="guests"]');
+            if ($modal.length) {
+            $modal.addClass('delay');
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    $modal.addClass('active');
+                });
+            });
+            }
         });
 
         // Destination selection

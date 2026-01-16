@@ -45,8 +45,18 @@ export default function Form() {
         const maxAge = formData.rememberMe ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60; // 30 days or 7 days
         document.cookie = `token=${response.token}; path=/; max-age=${maxAge}; SameSite=Lax`;
 
-        // Redirect to bookings page
-        router.push('/account/bookings');
+        // Check if there's a redirect destination stored (from auth-required links)
+        const redirectAfterLogin = typeof window !== 'undefined' ? sessionStorage.getItem('redirectAfterLogin') : null;
+        
+        if (redirectAfterLogin) {
+          // Clear the stored redirect
+          sessionStorage.removeItem('redirectAfterLogin');
+          // Redirect to the intended page
+          router.push(redirectAfterLogin);
+        } else {
+          // Default redirect to bookings page
+          router.push('/account/bookings');
+        }
         return; // Prevent any further execution
       }
     } catch (error) {

@@ -23,6 +23,7 @@ export async function getServerSideProps() {
     "global/footer-base.html", 
     "global/footer-section-three.html", 
     "global/header.html", 
+    "global/menu.html",
     "inc/layouts/checkout/confirmation/breadcrumbs.html", 
     "inc/layouts/global/bag.html", 
     "inc/layouts/global/concierge.html", 

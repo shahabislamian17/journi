@@ -28,6 +28,7 @@ export default function ExperienceReviews({ experience, reviews: initialReviews 
   const [reviews, setReviews] = useState(initialReviews);
   const [loading, setLoading] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [expandedReviews, setExpandedReviews] = useState(new Set());
 
   useEffect(() => {
     // Fetch reviews if experience ID is available and no initial reviews provided
@@ -109,6 +110,23 @@ export default function ExperienceReviews({ experience, reviews: initialReviews 
                         const initials = getInitials(firstName, lastName);
                         const avatar = user.avatar || '/assets/images/global/hosts/placeholder.jpg';
                         const reviewDate = formatReviewDate(review.createdAt);
+                        const comment = review.comment || 'No comment provided.';
+                        const isExpanded = expandedReviews.has(review.id);
+                        const shouldTruncate = comment.length > 125;
+                        const displayText = shouldTruncate && !isExpanded 
+                          ? comment.substring(0, 125) + '...'
+                          : comment;
+                        const buttonText = isExpanded ? 'Hide' : 'View';
+
+                        const toggleReview = () => {
+                          const newExpanded = new Set(expandedReviews);
+                          if (isExpanded) {
+                            newExpanded.delete(review.id);
+                          } else {
+                            newExpanded.add(review.id);
+                          }
+                          setExpandedReviews(newExpanded);
+                        };
 
                         return (
                           <div key={review.id} className="block" data-block="2A">
@@ -150,19 +168,21 @@ export default function ExperienceReviews({ experience, reviews: initialReviews 
                                 <div className="block" data-block="2AC">
                                   <div className="text">
                                     <p className="small two">
-                                      {review.comment || 'No comment provided.'}
+                                      {displayText}
                                     </p>
                                   </div>
                                 </div>
+                                {shouldTruncate && (
                                 <div className="block" data-block="2AD">
                                   <div className="buttons">
                                     <div className="button small" data-button="1A">
-                                      <div className="action">
-                                        <div className="text">View</div>
+                                        <div className="action" onClick={toggleReview} style={{ cursor: 'pointer' }}>
+                                          <div className="text">{buttonText}</div>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
+                                )}
                               </div>
                             </div>
                           </div>

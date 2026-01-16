@@ -1,4 +1,14 @@
+import { useEffect, useRef } from 'react';
+
 export default function Availability() {
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    if (overlayRef.current) {
+      overlayRef.current.className = "overlay";
+    }
+  }, []);
+
   return (
         <div className="container">
     
@@ -768,7 +778,7 @@ export default function Availability() {
     
         </div>
     
-        <div className="overlay"></div>
+        <div ref={overlayRef}></div>
     
     
   );

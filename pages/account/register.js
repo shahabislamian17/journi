@@ -7,7 +7,7 @@ import { escapeForTemplateLiteral } from "../../lib/utils";
 
 export async function getStaticProps() {
   const { readTemplates } = await import("../../lib/templates");
-  const templates = readTemplates(["global/announcements.html", "global/footer-base.html", "global/footer-section-three.html", "global/header.html", "inc/layouts/account/auth/register/breadcrumbs.html", "inc/layouts/global/dates.html", "inc/layouts/global/notifications.html"]);
+  const templates = readTemplates(["global/announcements.html", "global/footer-base.html", "global/footer-section-three.html", "global/header.html", "global/menu.html", "inc/layouts/account/auth/register/breadcrumbs.html", "inc/layouts/global/dates.html", "inc/layouts/global/notifications.html"]);
   return {
     props: {
       templates,

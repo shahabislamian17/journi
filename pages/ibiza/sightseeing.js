@@ -126,10 +126,6 @@ export default function Page({ experiences, totalCount, category, wishlistIds = 
         <Template html={templates["inc/layouts/global/notifications.html"]} />
       </section>
 
-      <section className="search">
-        <Template html={templates["inc/layouts/global/search.html"]} />
-      </section>
-
       <section className="banner">
         <Template html={templates["inc/layouts/category/banner.html"]} />
       </section>

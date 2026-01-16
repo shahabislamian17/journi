@@ -6,7 +6,7 @@ export async function getServerSideProps() {
   // Dynamic import to ensure this only runs on the server
   const { readTemplates } = await import("../lib/templates");
   
-  const templates = readTemplates(["global/header.html", "global/footer-base.html", "global/footer-section-three.html"]);
+  const templates = readTemplates(["global/header.html", "global/footer-base.html", "global/footer-section-three.html", "global/menu.html"]);
   return {
     props: {
       templates,

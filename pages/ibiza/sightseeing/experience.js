@@ -13,13 +13,23 @@ export async function getServerSideProps(context) {
   const { readTemplates } = await import("../../../lib/templates");
   
   const slug = context.query.slug;
+  const { checkInDate, checkOutDate, adults, children, destination } = context.query;
   let experience = null;
   let reviews = [];
+  
+  // Build search params for API
+  const searchParams = {};
+  if (checkInDate) searchParams.checkInDate = checkInDate;
+  if (checkOutDate) searchParams.checkOutDate = checkOutDate;
+  if (adults) searchParams.adults = adults;
+  if (children) searchParams.children = children;
+  if (destination) searchParams.destination = destination;
   
   try {
     if (slug) {
       try {
-        const experienceData = await experiencesAPI.getBySlug(slug);
+        // Pass search parameters to filter availability slots
+        const experienceData = await experiencesAPI.getBySlug(slug, searchParams);
         experience = experienceData?.experience || null;
         
         // Fetch reviews for this experience

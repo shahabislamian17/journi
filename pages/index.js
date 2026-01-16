@@ -7,7 +7,6 @@ import Stays from "../components/Stays";
 import Cars from "../components/Cars";
 import Reviews from "../components/Reviews";
 import HomeBanner from "../components/layouts/HomeBanner";
-import Search from "../components/layouts/Search";
 import Notifications from "../components/layouts/Notifications";
 import Bag from "../components/layouts/inc/layouts/global/Bag";
 import { experiencesAPI, categoriesAPI, wishlistAPI, staysAPI, carsAPI, reviewsAPI } from "../lib/api";
@@ -245,10 +244,6 @@ export default function Page({ experiences, totalCount, categories, stays = [], 
     <Layout key={pageKey} templates={templates} {...layoutOptions}>
       <section className="notifications">
         <Notifications />
-      </section>
-
-      <section className="search">
-        <Search />
       </section>
 
       <section className="banner">

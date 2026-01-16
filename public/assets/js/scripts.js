@@ -1113,11 +1113,22 @@
         const experienceId = $experience.attr( 'data-experience-id' );
         const experienceSlug = $experience.attr( 'data-experience-slug' );
         
+        // Preserve search parameters from current URL (booking.com style)
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchParams = new URLSearchParams();
+        
         // Try to get slug from data attribute first (most reliable)
         if ( experienceSlug ) {
             e.preventDefault();
             if ( typeof window !== 'undefined' ) {
-                window.location.href = `/ibiza/sightseeing/experience?slug=${encodeURIComponent( experienceSlug )}`;
+                searchParams.append('slug', experienceSlug);
+                // Preserve search filters if they exist
+                if (urlParams.get('destination')) searchParams.append('destination', urlParams.get('destination'));
+                if (urlParams.get('checkInDate')) searchParams.append('checkInDate', urlParams.get('checkInDate'));
+                if (urlParams.get('checkOutDate')) searchParams.append('checkOutDate', urlParams.get('checkOutDate'));
+                if (urlParams.get('adults')) searchParams.append('adults', urlParams.get('adults'));
+                if (urlParams.get('children')) searchParams.append('children', urlParams.get('children'));
+                window.location.href = `/ibiza/sightseeing/experience?${searchParams.toString()}`;
             }
             return;
         }
@@ -1129,7 +1140,14 @@
                 const slug = decodeURIComponent( match[1] );
                 e.preventDefault();
                 if ( typeof window !== 'undefined' ) {
-                    window.location.href = `/ibiza/sightseeing/experience?slug=${encodeURIComponent( slug )}`;
+                    searchParams.append('slug', slug);
+                    // Preserve search filters if they exist
+                    if (urlParams.get('destination')) searchParams.append('destination', urlParams.get('destination'));
+                    if (urlParams.get('checkInDate')) searchParams.append('checkInDate', urlParams.get('checkInDate'));
+                    if (urlParams.get('checkOutDate')) searchParams.append('checkOutDate', urlParams.get('checkOutDate'));
+                    if (urlParams.get('adults')) searchParams.append('adults', urlParams.get('adults'));
+                    if (urlParams.get('children')) searchParams.append('children', urlParams.get('children'));
+                    window.location.href = `/ibiza/sightseeing/experience?${searchParams.toString()}`;
                 }
                 return;
             }
@@ -1142,7 +1160,14 @@
             );
             if ( experience && experience.slug ) {
                 e.preventDefault();
-                window.location.href = `/ibiza/sightseeing/experience?slug=${encodeURIComponent( experience.slug )}`;
+                searchParams.append('slug', experience.slug);
+                // Preserve search filters if they exist
+                if (urlParams.get('destination')) searchParams.append('destination', urlParams.get('destination'));
+                if (urlParams.get('checkInDate')) searchParams.append('checkInDate', urlParams.get('checkInDate'));
+                if (urlParams.get('checkOutDate')) searchParams.append('checkOutDate', urlParams.get('checkOutDate'));
+                if (urlParams.get('adults')) searchParams.append('adults', urlParams.get('adults'));
+                if (urlParams.get('children')) searchParams.append('children', urlParams.get('children'));
+                window.location.href = `/ibiza/sightseeing/experience?${searchParams.toString()}`;
                 return;
             }
         }
@@ -1374,7 +1399,7 @@
         
         // Try to fetch wishlist if user is authenticated
         try {
-            const token = typeof localStorage !== 'undefined' ? localStorage.getItem( 'token' ) : null;
+            let token = typeof localStorage !== 'undefined' ? localStorage.getItem( 'token' ) : null;
             if ( !token ) {
                 // Check cookies
                 const cookies = document.cookie.split( ';' );
@@ -1461,8 +1486,20 @@
             // Use experience slug or ID for URL
             const slug = experience.slug || experience.id || experience.experienceId || 'experience';
             
-            // Generate URL using experience slug
-            const experienceUrl = `/ibiza/sightseeing/experience?slug=${encodeURIComponent(slug)}`;
+            // Preserve search parameters from current URL (booking.com style)
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchParams = new URLSearchParams();
+            searchParams.append('slug', slug);
+            
+            // Preserve search filters if they exist
+            if (urlParams.get('destination')) searchParams.append('destination', urlParams.get('destination'));
+            if (urlParams.get('checkInDate')) searchParams.append('checkInDate', urlParams.get('checkInDate'));
+            if (urlParams.get('checkOutDate')) searchParams.append('checkOutDate', urlParams.get('checkOutDate'));
+            if (urlParams.get('adults')) searchParams.append('adults', urlParams.get('adults'));
+            if (urlParams.get('children')) searchParams.append('children', urlParams.get('children'));
+            
+            // Generate URL using experience slug with search params
+            const experienceUrl = `/ibiza/sightseeing/experience?${searchParams.toString()}`;
             
             // Get experience ID - check multiple possible fields
             const experienceId = experience.id || experience.experienceId || experience._id || null;
@@ -1694,19 +1731,29 @@
     // MENU DRAWER FUNCTIONALITY
     // ============================================
     
-    // Menu toggle trigger
-    $(document).on('click', 'header .content .sections .section.three .blocks .block .icons .icon[data-icon="1"]', function() {
+    // Menu toggle trigger - use delegated event handler that works on all pages
+    $(document).on('click', 'header .content .sections .section.three .blocks .block .icons .icon[data-icon="1"], header .content .sections .section.three .blocks .block .icons .icon.one', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         var $icon = $(this);
         var $menu = $('.menu[data-menu="3"]');
+        if ($menu.length === 0) {
+            console.warn('Menu element not found');
+            return;
+        }
         var timers = $menu.data('timers') || [];
         while (timers.length) {
             clearTimeout(timers.pop());
         }
         $menu.off('transitionend.menuClose webkitTransitionEnd.menuClose');
         var action = $menu.attr('data-action') || '0';
-        if (action !== '0') {
+        if (action !== '0' && action !== '') {
             closeMenuOne();
         } else {
+            // Open menu
+            if (document.body) {
+                document.body.style.overflow = 'hidden';
+            }
             $icon.attr('data-action', '1');
             $menu.attr('data-action', '1');
             timers.push(setTimeout(function() {
@@ -1720,8 +1767,14 @@
     });
 
     // Close menu on close button or overlay click
-    $(document).on('click', '.menu .sections .section.one .blocks .block .close, .menu .overlay', function() {
+    $(document).on('click', '.menu .sections .section.one .blocks .block .close, .menu .overlay', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         closeMenuTwo();
+        // Also restore body overflow
+        if (document.body) {
+            document.body.style.overflow = '';
+        }
     });
 
     // Handle navigation link clicks
@@ -1761,6 +1814,10 @@
             timers.push(setTimeout(function() {
                 $menu.removeAttr('data-action');
                 $icon.removeAttr('data-action');
+                // Restore body overflow
+                if (document.body) {
+                    document.body.style.overflow = '';
+                }
             }, 200));
             $menu.data('timers', timers);
         };
@@ -1799,6 +1856,10 @@
             timers.push(setTimeout(function() {
                 $menu.removeAttr('data-action');
                 $icon.removeAttr('data-action');
+                // Restore body overflow
+                if (document.body) {
+                    document.body.style.overflow = '';
+                }
             }, 200));
             $menu.data('timers', timers);
         };
@@ -1861,5 +1922,41 @@
                 window.location.href = '/account/log-in';
             }
         }, 100 );
+    } );
+
+    // Handle authentication-required links in footer (and anywhere else)
+    $( document ).on( 'click', 'a.auth-required', function( e ) {
+        // Check if user is authenticated - check both localStorage and cookies
+        let token = typeof localStorage !== 'undefined' ? localStorage.getItem( 'token' ) : null;
+        
+        // If not in localStorage, check cookies
+        if ( !token && typeof document !== 'undefined' ) {
+            const cookies = document.cookie.split( ';' );
+            const tokenCookie = cookies.find( cookie => cookie.trim().startsWith( 'token=' ) );
+            if ( tokenCookie ) {
+                token = tokenCookie.split( '=' )[1];
+            }
+        }
+        
+        // If no token, redirect to login page
+        if ( !token || token.trim() === '' ) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Store the intended destination in sessionStorage for redirect after login
+            const href = $( this ).attr( 'href' );
+            if ( href && href !== '#' && href !== '/account/log-in' ) {
+                sessionStorage.setItem( 'redirectAfterLogin', href );
+            }
+            
+            // Redirect to login page
+            if ( typeof window !== 'undefined' && window.location ) {
+                window.location.href = '/account/log-in';
+            }
+            return false;
+        }
+        
+        // If token exists, allow normal navigation
+        return true;
     } );
 

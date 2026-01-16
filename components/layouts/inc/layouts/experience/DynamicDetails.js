@@ -551,15 +551,15 @@ export default function DynamicDetails({ experience, reviews = [] }) {
                                 <div className="blocks" data-blocks="5">
                                   <div className="block" data-block="1BAA">
                                     <div className="text">
-                                      <p className="small one">
+                                      <div className="one">
                                         <span>{formatDate(slot.date)}</span>
                                         {slot.startTime && slot.endTime && (
                                           <span>{formatTime(slot.startTime)} - {formatTime(slot.endTime)}</span>
                                         )}
-                                      </p>
-                                      <p className="small two">
+                                      </div>
+                                      <div className="two">
                                         <span>€{slot.price || experienceData.price} / person</span>
-                                      </p>
+                                      </div>
                                     </div>
                                   </div>
                                   <div className="block" data-block="1BAB">

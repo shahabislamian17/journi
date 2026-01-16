@@ -4,7 +4,7 @@ import Script from "next/script";
 
 export async function getStaticProps() {
   const { readTemplates } = await import("../../lib/templates");
-  const templates = readTemplates(["global/announcements.html", "global/footer-base.html", "global/footer-section-three.html", "global/header.html", "inc/layouts/account/global/navigation.html", "inc/layouts/account/messages/breadcrumbs.html", "inc/layouts/account/messages/panel.html", "inc/layouts/global/bag.html", "inc/layouts/global/calendar.html", "inc/layouts/global/dates.html", "inc/layouts/global/notifications.html"]);
+  const templates = readTemplates(["global/announcements.html", "global/footer-base.html", "global/footer-section-three.html", "global/header.html", "global/menu.html", "inc/layouts/account/global/navigation.html", "inc/layouts/account/messages/breadcrumbs.html", "inc/layouts/account/messages/panel.html", "inc/layouts/global/bag.html", "inc/layouts/global/calendar.html", "inc/layouts/global/dates.html", "inc/layouts/global/notifications.html"]);
   return {
     props: {
       templates,
@@ -14,7 +14,7 @@ export async function getStaticProps() {
         includeCalendarCss: true,
         includeCalendarJs: true,
         showCalendarButton: true,
-        showAnnouncements: false,
+        showAnnouncements: true,
       },
       needsDates: false,
       inlineScripts: [],

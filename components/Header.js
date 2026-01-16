@@ -80,9 +80,22 @@ export default function Header() {
       }
     };
 
+    // Setup menu icon styling (scripts.js handles the click event with delegated handler)
+    const setupMenuIcon = () => {
+      // Try multiple selectors to find the menu icon
+      const menuIcon = document.querySelector('header .content .sections .section.three .blocks .block .icons .icon[data-icon="1"]') ||
+                       document.querySelector('header .content .sections .section.three .blocks .block .icons .icon.one');
+      
+      if (menuIcon) {
+        menuIcon.style.cursor = 'pointer';
+        // scripts.js handles the click event via delegated handler, so we just style it
+      }
+    };
+
     // Initial update with a slight delay to ensure DOM is ready
     setTimeout(() => {
       updateBagIcon();
+      setupMenuIcon();
     }, 100);
 
     // Listen for bag updates
@@ -93,8 +106,22 @@ export default function Header() {
     if (typeof window !== 'undefined') {
       window.addEventListener('bagUpdated', handleBagUpdate);
       
+      // Re-setup menu icon on route changes
+      const handleRouteChange = () => {
+        setTimeout(() => {
+          setupMenuIcon();
+        }, 100);
+      };
+      
+      if (router.events) {
+        router.events.on('routeChangeComplete', handleRouteChange);
+      }
+      
       return () => {
         window.removeEventListener('bagUpdated', handleBagUpdate);
+        if (router.events) {
+          router.events.off('routeChangeComplete', handleRouteChange);
+        }
       };
     }
   }, [router]);

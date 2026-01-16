@@ -46,29 +46,49 @@ router.get('/', async (req, res) => {
       where.location = { contains: destination, mode: 'insensitive' };
     }
 
-    // Filter by date range and guest capacity (via availability slots)
+    // Filter by date range and guest capacity (via availability slots) - booking.com style
     const totalGuests = (parseInt(adults) || 1) + (parseInt(children) || 0);
+    
+    // Build availability filter - experiences must have at least one available slot
+    // that matches the date range and guest requirements
     if (checkInDate || checkOutDate || totalGuests > 1) {
+      const availabilityFilter = {
+        available: true
+      };
+      
+      // Date range filter: if both dates provided, find slots within range
+      // If only one date, use that as a constraint
+      if (checkInDate && checkOutDate) {
+        const checkIn = new Date(checkInDate);
+        const checkOut = new Date(checkOutDate);
+        // Set time to start/end of day for proper comparison
+        checkIn.setHours(0, 0, 0, 0);
+        checkOut.setHours(23, 59, 59, 999);
+        
+        availabilityFilter.date = {
+          gte: checkIn,
+          lte: checkOut
+        };
+      } else if (checkInDate) {
+        const checkIn = new Date(checkInDate);
+        checkIn.setHours(0, 0, 0, 0);
+        availabilityFilter.date = { gte: checkIn };
+      } else if (checkOutDate) {
+        const checkOut = new Date(checkOutDate);
+        checkOut.setHours(23, 59, 59, 999);
+        availabilityFilter.date = { lte: checkOut };
+      }
+      
+      // Guest capacity filter: slot must accommodate total guests
+      if (totalGuests > 1) {
+        availabilityFilter.OR = [
+          { maxGuests: { gte: totalGuests } },
+          { maxGuests: null } // null means unlimited capacity
+        ];
+      }
+      
       where.availabilitySlots = {
-        some: {
-          available: true,
-          ...(checkInDate && checkOutDate ? {
-            date: {
-              gte: new Date(checkInDate),
-              lte: new Date(checkOutDate)
-            }
-          } : checkInDate ? {
-            date: { gte: new Date(checkInDate) }
-          } : checkOutDate ? {
-            date: { lte: new Date(checkOutDate) }
-          } : {}),
-          ...(totalGuests > 1 ? {
-            OR: [
-              { maxGuests: { gte: totalGuests } },
-              { maxGuests: null } // If maxGuests is null, assume unlimited
-            ]
-          } : {})
-        }
+        some: availabilityFilter
       };
     }
 
@@ -224,9 +244,53 @@ router.get('/', async (req, res) => {
 // Get experience by slug
 router.get('/:slug', async (req, res) => {
   const { slug } = req.params;
-  console.log('[Experience Slug Route] Entry', { slug, method: req.method });
+  const { checkInDate, checkOutDate, adults, children } = req.query;
+  console.log('[Experience Slug Route] Entry', { slug, method: req.method, query: req.query });
   
   try {
+    // Build availability filter based on search parameters (booking.com style)
+    const totalGuests = (parseInt(adults) || 1) + (parseInt(children) || 0);
+    const availabilityWhere = {
+      available: true,
+      date: {
+        gte: new Date() // Only future dates
+      }
+    };
+    
+    // Filter by date range if provided
+    if (checkInDate && checkOutDate) {
+      const checkIn = new Date(checkInDate);
+      const checkOut = new Date(checkOutDate);
+      checkIn.setHours(0, 0, 0, 0);
+      checkOut.setHours(23, 59, 59, 999);
+      
+      availabilityWhere.date = {
+        gte: checkIn,
+        lte: checkOut
+      };
+    } else if (checkInDate) {
+      const checkIn = new Date(checkInDate);
+      checkIn.setHours(0, 0, 0, 0);
+      availabilityWhere.date = {
+        ...availabilityWhere.date,
+        gte: checkIn
+      };
+    } else if (checkOutDate) {
+      const checkOut = new Date(checkOutDate);
+      checkOut.setHours(23, 59, 59, 999);
+      availabilityWhere.date = {
+        ...availabilityWhere.date,
+        lte: checkOut
+      };
+    }
+    
+    // Filter by guest capacity
+    if (totalGuests > 1) {
+      availabilityWhere.OR = [
+        { maxGuests: { gte: totalGuests } },
+        { maxGuests: null } // null means unlimited
+      ];
+    }
 
     // First try to find by exact slug match
     let experience = await prisma.experience.findUnique({
@@ -246,12 +310,7 @@ router.get('/:slug', async (req, res) => {
           ]
         },
         availabilitySlots: {
-          where: {
-            available: true,
-            date: {
-              gte: new Date() // Only future dates
-            }
-          },
+          where: availabilityWhere,
           orderBy: {
             date: 'asc'
           }
