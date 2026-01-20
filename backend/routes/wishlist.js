@@ -68,10 +68,22 @@ router.get('/', authenticateToken, async (req, res) => {
 // Add to wishlist
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { experienceId } = req.body;
+    let { experienceId } = req.body;
 
     if (!experienceId) {
       return res.status(400).json({ error: 'Experience ID is required' });
+    }
+
+    // Ensure experienceId is always a string (database expects String/UUID)
+    experienceId = String(experienceId).trim();
+
+    // Validate that the experience exists
+    const experience = await prisma.experience.findUnique({
+      where: { id: experienceId }
+    });
+
+    if (!experience) {
+      return res.status(404).json({ error: 'Experience not found' });
     }
 
     // Check if already in wishlist
@@ -108,14 +120,24 @@ router.post('/', authenticateToken, async (req, res) => {
     res.status(201).json({ wishlistItem });
   } catch (error) {
     console.error('Add to wishlist error:', error);
-    res.status(500).json({ error: 'Failed to add to wishlist' });
+    // Provide more specific error messages
+    if (error.code === 'P2002') {
+      return res.status(400).json({ error: 'Already in wishlist' });
+    }
+    if (error.code === 'P2003') {
+      return res.status(404).json({ error: 'Experience not found' });
+    }
+    res.status(500).json({ error: 'Failed to add to wishlist', details: error.message });
   }
 });
 
 // Remove from wishlist
 router.delete('/:experienceId', authenticateToken, async (req, res) => {
   try {
-    const { experienceId } = req.params;
+    let { experienceId } = req.params;
+
+    // Ensure experienceId is always a string (database expects String/UUID)
+    experienceId = String(experienceId).trim();
 
     const wishlistItem = await prisma.wishlistItem.findUnique({
       where: {
@@ -142,7 +164,7 @@ router.delete('/:experienceId', authenticateToken, async (req, res) => {
     res.json({ message: 'Removed from wishlist' });
   } catch (error) {
     console.error('Remove from wishlist error:', error);
-    res.status(500).json({ error: 'Failed to remove from wishlist' });
+    res.status(500).json({ error: 'Failed to remove from wishlist', details: error.message });
   }
 });
 

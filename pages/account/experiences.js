@@ -2,39 +2,42 @@ import Layout from "../../components/Layout";
 import Template from "../../components/Template";
 import Script from "next/script";
 import Navigation from "../../components/layouts/inc/layouts/account/global/Navigation";
-import { bookingsAPI, authAPI } from "../../lib/api";
+import { experiencesAPI, authAPI } from "../../lib/api";
 import { escapeForTemplateLiteral } from "../../lib/utils";
-import DynamicPanel from "../../components/layouts/inc/layouts/account/bookings/DynamicPanel";
+import DynamicPanel from "../../components/layouts/inc/layouts/account/experiences/DynamicPanel";
 import Bag from "../../components/layouts/inc/layouts/global/Bag";
 
 export async function getServerSideProps(context) {
   const { readTemplates } = await import("../../lib/templates");
   
-  // Note: Authentication should be handled client-side or via middleware
-  // For now, we'll fetch bookings if token is available in cookies/headers
-  let bookings = [];
+  let experiences = [];
   let user = null;
   
   try {
-    // In production, get token from cookies/headers
+    // Get token from cookies or headers
     const token = context.req?.cookies?.token || context.req?.headers?.authorization?.replace('Bearer ', '');
     
     if (token) {
-      // Get user for Navigation
+      // Get user to check role
       try {
         const userData = await authAPI.getMe({ token });
         user = userData?.user || null;
-      } catch (userError) {
-        console.error('Error fetching user:', userError);
+        
+        // Only fetch experiences if user is a HOST
+        if (user?.role === 'HOST') {
+          // Fetch experiences (we'll filter by hostId client-side or need to add backend filter)
+          const experiencesData = await experiencesAPI.getAll({ limit: 100 });
+          // Filter experiences by hostId if available (or we need backend endpoint)
+          experiences = (experiencesData?.experiences?.data || []).filter(exp => 
+            exp.hostId === user.id || exp.hostId === null // For now, show all or filter by host
+          );
+        }
+      } catch (apiError) {
+        console.error('Error fetching user/experiences from API:', apiError);
       }
-      
-      // Set token in API request
-      const bookingsData = await bookingsAPI.getAll({ token });
-      bookings = bookingsData.bookings || [];
     }
   } catch (error) {
-    console.error('Error fetching bookings:', error);
-    // Continue without bookings if not authenticated - let client-side handle it
+    console.error('Error in getServerSideProps:', error);
   }
 
   const templates = readTemplates([
@@ -43,8 +46,8 @@ export async function getServerSideProps(context) {
     "global/footer-section-three.html",
     "global/header.html",
     "global/menu.html",
-    "inc/layouts/account/bookings/breadcrumbs.html",
-    "inc/layouts/account/bookings/panel.html",
+    "inc/layouts/account/experiences/breadcrumbs.html",
+    "inc/layouts/account/experiences/panel.html",
     "inc/layouts/account/global/navigation.html",
     "inc/layouts/global/bag.html",
     "inc/layouts/global/calendar.html",
@@ -54,11 +57,11 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
-      bookings,
+      experiences,
       user,
       templates,
       layoutOptions: {
-        title: "Bookings | Account | Journi",
+        title: "Experiences | Account | Journi",
         pageClass: "account",
         includeCalendarCss: true,
         includeCalendarJs: true,
@@ -71,8 +74,9 @@ export async function getServerSideProps(context) {
   };
 }
 
-export default function Page({ bookings, user, templates, layoutOptions, needsDates, inlineScripts }) {
-  const bookingsJson = JSON.stringify(bookings);
+export default function Page({ experiences, user, templates, layoutOptions, needsDates, inlineScripts }) {
+  const experiencesJson = JSON.stringify(experiences);
+  const userJson = JSON.stringify(user);
 
   return (
     <Layout templates={templates} {...layoutOptions}>
@@ -81,15 +85,17 @@ export default function Page({ bookings, user, templates, layoutOptions, needsDa
       </section>
 
       <section className="breadcrumbs">
-        <Template html={templates["inc/layouts/account/bookings/breadcrumbs.html"]} />
+        <Template html={templates["inc/layouts/account/experiences/breadcrumbs.html"]} />
       </section>
 
-      <section className="bookings">
+      <section className="experiences">
         <section className="navigation">
           <Navigation user={user} />
         </section>
 
-        <DynamicPanel initialBookings={bookings} />
+        <section className="panel">
+          <DynamicPanel initialExperiences={experiences} user={user} />
+        </section>
       </section>
 
       <section className="bag">
@@ -102,10 +108,11 @@ export default function Page({ bookings, user, templates, layoutOptions, needsDa
 
       {/* Inject API data for client-side use */}
       <Script id="api-data" strategy="afterInteractive" dangerouslySetInnerHTML={{
-        __html: `window.__API_BOOKINGS__ = ${bookingsJson};`
+        __html: `window.__API_EXPERIENCES__ = ${experiencesJson}; window.__API_USER__ = ${userJson};`
       }} />
       
       <Script id="dates-template" strategy="afterInteractive">{`const DatesTemplate = \`${escapeForTemplateLiteral(templates["inc/layouts/global/dates.html"] || "")}\`;`}</Script>
     </Layout>
   );
 }
+

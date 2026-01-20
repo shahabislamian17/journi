@@ -1,5 +1,6 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
+const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -241,6 +242,75 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get experience by ID (for editing)
+router.get('/by-id/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const experience = await prisma.experience.findUnique({
+      where: { id },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        },
+        images: {
+          orderBy: [
+            { isPrimary: 'desc' },
+            { order: 'asc' }
+          ]
+        },
+        availabilitySlots: {
+          orderBy: {
+            date: 'asc'
+          }
+        },
+        _count: {
+          select: {
+            reviews: true,
+            bookings: true
+          }
+        }
+      }
+    });
+
+    if (!experience) {
+      return res.status(404).json({ error: 'Experience not found' });
+    }
+
+    // Verify user is the host
+    if (experience.hostId !== req.user.id) {
+      return res.status(403).json({ error: 'Only the experience owner can view this' });
+    }
+
+    // Parse JSON fields
+    let languages = [];
+    let includedItems = [];
+    try {
+      if (experience.languages) languages = JSON.parse(experience.languages);
+      if (experience.includedItems) includedItems = JSON.parse(experience.includedItems);
+    } catch (e) {
+      console.error('Error parsing JSON fields:', e);
+    }
+
+    res.json({
+      experience: {
+        ...experience,
+        languages,
+        includedItems,
+        rating: experience.rating || 0,
+        reviewCount: experience._count.reviews
+      }
+    });
+  } catch (error) {
+    console.error('Get experience by ID error:', error);
+    res.status(500).json({ error: 'Failed to fetch experience' });
+  }
+});
+
 // Get experience by slug
 router.get('/:slug', async (req, res) => {
   const { slug } = req.params;
@@ -250,10 +320,13 @@ router.get('/:slug', async (req, res) => {
   try {
     // Build availability filter based on search parameters (booking.com style)
     const totalGuests = (parseInt(adults) || 1) + (parseInt(children) || 0);
+    // Set time to start of today to include today's slots
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const availabilityWhere = {
       available: true,
       date: {
-        gte: new Date() // Only future dates
+        gte: today // Include today and future dates
       }
     };
     
@@ -356,12 +429,7 @@ router.get('/:slug', async (req, res) => {
             ]
           },
           availabilitySlots: {
-            where: {
-              available: true,
-              date: {
-                gte: new Date()
-              }
-            },
+            where: availabilityWhere,
             orderBy: {
               date: 'asc'
             }
@@ -484,8 +552,23 @@ router.get('/:slug', async (req, res) => {
       experienceId: experience.id,
       slug: experience.slug,
       hasHost: !!host,
-      rating: rating
+      rating: rating,
+      availabilitySlotsCount: experience.availabilitySlots?.length || 0
     });
+    
+    // Log availability slots for debugging
+    if (experience.availabilitySlots && experience.availabilitySlots.length > 0) {
+      console.log('[Experience Slug Route] Availability slots:', experience.availabilitySlots.map(slot => ({
+        id: slot.id,
+        date: slot.date,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        price: slot.price,
+        available: slot.available
+      })));
+    } else {
+      console.log('[Experience Slug Route] No availability slots found for experience');
+    }
     
     res.json({
       experience: {
@@ -523,7 +606,6 @@ router.get('/:slug', async (req, res) => {
 });
 
 // Create experience (host only)
-const { authenticateToken } = require('../middleware/auth');
 router.post('/', authenticateToken, async (req, res) => {
   try {
     // Check if user is a host
@@ -606,7 +688,13 @@ router.post('/', authenticateToken, async (req, res) => {
       },
       include: {
         category: true,
-        availabilitySlots: true
+        availabilitySlots: true,
+        images: {
+          orderBy: [
+            { isPrimary: 'desc' },
+            { order: 'asc' }
+          ]
+        }
       }
     });
 
@@ -624,6 +712,16 @@ router.post('/', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Log incoming request for debugging
+    console.log('[Update Experience] Request received:', {
+      experienceId: id,
+      bodyKeys: Object.keys(req.body),
+      hasAvailabilitySlots: 'availabilitySlots' in req.body,
+      availabilitySlotsType: typeof req.body.availabilitySlots,
+      availabilitySlotsValue: req.body.availabilitySlots,
+      availabilitySlotsLength: Array.isArray(req.body.availabilitySlots) ? req.body.availabilitySlots.length : 'not an array'
+    });
 
     // Check if experience exists and user is the host
     const experience = await prisma.experience.findUnique({
@@ -688,17 +786,29 @@ router.put('/:id', authenticateToken, async (req, res) => {
       }
     });
 
-    // Update availability slots if provided
-    if (availabilitySlots) {
-      // Delete existing slots
-      await prisma.availabilitySlot.deleteMany({
-        where: { experienceId: id }
+    // Update availability slots - always process if the field is present in request
+    // This allows us to delete all slots by sending an empty array
+    // Check both req.body directly and the destructured variable
+    const slotsToProcess = availabilitySlots !== undefined ? availabilitySlots : req.body.availabilitySlots;
+    
+    if (slotsToProcess !== undefined) {
+      console.log('[Update Experience] Processing availability slots:', {
+        experienceId: id,
+        slotsCount: Array.isArray(slotsToProcess) ? slotsToProcess.length : 'not an array',
+        slots: slotsToProcess,
+        type: typeof slotsToProcess
       });
 
-      // Create new slots
-      if (availabilitySlots.length > 0) {
-        await prisma.availabilitySlot.createMany({
-          data: availabilitySlots.map(slot => ({
+      // Delete existing slots first
+      const deletedCount = await prisma.availabilitySlot.deleteMany({
+        where: { experienceId: id }
+      });
+      console.log('[Update Experience] Deleted existing slots:', deletedCount.count);
+
+      // Create new slots only if array is not empty
+      if (Array.isArray(slotsToProcess) && slotsToProcess.length > 0) {
+        const created = await prisma.availabilitySlot.createMany({
+          data: slotsToProcess.map(slot => ({
             experienceId: id,
             date: new Date(slot.date),
             startTime: slot.startTime || null,
@@ -708,14 +818,26 @@ router.put('/:id', authenticateToken, async (req, res) => {
             available: slot.available !== false
           }))
         });
+        console.log('[Update Experience] Created new slots:', created.count);
+      } else {
+        console.log('[Update Experience] No new slots to create (empty array or not an array)');
       }
+    } else {
+      console.log('[Update Experience] availabilitySlots field not provided, skipping slot update');
+      console.log('[Update Experience] Request body keys:', Object.keys(req.body));
     }
 
     const updatedWithSlots = await prisma.experience.findUnique({
       where: { id },
       include: {
         category: true,
-        availabilitySlots: true
+        availabilitySlots: true,
+        images: {
+          orderBy: [
+            { isPrimary: 'desc' },
+            { order: 'asc' }
+          ]
+        }
       }
     });
 
@@ -723,6 +845,95 @@ router.put('/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Update experience error:', error);
     res.status(500).json({ error: 'Failed to update experience' });
+  }
+});
+
+// Add image to experience
+router.post('/:id/images', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { original, large, medium, small, thumbnail, isPrimary, order } = req.body;
+
+    if (!original) {
+      return res.status(400).json({ error: 'Image URL is required' });
+    }
+
+    // Verify experience exists and user is the owner
+    const experience = await prisma.experience.findUnique({
+      where: { id }
+    });
+
+    if (!experience) {
+      return res.status(404).json({ error: 'Experience not found' });
+    }
+
+    if (experience.hostId !== req.user.id) {
+      return res.status(403).json({ error: 'Only the experience owner can add images' });
+    }
+
+    // If this is set as primary, unset other primary images
+    if (isPrimary) {
+      await prisma.experienceImage.updateMany({
+        where: { experienceId: id, isPrimary: true },
+        data: { isPrimary: false }
+      });
+    }
+
+    const image = await prisma.experienceImage.create({
+      data: {
+        experienceId: id,
+        original,
+        large: large || null,
+        medium: medium || null,
+        small: small || null,
+        thumbnail: thumbnail || null,
+        isPrimary: isPrimary || false,
+        order: order || 0
+      }
+    });
+
+    res.status(201).json({ image });
+  } catch (error) {
+    console.error('Add image error:', error);
+    res.status(500).json({ error: 'Failed to add image' });
+  }
+});
+
+// Delete image from experience
+router.delete('/:id/images/:imageId', authenticateToken, async (req, res) => {
+  try {
+    const { id, imageId } = req.params;
+
+    // Verify experience exists and user is the owner
+    const experience = await prisma.experience.findUnique({
+      where: { id }
+    });
+
+    if (!experience) {
+      return res.status(404).json({ error: 'Experience not found' });
+    }
+
+    if (experience.hostId !== req.user.id) {
+      return res.status(403).json({ error: 'Only the experience owner can delete images' });
+    }
+
+    // Verify image belongs to experience
+    const image = await prisma.experienceImage.findUnique({
+      where: { id: imageId }
+    });
+
+    if (!image || image.experienceId !== id) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+
+    await prisma.experienceImage.delete({
+      where: { id: imageId }
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete image error:', error);
+    res.status(500).json({ error: 'Failed to delete image' });
   }
 });
 

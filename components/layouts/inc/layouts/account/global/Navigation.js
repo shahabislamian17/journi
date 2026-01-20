@@ -1,9 +1,29 @@
 'use client';
 
 import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { authAPI } from '../../../../../../lib/api';
 
-export default function Navigation() {
+export default function Navigation({ user: initialUser = null }) {
   const router = useRouter();
+  const [user, setUser] = useState(initialUser);
+  
+  // Fetch user if not provided and token exists
+  useEffect(() => {
+    if (!user && typeof window !== 'undefined') {
+      const token = localStorage.getItem('token') || 
+                    document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+      if (token) {
+        authAPI.getMe({ token }).then(data => {
+          if (data?.user) setUser(data.user);
+        }).catch(() => {
+          // Ignore errors - user will be null
+        });
+      }
+    }
+  }, [user]);
+  
+  const isHost = user?.role === 'HOST';
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -48,6 +68,12 @@ export default function Navigation() {
                                     <a className="action" href="/account/bookings">Bookings</a>
     
                                 </li>
+    
+                                {isHost && (
+                                    <li data-link="experiences">
+                                        <a className="action" href="/account/experiences">Experiences</a>
+                                    </li>
+                                )}
     
                                 <li data-link="profile">
     

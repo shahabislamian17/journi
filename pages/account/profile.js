@@ -80,7 +80,7 @@ export default function Page({ user, templates, layoutOptions, needsDates, inlin
 
         <section className="navigation">
 
-            <Navigation />
+            <Navigation user={user} />
 
         </section>
 

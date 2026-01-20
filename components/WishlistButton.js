@@ -206,30 +206,20 @@ export default function WishlistButton({ experienceId, initialInWishlist = false
     setIsLoading(true);
 
     try {
-      // Validate experienceId - can be a number or UUID string
-      // Check if it's a valid number
-      const expIdNum = typeof experienceId === 'string' ? parseInt(experienceId, 10) : experienceId;
-      const isNumeric = !isNaN(expIdNum) && expIdNum > 0;
+      // Always convert to string - database expects String/UUID
+      const validExpId = String(experienceId).trim();
       
-      // Check if it's a valid UUID format (basic check: has dashes and is 36 chars)
-      const isUUID = typeof experienceId === 'string' && 
-                    experienceId.length === 36 && 
-                    experienceId.includes('-');
-      
-      console.log('WishlistButton: Adding to wishlist', { experienceId, expIdNum, isNumeric, isUUID, type: typeof experienceId });
-      
-      if (!isNumeric && !isUUID) {
-        console.error('Invalid experience ID:', { experienceId, expIdNum, isNumeric, isUUID });
+      if (!validExpId || validExpId === '') {
+        console.error('Invalid experience ID:', { experienceId, validExpId });
         throw new Error('Invalid experience ID format');
       }
-
-      // Use the ID as-is (number or UUID string)
-      const validExpId = isNumeric ? expIdNum : experienceId;
+      
+      console.log('WishlistButton: Toggling wishlist', { experienceId, validExpId, type: typeof experienceId, inWishlist });
 
       if (inWishlist) {
         // Remove from wishlist (toggle off)
         console.log('Removing from wishlist:', validExpId);
-        await wishlistAPI.remove(validExpId);
+        await wishlistAPI.remove(validExpId, { token });
         setInWishlist(false);
         
         // Dispatch event to sync other WishlistButton components
@@ -246,7 +236,7 @@ export default function WishlistButton({ experienceId, initialInWishlist = false
       } else {
         // Add to wishlist (toggle on)
         console.log('Adding to wishlist:', validExpId);
-        await wishlistAPI.add(validExpId);
+        await wishlistAPI.add(validExpId, { token });
         setInWishlist(true);
         
         // Dispatch event to sync other WishlistButton components
@@ -286,12 +276,12 @@ export default function WishlistButton({ experienceId, initialInWishlist = false
   }
 
   return (
-    <div className={`icons ${inWishlist ? 'active' : ''}`}>
+    <div className={`icons ${inWishlist ? 'active' : ''} ${isLoading ? 'loading' : ''}`}>
       <div 
         className="icon one"
         data-icon="1"
         onClick={handleWishlistToggle}
-        style={{ cursor: isLoading ? 'wait' : 'pointer', opacity: isLoading ? 0.6 : 1 }}
+        style={{ cursor: isLoading ? 'wait' : 'pointer' }}
       >
         <i className="icons8 icons8-heart"></i>
       </div>
@@ -299,7 +289,7 @@ export default function WishlistButton({ experienceId, initialInWishlist = false
         className="icon two"
         data-icon="2"
         onClick={handleWishlistToggle}
-        style={{ cursor: isLoading ? 'wait' : 'pointer', opacity: isLoading ? 0.6 : 1 }}
+        style={{ cursor: isLoading ? 'wait' : 'pointer' }}
       >
         <i className="icons8 icons8-heart-2"></i>
       </div>

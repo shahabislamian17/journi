@@ -40,8 +40,39 @@ export default function DynamicDetails({ experience, reviews = [] }) {
       languages = [];
     }
   }
-  const includedItems = experienceData.includedItems || [];
+  
+  // Parse includedItems if it's a JSON string, otherwise use as array
+  let includedItems = [];
+  if (experienceData.includedItems) {
+    try {
+      includedItems = typeof experienceData.includedItems === 'string' 
+        ? JSON.parse(experienceData.includedItems) 
+        : experienceData.includedItems;
+      // Ensure it's an array
+      if (!Array.isArray(includedItems)) {
+        includedItems = [];
+      }
+    } catch (e) {
+      includedItems = [];
+    }
+  }
+  
   const availabilitySlots = experienceData.availabilitySlots || [];
+  
+  // Debug logging for availability slots
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    console.log('[DynamicDetails] Availability slots:', {
+      count: availabilitySlots.length,
+      slots: availabilitySlots.map(slot => ({
+        id: slot.id,
+        date: slot.date,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        price: slot.price,
+        available: slot.available
+      }))
+    });
+  }
   
   // Parse itinerary if it's a JSON string, otherwise use as text
   let itineraryItems = [];

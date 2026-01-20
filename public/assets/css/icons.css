@@ -288,3 +288,7 @@
 .icons8-plus:before {
     content: '\f141';
 }
+
+.icons8-close:before {
+    content: '\f142';
+}

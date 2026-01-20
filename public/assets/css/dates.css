@@ -6,6 +6,12 @@
     width: 100%;
 }
 
+@media (max-width: 900px) {
+    .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal[data-modal='dates'] .blocks .block .blocks .block .buttons {
+        display: none;
+    }
+}
+
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .buttons .button.circle.one {
     float: left;
 }
@@ -25,28 +31,35 @@
 }
 
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .dates .blocks {
-    display: flex;
+    display: grid;
+    gap: 0 22px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     float: left;
     justify-content: center;
     width: 100%;
 }
 
+@media (max-width: 900px) {
+    .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .dates .blocks {
+        gap: 22px 0;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+}
+
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .dates .blocks .block {
     float: left;
     left: auto;
-    margin: 0 22px 0 0;
     position: relative;
     top: auto;
     transform: none;
     -webkit-transform: none;
-    width: calc(50% - 14px);
+    width: 100%;
     z-index: 10;
 }
 
 @media screen and (max-width: 900px) {
     .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .dates .blocks .block {
         margin: 0 0 25px;
-        width: 100%;
     }
 }
 
@@ -74,8 +87,9 @@
 
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .dates .blocks .block .month .name .text {
     font-size: 0.825em;
+    font-variation-settings: 'opsz' 25;
     font-weight: 400;
-    letter-spacing: -0.0075em;
+    letter-spacing: 0.0005em;
     line-height: 40px;
     margin: 0 40px;
     position: relative;
@@ -84,11 +98,20 @@
     z-index: 10;
 }
 
-@media screen and (max-width: 1025px) {
+@media (max-width: 1250px) {
     .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .dates .blocks .block .month .name .text {
-        font-size: 0.875em;
+        font-size: 0.8875em;
+        font-weight: 425;
         margin: 0;
         width: 100%;
+    }
+}
+
+@media {
+    .mobile .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .dates .blocks .block .month .name .text {
+        font-size: 0.9375em;
+        font-variation-settings: 'opsz' 26;
+        font-weight: 465;
     }
 }
 
@@ -119,14 +142,15 @@
 
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .dates .blocks .block .month .days ul.one li span {
     font-size: 0.7625em;
+    font-variation-settings: 'opsz' 24;
+    font-weight: 400;
     line-height: 1em;
 }
 
-@media screen and (max-width: 1025px) {
+@media (max-width: 1250px) {
     .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .dates .blocks .block .month .days ul.one li span {
-        font-size: 13px;
-        -moz-text-stroke-width: 0.05px;
-        -webkit-text-stroke-width: 0.05px;
+        font-size: 0.8125em;
+        font-weight: 440;
     }
 }
 
@@ -198,9 +222,10 @@
 
 .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .dates .blocks .block .month .days ul.two li span {
     font-size: 0.7625em;
+    font-variation-settings: 'opsz' 24;
     font-weight: 400;
     left: 50%;
-    letter-spacing: -0.005em;
+    letter-spacing: 0.0005em;
     line-height: 1em;
     position: absolute;
     top: 50%;
@@ -210,11 +235,17 @@
     z-index: 10;
 }
 
-@media screen and (max-width: 1025px) {
+@media (max-width: 1250px) {
     .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .dates .blocks .block .month .days ul.two li span {
-        font-size: 13px;
-        -moz-text-stroke-width: 0.05px;
-        -webkit-text-stroke-width: 0.05px;
+        font-size: 0.8125em;
+    }
+}
+
+@media {
+    .mobile .search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal .blocks .block .dates .blocks .block .month .days ul.two li span {
+        font-size: 0.8625em;
+        font-weight: 440;
+        letter-spacing: 0;
     }
 }
 
