@@ -13,6 +13,7 @@
     "db:studio": "prisma studio",
     "db:seed": "node prisma/seed.js",
     "seed": "node prisma/seed.js",
+    "seed:live": "node seed-live.js",
     "seed:stays": "node prisma/seed-stays.js",
     "seed:cars": "node prisma/seed-cars.js",
     "seed:reviews": "node prisma/seed-reviews.js"

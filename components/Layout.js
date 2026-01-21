@@ -145,27 +145,57 @@ export default function Layout({
       <Script src="/assets/js/search.js" strategy="afterInteractive" />
       {/* scripts.js is loaded dynamically after Swiper loads (see onLoad callback above) */}
       
-      {/* Style to make __next div invisible in layout (display: contents makes children appear as direct children of body) */}
+      {/* Style to make __next element invisible in layout (display: contents makes children appear as direct children of body) */}
       <style jsx global>{`
         #__next {
           display: contents !important;
         }
+        /* Also target section if it's already been converted */
+        body > section:first-of-type {
+          display: contents !important;
+        }
       `}</style>
       
-      {/* Script to remove id from __next div after React finishes rendering */}
+      {/* Script to change __next div to section element after React finishes rendering */}
       <Script
-        id="remove-next-id"
+        id="change-next-to-section"
         strategy="lazyOnload"
         dangerouslySetInnerHTML={{
           __html: `
             (function() {
-              function removeNextId() {
+              function changeNextToSection() {
                 try {
                   // Wait for React to fully hydrate and all rendering to complete
                   setTimeout(function() {
-                    const nextDiv = document.getElementById('__next');
-                    if (nextDiv) {
-                      nextDiv.removeAttribute('id');
+                    const nextElement = document.getElementById('__next');
+                    if (nextElement && nextElement.tagName.toLowerCase() === 'div') {
+                      // Create a new section element
+                      const section = document.createElement('section');
+                      
+                      // Copy all attributes from div to section (except id="__next")
+                      Array.from(nextElement.attributes).forEach(function(attr) {
+                        if (attr.name !== 'id' || attr.value !== '__next') {
+                          section.setAttribute(attr.name, attr.value);
+                        }
+                      });
+                      
+                      // Copy all classes
+                      if (nextElement.className) {
+                        section.className = nextElement.className;
+                      }
+                      
+                      // Copy inline styles
+                      if (nextElement.style.cssText) {
+                        section.style.cssText = nextElement.style.cssText;
+                      }
+                      
+                      // Move all children from div to section
+                      while (nextElement.firstChild) {
+                        section.appendChild(nextElement.firstChild);
+                      }
+                      
+                      // Replace div with section
+                      nextElement.parentNode.replaceChild(section, nextElement);
                     }
                   }, 1500);
                 } catch (e) {
@@ -175,25 +205,33 @@ export default function Layout({
               
               // Run after everything is loaded and React has hydrated
               if (document.readyState === 'complete') {
-                removeNextId();
+                changeNextToSection();
               } else {
                 window.addEventListener('load', function() {
-                  setTimeout(removeNextId, 1000);
+                  setTimeout(changeNextToSection, 1000);
                 });
               }
               
-              // Also remove on route changes (Next.js client-side navigation)
-              if (typeof window !== 'undefined' && window.next) {
+              // Also handle route changes (Next.js client-side navigation)
+              if (typeof window !== 'undefined') {
+                // Listen for Next.js route change events
+                if (window.next && window.next.router) {
+                  window.next.router.events.on('routeChangeComplete', function() {
+                    setTimeout(changeNextToSection, 100);
+                  });
+                }
+                
+                // Also intercept history changes as fallback
                 var originalPushState = history.pushState;
                 history.pushState = function() {
                   originalPushState.apply(history, arguments);
-                  setTimeout(removeNextId, 500);
+                  setTimeout(changeNextToSection, 500);
                 };
                 
                 var originalReplaceState = history.replaceState;
                 history.replaceState = function() {
                   originalReplaceState.apply(history, arguments);
-                  setTimeout(removeNextId, 500);
+                  setTimeout(changeNextToSection, 500);
                 };
               }
             })();

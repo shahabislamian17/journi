@@ -122,21 +122,23 @@ export default function PasswordPanel() {
           <div className="section two">
             <div className="blocks" data-blocks="1">
               <div className="block" data-block="1">
-                <form className="form" data-form="change-password" onSubmit={handleSubmit}>
+                <form className="form" data-form="register" onSubmit={handleSubmit}>
                   <div className="fields">
                     <div className="fieldset">
                       <div className="blocks" data-blocks="2">
-                        <div className="block" data-block="1B" data-inputs="1">
+                        <div className="block" data-block="1A" data-inputs="1" data-password="1">
                           <div className="blocks" data-blocks="3">
                             <div className="block" data-block="1BA">
-                              <div className="input">
-                                <label>Current Password</label>
+                              <div className="input" data-input="">
+                                <label>
+                                  <span>Current Password</span>
+                                </label>
                                 <input 
                                   type={showCurrentPassword ? "text" : "password"} 
                                   name="currentPassword" 
                                   value={formData.currentPassword}
                                   onChange={handleChange}
-                                  required 
+                                  required="" 
                                 />
                               </div>
                             </div>
@@ -159,17 +161,19 @@ export default function PasswordPanel() {
                           </div>
                         </div>
 
-                        <div className="block" data-block="1B" data-inputs="1">
+                        <div className="block" data-block="1B" data-inputs="1" data-password="1">
                           <div className="blocks" data-blocks="4">
                             <div className="block" data-block="1BA">
-                              <div className="input">
-                                <label>New Password</label>
+                              <div className="input" data-input="">
+                                <label>
+                                  <span>New Password</span>
+                                </label>
                                 <input 
                                   type={showNewPassword ? "text" : "password"} 
                                   name="newPassword" 
                                   value={formData.newPassword}
                                   onChange={handleChange}
-                                  required 
+                                  required="" 
                                 />
                               </div>
                             </div>

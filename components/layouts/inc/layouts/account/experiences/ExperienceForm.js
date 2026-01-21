@@ -9,6 +9,48 @@ export default function ExperienceForm({ initialExperience = null, categories = 
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('Overview');
   const formInitializedRef = useRef(false);
+  
+  // Default activity and availability slot for new experiences
+  const defaultActivity = { title: '', duration: '', description: '' };
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const defaultDate = tomorrow.toISOString().split('T')[0];
+  const defaultAvailabilitySlot = {
+    date: defaultDate,
+    startTime: '10:00',
+    endTime: '14:00',
+    price: 100,
+    maxGuests: 10,
+    available: true
+  };
+  
+  // Initialize with defaults if not in edit mode
+  const getInitialActivities = () => {
+    if (initialExperience?.itinerary) {
+      const parsed = typeof initialExperience.itinerary === 'string' 
+        ? JSON.parse(initialExperience.itinerary) 
+        : initialExperience.itinerary;
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : [];
+    }
+    // New experience: start with one default activity
+    return [defaultActivity];
+  };
+  
+  const getInitialAvailabilitySlots = () => {
+    if (initialExperience?.availabilitySlots && initialExperience.availabilitySlots.length > 0) {
+      return initialExperience.availabilitySlots.map(slot => ({
+        date: slot.date ? new Date(slot.date).toISOString().split('T')[0] : '',
+        startTime: slot.startTime || '',
+        endTime: slot.endTime || '',
+        price: slot.price || '',
+        maxGuests: slot.maxGuests || 10,
+        available: slot.available !== false
+      }));
+    }
+    // New experience: start with one default availability slot
+    return [defaultAvailabilitySlot];
+  };
+  
   const [formData, setFormData] = useState({
     title: initialExperience?.title || '',
     destination: initialExperience?.location || '',
@@ -24,17 +66,10 @@ export default function ExperienceForm({ initialExperience = null, categories = 
     accessibility: initialExperience?.accessibility || '',
     'meeting-location': initialExperience?.meetingLocation || '',
     'meeting-description': initialExperience?.meetingDescription || '',
-    activities: initialExperience?.itinerary ? (typeof initialExperience.itinerary === 'string' ? JSON.parse(initialExperience.itinerary) : initialExperience.itinerary) || [] : [],
+    activities: getInitialActivities(),
     'departure-location': initialExperience?.departureLocation || '',
     'departure-description': initialExperience?.departureDescription || '',
-    availabilitySlots: initialExperience?.availabilitySlots ? initialExperience.availabilitySlots.map(slot => ({
-      date: slot.date ? new Date(slot.date).toISOString().split('T')[0] : '',
-      startTime: slot.startTime || '',
-      endTime: slot.endTime || '',
-      price: slot.price || '',
-      maxGuests: slot.maxGuests || 10,
-      available: slot.available !== false
-    })) : [],
+    availabilitySlots: getInitialAvailabilitySlots(),
   });
   const [images, setImages] = useState(initialExperience?.images ? initialExperience.images.map(img => ({ url: img.original, id: img.id })) : []);
   const [uploadingImages, setUploadingImages] = useState([]);
@@ -55,6 +90,29 @@ export default function ExperienceForm({ initialExperience = null, categories = 
     // Only initialize once to prevent overwriting user changes
     if (initialExperience && !formInitializedRef.current) {
       formInitializedRef.current = true;
+      
+      // Get activities: use existing or default to one empty activity
+      const existingActivities = initialExperience.itinerary 
+        ? (typeof initialExperience.itinerary === 'string' 
+            ? JSON.parse(initialExperience.itinerary) 
+            : initialExperience.itinerary)
+        : null;
+      const activitiesToUse = (Array.isArray(existingActivities) && existingActivities.length > 0) 
+        ? existingActivities 
+        : [defaultActivity];
+      
+      // Get availability slots: use existing or default to one slot
+      const existingSlots = initialExperience.availabilitySlots && initialExperience.availabilitySlots.length > 0
+        ? initialExperience.availabilitySlots.map(slot => ({
+            date: slot.date ? new Date(slot.date).toISOString().split('T')[0] : '',
+            startTime: slot.startTime || '',
+            endTime: slot.endTime || '',
+            price: slot.price || '',
+            maxGuests: slot.maxGuests || 10,
+            available: slot.available !== false
+          }))
+        : [defaultAvailabilitySlot];
+      
       setFormData({
         title: initialExperience.title || '',
         destination: initialExperience.location || '',
@@ -70,17 +128,10 @@ export default function ExperienceForm({ initialExperience = null, categories = 
         accessibility: initialExperience.accessibility || '',
         'meeting-location': initialExperience.meetingLocation || '',
         'meeting-description': initialExperience.meetingDescription || '',
-        activities: initialExperience.itinerary ? (typeof initialExperience.itinerary === 'string' ? JSON.parse(initialExperience.itinerary) : initialExperience.itinerary) || [] : [],
+        activities: activitiesToUse,
         'departure-location': initialExperience.departureLocation || '',
         'departure-description': initialExperience.departureDescription || '',
-        availabilitySlots: initialExperience.availabilitySlots ? initialExperience.availabilitySlots.map(slot => ({
-          date: slot.date ? new Date(slot.date).toISOString().split('T')[0] : '',
-          startTime: slot.startTime || '',
-          endTime: slot.endTime || '',
-          price: slot.price || '',
-          maxGuests: slot.maxGuests || 10,
-          available: slot.available !== false
-        })) : [],
+        availabilitySlots: existingSlots,
       });
 
       // Initialize images from initialExperience
@@ -93,6 +144,29 @@ export default function ExperienceForm({ initialExperience = null, categories = 
     } else if (typeof window !== 'undefined' && window.__API_EXPERIENCE__) {
       // Initialize form from window data if available (fallback)
       const exp = window.__API_EXPERIENCE__;
+      
+      // Get activities: use existing or default to one empty activity
+      const existingActivities = exp.itinerary 
+        ? (typeof exp.itinerary === 'string' 
+            ? JSON.parse(exp.itinerary) 
+            : exp.itinerary)
+        : null;
+      const activitiesToUse = (Array.isArray(existingActivities) && existingActivities.length > 0) 
+        ? existingActivities 
+        : [defaultActivity];
+      
+      // Get availability slots: use existing or default to one slot
+      const existingSlots = exp.availabilitySlots && exp.availabilitySlots.length > 0
+        ? exp.availabilitySlots.map(slot => ({
+            date: slot.date ? new Date(slot.date).toISOString().split('T')[0] : '',
+            startTime: slot.startTime || '',
+            endTime: slot.endTime || '',
+            price: slot.price || '',
+            maxGuests: slot.maxGuests || 10,
+            available: slot.available !== false
+          }))
+        : [defaultAvailabilitySlot];
+      
       setFormData({
         title: exp.title || '',
         destination: exp.location || '',
@@ -108,17 +182,10 @@ export default function ExperienceForm({ initialExperience = null, categories = 
         accessibility: exp.accessibility || '',
         'meeting-location': exp.meetingLocation || '',
         'meeting-description': exp.meetingDescription || '',
-        activities: exp.itinerary ? (typeof exp.itinerary === 'string' ? JSON.parse(exp.itinerary) : exp.itinerary) || [] : [],
+        activities: activitiesToUse,
         'departure-location': exp.departureLocation || '',
         'departure-description': exp.departureDescription || '',
-        availabilitySlots: exp.availabilitySlots ? exp.availabilitySlots.map(slot => ({
-          date: slot.date ? new Date(slot.date).toISOString().split('T')[0] : '',
-          startTime: slot.startTime || '',
-          endTime: slot.endTime || '',
-          price: slot.price || '',
-          maxGuests: slot.maxGuests || 10,
-          available: slot.available !== false
-        })) : [],
+        availabilitySlots: existingSlots,
       });
 
       // Initialize images from window data
@@ -963,7 +1030,7 @@ export default function ExperienceForm({ initialExperience = null, categories = 
                                       <span>Destination</span>
                                     </label>
                                     <select name="destination" value={formData.destination} onChange={handleChange}>
-                                      <option value="">Select Destination</option>
+                                      <option value=""></option>
                                       <option value="Ibiza">Ibiza</option>
                                       <option value="Madrid">Madrid</option>
                                       <option value="Barcelona">Barcelona</option>
@@ -977,7 +1044,7 @@ export default function ExperienceForm({ initialExperience = null, categories = 
                                       <span>Category</span>
                                     </label>
                                     <select name="categoryId" value={formData.categoryId} onChange={handleChange}>
-                                      <option value="">Select Category</option>
+                                      <option value=""></option>
                                       {categories.map(cat => (
                                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                                       ))}
@@ -1368,7 +1435,7 @@ export default function ExperienceForm({ initialExperience = null, categories = 
                                             value={activity.duration || ''}
                                             onChange={(e) => updateActivity(index, 'duration', e.target.value)}
                                           >
-                                            <option value="">Select Duration</option>
+                                            <option value=""></option>
                                             <option value="15 Minutes">15 Minutes</option>
                                             <option value="30 Minutes">30 Minutes</option>
                                             <option value="45 Minutes">45 Minutes</option>

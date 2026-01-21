@@ -48,6 +48,66 @@ export default function Template({ html = "" }) {
     return createElement(tagName, { ...attributes, dangerouslySetInnerHTML: { __html: innerHtml } });
   }
   
+  // Check if content starts with a div tag
+  const isDiv = trimmedHtml.startsWith('<div');
+  
+  if (isDiv) {
+    // Extract div tag and attributes
+    const divMatch = trimmedHtml.match(/<div([^>]*)>/);
+    const attributes = {};
+    
+    if (divMatch && divMatch[1]) {
+      const attrString = divMatch[1];
+      // Extract class attribute
+      const classMatch = attrString.match(/class=["']([^"']+)["']/);
+      if (classMatch) {
+        attributes.className = classMatch[1];
+      }
+      // Extract id attribute
+      const idMatch = attrString.match(/id=["']([^"']+)["']/);
+      if (idMatch) {
+        attributes.id = idMatch[1];
+      }
+      // Extract data attributes
+      const dataMatches = attrString.matchAll(/data-(\w+(?:-\w+)*)=["']([^"']+)["']/g);
+      for (const match of dataMatches) {
+        attributes[`data-${match[1]}`] = match[2];
+      }
+    }
+    
+    // Find the matching closing </div> tag for the outermost div
+    let depth = 0;
+    let innerStart = -1;
+    let innerEnd = -1;
+    
+    for (let i = 0; i < trimmedHtml.length; i++) {
+      const remaining = trimmedHtml.substring(i);
+      if (remaining.startsWith('<div')) {
+        depth++;
+        if (innerStart === -1) {
+          // Find the end of the opening tag
+          const tagEnd = trimmedHtml.indexOf('>', i);
+          if (tagEnd !== -1) {
+            innerStart = tagEnd + 1;
+          }
+        }
+      } else if (remaining.startsWith('</div>')) {
+        depth--;
+        if (depth === 0 && innerStart !== -1) {
+          innerEnd = i;
+          break;
+        }
+      }
+    }
+    
+    const innerHtml = (innerStart !== -1 && innerEnd !== -1) 
+      ? trimmedHtml.substring(innerStart, innerEnd) 
+      : '';
+    
+    // Render the div directly without any wrapper
+    return createElement('div', { ...attributes, dangerouslySetInnerHTML: { __html: innerHtml } });
+  }
+  
   // For other content, use a regular div wrapper
   return <div dangerouslySetInnerHTML={{ __html: html }} />;
 }

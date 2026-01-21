@@ -158,217 +158,225 @@ async function main() {
     }
   });
 
+  // ---------------------------------------------------------------------------
   // Create experiences
-  const experience1 = await prisma.experience.upsert({
-    where: { slug: 'discover-formentera-catamaran' },
-    update: {
-      includedItems: JSON.stringify([
-        {
-          type: 'Food',
-          description: 'Fresh Mediterranean dishes and seasonal snacks for a delightful, relaxed dining experience.'
-        },
-        {
-          type: 'Drink',
-          description: 'Fine wines, cocktails and soft drinks to keep you refreshed throughout the journey.'
-        },
-        {
-          type: 'Equipment',
-          description: 'Snorkeling gear, paddleboards, safety equipment, sun loungers and comfortable seating onboard.'
-        }
-      ]),
-      requirements: 'Guests aged 16 and over can attend this experience.',
-      accessibility: 'Message your host for accessibility details.',
-      cancellationPolicy: 'This experience is non-refundable.'
-    },
-    create: {
+  // ---------------------------------------------------------------------------
+
+  // Clear existing experience-related data so we fully replace with client's set
+  await prisma.booking.deleteMany({});
+  await prisma.review.deleteMany({});
+  await prisma.availabilitySlot.deleteMany({});
+  await prisma.experienceImage.deleteMany({});
+  await prisma.experience.deleteMany({});
+
+  // Base config from client + extra fields we need for the schema
+  const experiencesConfig = [
+    {
+      slug: 'discover-formentera-on-a-beautiful-catamaran',
       title: 'Discover Formentera on a beautiful catamaran',
-      slug: 'discover-formentera-catamaran',
-      description: 'Experience the stunning beauty of Formentera on a luxury catamaran. Enjoy crystal clear waters, beautiful beaches, and breathtaking views.',
-      categoryId: sightseeing.id,
+      destination: 'Formentera',
       duration: '4 Hours',
-      hours: 4,
+      rating: 4.7,
       price: 125,
-      rating: 5.0,
-      featured: true,
-      isNew: false,
-      location: 'Ibiza Port',
-      itinerary: JSON.stringify([
-        {
-          location: 'Ibiza Port',
-          duration: '30 minutes',
-          description: 'Departure from Pg. de la Mar, embarking on a beautiful journey to Formentera.'
-        },
-        {
-          location: 'Formentera Coast',
-          duration: '2 hours',
-          description: 'Sailing along the pristine Formentera coastline, stopping at secluded beaches for swimming and snorkeling.'
-        },
-        {
-          location: 'Beach Stop',
-          duration: '1 hour',
-          description: 'Enjoy a refreshing swim, sunbathe on the deck, or try paddleboarding in the crystal-clear waters.'
-        },
-        {
-          location: 'Pg. de la Mar',
-          duration: '30 minutes',
-          description: 'Return sail to Pg. de la Mar, capturing last memories of Formentera\'s beauty before a smooth, heartfelt farewell departure.'
-        }
-      ]),
-      includedItems: JSON.stringify([
-        {
-          type: 'Food',
-          description: 'Fresh Mediterranean dishes and seasonal snacks for a delightful, relaxed dining experience.'
-        },
-        {
-          type: 'Drink',
-          description: 'Fine wines, cocktails and soft drinks to keep you refreshed throughout the journey.'
-        },
-        {
-          type: 'Equipment',
-          description: 'Snorkeling gear, paddleboards, safety equipment, sun loungers and comfortable seating onboard.'
-        }
-      ]),
-      hostId: hostUser.id,
-      hostName: 'Captain John',
-      hostImage: '/assets/images/global/hosts/host-1.jpg',
-      requirements: 'Guests aged 16 and over can attend this experience.',
-      accessibility: 'Message your host for accessibility details.',
-      cancellationPolicy: 'This experience is non-refundable.'
-    }
-  });
-
-  const experience2 = await prisma.experience.upsert({
-    where: { slug: 'sail-ibiza-sunset' },
-    update: {
-      includedItems: JSON.stringify([
-        {
-          type: 'Food',
-          description: 'Delicious aperitifs and canapés prepared with local ingredients.'
-        },
-        {
-          type: 'Drink',
-          description: 'Premium champagne and selected wines, plus soft drinks and water.'
-        }
-      ]),
-      requirements: 'Guests aged 18 and over can attend this experience.',
-      accessibility: 'Message your host for accessibility details.',
-      cancellationPolicy: 'This experience is non-refundable.'
+      image: '/assets/images/experiences/experience-1a.jpg',
+      labels: ['Featured'],
+      categoryId: sightseeing.id,
+      host: hostUser
     },
-    create: {
+    {
+      slug: 'sail-around-ibiza-at-sunset-with-champagne-and-aperitifs',
       title: 'Sail around Ibiza at sunset with champagne and aperitifs',
-      slug: 'sail-ibiza-sunset',
-      description: 'Enjoy a romantic sunset cruise around Ibiza with champagne and delicious aperitifs. Perfect for couples and special occasions.',
-      categoryId: sightseeing.id,
+      destination: 'Ibiza',
       duration: '2.5 Hours',
-      hours: 2.5,
+      rating: 4.5,
       price: 90,
-      rating: 5.0,
-      featured: true,
-      isNew: true,
-      location: 'Ibiza Marina',
-      includedItems: JSON.stringify([
-        {
-          type: 'Food',
-          description: 'Delicious aperitifs and canapés prepared with local ingredients.'
-        },
-        {
-          type: 'Drink',
-          description: 'Premium champagne and selected wines, plus soft drinks and water.'
-        }
-      ]),
-      hostId: host2.id,
-      hostName: 'Captain Maria',
-      hostImage: '/assets/images/global/hosts/host-1.jpg',
-      requirements: 'Guests aged 16 and over can attend this experience.',
-      accessibility: 'Message your host for accessibility details.',
-      cancellationPolicy: 'This experience is non-refundable.'
-    }
-  });
-
-  const experience3 = await prisma.experience.upsert({
-    where: { slug: 'ibiza-old-town-tour' },
-    update: {
-      includedItems: JSON.stringify([
-        {
-          type: 'Equipment',
-          description: 'Audio guide headset and map for self-guided exploration.'
-        }
-      ])
-    },
-    create: {
-      title: 'Ibiza Old Town Walking Tour',
-      slug: 'ibiza-old-town-tour',
-      description: 'Explore the historic Dalt Vila, a UNESCO World Heritage site, with a knowledgeable local guide.',
+      image: '/assets/images/experiences/experience-2a.jpg',
+      labels: ['Featured'],
       categoryId: sightseeing.id,
+      host: host2
+    },
+    {
+      slug: 'enjoy-the-pristine-waters-around-ibiza-and-formentera',
+      title: 'Enjoy the pristine waters around Ibiza and Formentera',
+      destination: 'Ibiza & Formentera',
+      duration: '8 Hours',
+      rating: 4.7,
+      price: 100,
+      image: '/assets/images/experiences/experience-3a.jpg',
+      labels: ['Featured', 'New'],
+      categoryId: sightseeing.id,
+      host: hostUser
+    },
+    {
+      slug: 'discover-the-other-side-of-ibiza',
+      title: 'Discover the other side of Ibiza',
+      destination: 'Ibiza',
       duration: '3 Hours',
-      hours: 3,
-      price: 45,
+      rating: 4.9,
+      price: 125,
+      image: '/assets/images/experiences/experience-4a.jpg',
+      labels: ['Featured'],
+      categoryId: sightseeing.id,
+      host: host3
+    },
+    {
+      slug: 'full-running-tour-of-ibiza-town',
+      title: 'Full running tour of Ibiza Town',
+      destination: 'Ibiza',
+      duration: '2 Hours',
       rating: 5.0,
-      featured: false,
-      isNew: false,
-      location: 'Dalt Vila',
-      includedItems: JSON.stringify([
-        {
-          type: 'Equipment',
-          description: 'Audio guide headset and map for self-guided exploration.'
-        }
-      ]),
-      hostId: host3.id,
-      hostName: 'Local Guide Team',
-      hostImage: '/assets/images/global/hosts/host-1.jpg',
-      requirements: 'All ages welcome. Children must be accompanied by an adult.',
-      accessibility: 'This tour is wheelchair accessible. Please contact us for specific arrangements.',
-      cancellationPolicy: 'Free cancellation up to 24 hours before the experience starts.'
+      price: 50,
+      image: '/assets/images/experiences/experience-5a.jpg',
+      labels: ['Featured'],
+      categoryId: sightseeing.id,
+      host: host3
+    },
+    {
+      slug: 'sail-from-ibiza-to-formentera-on-a-fantastic-boat',
+      title: 'Sail from Ibiza to Formentera on a fantastic boat',
+      destination: 'Ibiza & Formentera',
+      duration: '6 Hours',
+      rating: 4.5,
+      price: 175,
+      image: '/assets/images/experiences/experience-6a.jpg',
+      labels: ['Featured', 'New'],
+      categoryId: sightseeing.id,
+      host: hostUser
+    },
+    {
+      slug: 'paddle-along-the-wildest-part-of-ibiza',
+      title: 'Paddle along the wildest part of Ibiza',
+      destination: 'Ibiza',
+      duration: '3 Hours',
+      rating: 4.9,
+      price: 50,
+      image: '/assets/images/experiences/experience-7a.jpg',
+      labels: ['Featured'],
+      categoryId: adventure.id,
+      host: host3
+    },
+    {
+      slug: 'explore-formentera-by-sailboat',
+      title: 'Explore Formentera by sailboat',
+      destination: 'Formentera',
+      duration: '6 Hours',
+      rating: 4.9,
+      price: 150,
+      image: '/assets/images/experiences/experience-8a.jpg',
+      labels: ['Featured'],
+      categoryId: sightseeing.id,
+      host: host2
+    },
+    {
+      slug: 'discover-one-of-ibizas-most-secluded-beaches',
+      title: 'Discover one of Ibiza\'s most secluded beaches',
+      destination: 'Ibiza',
+      duration: '4 Hours',
+      rating: 4.8,
+      price: 50,
+      image: '/assets/images/experiences/experience-9a.jpg',
+      labels: ['Featured'],
+      categoryId: sightseeing.id,
+      host: hostUser
+    },
+    {
+      slug: 'a-tour-of-ibiza-old-town',
+      title: 'A tour of Ibiza old town',
+      destination: 'Ibiza',
+      duration: '3 Hours',
+      rating: 5.0,
+      price: 50,
+      image: '/assets/images/experiences/experience-10a.jpg',
+      labels: ['Featured'],
+      categoryId: sightseeing.id,
+      host: host3
     }
-  });
+  ];
 
-  // Create experience images
-  // Delete existing images first to avoid duplicates
-  await prisma.experienceImage.deleteMany({
-    where: {
-      experienceId: { in: [experience1.id, experience2.id, experience3.id] }
-    }
-  });
-
-  // Function to create images for an experience
-  const createExperienceImages = async (experienceId, imagePaths) => {
-    const images = imagePaths.map((imagePath, index) => ({
-      experienceId: experienceId,
-      original: imagePath,
-      large: imagePath,
-      medium: imagePath,
-      small: imagePath,
-      thumbnail: imagePath,
-      isPrimary: index === 0, // First image is primary
-      order: index
-    }));
-    await prisma.experienceImage.createMany({ data: images });
+  // Helper to parse hours from "4 Hours" etc.
+  const parseHoursFromDuration = (duration) => {
+    if (!duration) return null;
+    const match = duration.match(/([\d.]+)/);
+    return match ? parseFloat(match[1]) : null;
   };
 
-  // Experience 1: experience-1a.jpg, experience-1b.jpg, experience-1a.jpg, experience-1b.jpg
-  await createExperienceImages(experience1.id, [
-    '/assets/images/experiences/experience-1a.jpg',
-    '/assets/images/experiences/experience-1b.jpg',
-    '/assets/images/experiences/experience-1a.jpg',
-    '/assets/images/experiences/experience-1b.jpg'
+  // Generic included items / itinerary used for all (good enough for testing)
+  const defaultIncludedItems = JSON.stringify([
+    {
+      type: 'Guide',
+      description: 'Local expert guide to host and support you throughout the experience.'
+    },
+    {
+      type: 'Equipment',
+      description: 'All necessary safety and activity equipment is provided.'
+    }
   ]);
 
-  // Experience 2: experience-2a.jpg (repeated 4 times)
-  await createExperienceImages(experience2.id, [
-    '/assets/images/experiences/experience-2a.jpg',
-    '/assets/images/experiences/experience-2a.jpg',
-    '/assets/images/experiences/experience-2a.jpg',
-    '/assets/images/experiences/experience-2a.jpg'
+  const defaultItinerary = JSON.stringify([
+    {
+      location: 'Meeting point',
+      duration: '30 minutes',
+      description: 'Meet your host, get a short briefing and prepare for the experience.'
+    },
+    {
+      location: 'Main activity',
+      duration: '2-4 hours',
+      description: 'Enjoy the core part of the experience with your group and host.'
+    },
+    {
+      location: 'Return',
+      duration: '30 minutes',
+      description: 'Return to the starting point and say goodbye to your host.'
+    }
   ]);
 
-  // Experience 3: experience-3a.jpg (repeated 4 times)
-  await createExperienceImages(experience3.id, [
-    '/assets/images/experiences/experience-3a.jpg',
-    '/assets/images/experiences/experience-3a.jpg',
-    '/assets/images/experiences/experience-3a.jpg',
-    '/assets/images/experiences/experience-3a.jpg'
-  ]);
+  const createdExperiences = [];
 
+  for (const config of experiencesConfig) {
+    const hours = parseHoursFromDuration(config.duration);
+    const isFeatured = config.labels?.includes('Featured');
+    const isNew = config.labels?.includes('New');
+
+    const experience = await prisma.experience.create({
+      data: {
+        title: config.title,
+        slug: config.slug,
+        description: `${config.title} in ${config.destination}. Book now to enjoy one of our favourite experiences in Ibiza and Formentera.`,
+        categoryId: config.categoryId,
+        duration: config.duration,
+        hours: hours,
+        price: config.price,
+        rating: config.rating,
+        featured: !!isFeatured,
+        isNew: !!isNew,
+        location: config.destination,
+        itinerary: defaultItinerary,
+        includedItems: defaultIncludedItems,
+        hostId: config.host.id,
+        hostName: `${config.host.firstName} ${config.host.lastName}`,
+        hostImage: '/assets/images/global/hosts/host-1.jpg',
+        requirements: 'Guests must be able to walk short distances and follow basic safety instructions.',
+        accessibility: 'Message your host for specific accessibility questions.',
+        cancellationPolicy: 'Free cancellation up to 24 hours before the experience starts.'
+      }
+    });
+
+    // Attach primary images (same image repeated for gallery)
+    await prisma.experienceImage.createMany({
+      data: [0, 1, 2, 3].map((index) => ({
+        experienceId: experience.id,
+        original: config.image,
+        large: config.image,
+        medium: config.image,
+        small: config.image,
+        thumbnail: config.image,
+        isPrimary: index === 0,
+        order: index
+      }))
+    });
+
+    createdExperiences.push(experience);
+  }
 
   // Create additional traveller users for reviews
   const traveller2 = await prisma.user.upsert({
@@ -400,177 +408,70 @@ async function main() {
   });
 
 
-  // Create Availability Slots
+  // Create Availability Slots for all experiences
   console.log('Creating availability slots...');
-  
-  // Delete existing slots for these experiences
-  await prisma.availabilitySlot.deleteMany({
-    where: {
-      experienceId: { in: [experience1.id, experience2.id, experience3.id] }
+
+  const availabilityData = [];
+  for (const exp of createdExperiences) {
+    for (let i = 1; i <= 10; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      availabilityData.push({
+        experienceId: exp.id,
+        date,
+        startTime: i % 2 === 0 ? '10:00' : '15:00',
+        endTime: i % 2 === 0 ? '13:00' : '18:00',
+        price: exp.price,
+        maxGuests: 20,
+        available: true
+      });
     }
-  });
-
-  // Create slots for experience1 (next 30 days)
-  const slots1 = [];
-  for (let i = 1; i <= 10; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() + i);
-    slots1.push({
-      experienceId: experience1.id,
-      date: date,
-      startTime: i % 2 === 0 ? '10:30' : '13:00',
-      endTime: i % 2 === 0 ? '14:30' : '17:00',
-      price: experience1.price,
-      maxGuests: 20,
-      available: true
-    });
   }
-  await prisma.availabilitySlot.createMany({ data: slots1 });
+  await prisma.availabilitySlot.createMany({ data: availabilityData });
 
-  // Create slots for experience2
-  const slots2 = [];
-  for (let i = 1; i <= 10; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() + i);
-    slots2.push({
-      experienceId: experience2.id,
-      date: date,
-      startTime: '18:00',
-      endTime: '20:30',
-      price: experience2.price,
-      maxGuests: 15,
-      available: true
-    });
-  }
-  await prisma.availabilitySlot.createMany({ data: slots2 });
-
-  // Create slots for experience3
-  const slots3 = [];
-  for (let i = 1; i <= 10; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() + i);
-    slots3.push({
-      experienceId: experience3.id,
-      date: date,
-      startTime: '09:00',
-      endTime: '12:00',
-      price: experience3.price,
-      maxGuests: 25,
-      available: true
-    });
-  }
-  await prisma.availabilitySlot.createMany({ data: slots3 });
-
-  // Create Bookings
+  // Create Bookings for a subset of experiences (for testing)
   console.log('Creating bookings...');
-  
-  await prisma.booking.deleteMany({
-    where: {
-      userId: { in: [testUser.id, traveller2.id, traveller3.id] }
-    }
-  });
 
-  const booking1 = await prisma.booking.create({
-    data: {
-      userId: testUser.id,
-      experienceId: experience1.id,
-      date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
-      guests: 2,
-      totalPrice: experience1.price * 2,
-      status: 'confirmed',
-      paymentStatus: 'paid',
-      paymentIntentId: 'pi_test_123456'
-    }
-  });
+  const bookings = [];
+  for (let i = 0; i < createdExperiences.length; i++) {
+    const exp = createdExperiences[i];
+    const date = new Date(Date.now() + (i + 3) * 24 * 60 * 60 * 1000);
+    const booking = await prisma.booking.create({
+      data: {
+        userId: i % 2 === 0 ? testUser.id : traveller2.id,
+        experienceId: exp.id,
+        date,
+        guests: 2,
+        totalPrice: exp.price * 2,
+        status: i % 3 === 0 ? 'completed' : 'confirmed',
+        paymentStatus: 'paid',
+        paymentIntentId: `pi_seed_${i + 1}`
+      }
+    });
+    bookings.push(booking);
+  }
 
-  const booking2 = await prisma.booking.create({
-    data: {
-      userId: testUser.id,
-      experienceId: experience2.id,
-      date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-      guests: 1,
-      totalPrice: experience2.price,
-      status: 'pending',
-      paymentStatus: 'pending'
-    }
-  });
-
-  const booking3 = await prisma.booking.create({
-    data: {
-      userId: traveller2.id,
-      experienceId: experience1.id,
-      date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), // 10 days from now
-      guests: 3,
-      totalPrice: experience1.price * 3,
-      status: 'confirmed',
-      paymentStatus: 'paid',
-      paymentIntentId: 'pi_test_789012'
-    }
-  });
-
-  const booking4 = await prisma.booking.create({
-    data: {
-      userId: traveller3.id,
-      experienceId: experience3.id,
-      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago (completed)
-      guests: 1,
-      totalPrice: experience3.price,
-      status: 'completed',
-      paymentStatus: 'paid',
-      paymentIntentId: 'pi_test_345678'
-    }
-  });
-
-  // Create Experience Reviews
+  // Create Experience Reviews for all experiences
   console.log('Creating experience reviews...');
-  
-  await prisma.review.deleteMany({
-    where: {
-      experienceId: { in: [experience1.id, experience2.id, experience3.id] }
-    }
-  });
 
-  // Reviews for experience1 (Discover Formentera)
-  await prisma.review.create({
-    data: {
-      userId: testUser.id,
-      experienceId: experience1.id,
-      bookingId: booking1.id,
-      rating: 5,
-      comment: 'The catamaran was welcoming and the crew was incredibly friendly. The views of the island were unforgettable. Highly recommend this experience!'
-    }
-  });
+  const reviewers = [testUser, traveller2, traveller3];
+  let reviewerIndex = 0;
 
-  await prisma.review.create({
-    data: {
-      userId: traveller2.id,
-      experienceId: experience1.id,
-      bookingId: booking3.id,
-      rating: 5,
-      comment: 'Sailing to Formentera was absolutely beautiful. The peace and tranquility on the water, combined with a fresh lunch, made this an unforgettable day.'
-    }
-  });
+  for (let i = 0; i < createdExperiences.length; i++) {
+    const exp = createdExperiences[i];
+    const reviewer = reviewers[reviewerIndex % reviewers.length];
+    reviewerIndex++;
 
-  // Reviews for experience2 (Sail Ibiza Sunset)
-  await prisma.review.create({
-    data: {
-      userId: testUser.id,
-      experienceId: experience2.id,
-      rating: 5,
-      comment: 'The crew was incredibly helpful and the equipment was well-kept. The journey was seamless and the sights were absolutely stunning. Perfect sunset experience!'
-    }
-  });
-
-  // Reviews for experience3 (Ibiza Old Town Tour)
-  await prisma.review.create({
-    data: {
-      userId: traveller3.id,
-      experienceId: experience3.id,
-      bookingId: booking4.id,
-      rating: 5,
-      comment: 'Even during the holiday peak, the experience was calm and peaceful. The turquoise seas were mesmerizing, the catamaran was smooth, the food was great, and the crew was kind throughout.'
-    }
-  });
+    await prisma.review.create({
+      data: {
+        userId: reviewer.id,
+        experienceId: exp.id,
+        bookingId: bookings[i]?.id || null,
+        rating: Math.round(exp.rating || 5),
+        comment: `Test review for "${exp.title}". This is sample content to validate the reviews section on the experience detail page.`
+      }
+    });
+  }
 
   // Create additional experience reviews
   const nathanUser = await prisma.user.upsert({
@@ -587,14 +488,17 @@ async function main() {
     }
   });
 
-  await prisma.review.create({
-    data: {
-      userId: nathanUser.id,
-      experienceId: experience1.id,
-      rating: 5,
-      comment: 'Amazing experience! The catamaran was beautiful and the crew was very friendly. Highly recommend!'
-    }
-  });
+  // Extra seeded review linked to the first seeded experience (if available)
+  if (createdExperiences.length > 0) {
+    await prisma.review.create({
+      data: {
+        userId: nathanUser.id,
+        experienceId: createdExperiences[0].id,
+        rating: 5,
+        comment: 'Amazing experience! The catamaran was beautiful and the crew was very friendly. Highly recommend!'
+      }
+    });
+  }
 
   // Create Messages
   console.log('Creating messages...');
@@ -658,9 +562,9 @@ async function main() {
   console.log('  - traveller2@example.com (Traveller) - Password: password123');
   console.log('  - traveller3@example.com (Traveller) - Password: password123');
   console.log('\nCreated:');
-  console.log(`  - ${slots1.length + slots2.length + slots3.length} Availability Slots`);
-  console.log('  - 4 Bookings (various statuses)');
-  console.log('  - 5 Experience Reviews');
+  console.log(`  - ${availabilityData.length} Availability Slots`);
+  console.log(`  - ${bookings.length} Bookings (various statuses)`);
+  console.log(`  - ${createdExperiences.length + 2} Experience Reviews`);
   console.log('  - 5 Messages');
 
   // Run additional seed files

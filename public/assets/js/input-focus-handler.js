@@ -13,11 +13,8 @@
       }
     } catch(e) {}
     
-    // Method 2: Check dataset flag (set by delayed checks)
-    if (input.dataset.autofilled === 'true') {
-      return true;
-    }
-    
+    // We intentionally do NOT use custom data attributes (data-autofilled / data-user-typed)
+    // to avoid polluting input elements with extra attributes.
     return false;
   }
 
@@ -45,18 +42,18 @@
 
     if (hasValue || isFocused || inputIsAutofilled) {
       container.setAttribute('data-input', 'focus');
-      container.setAttribute('data-autofilled', inputIsAutofilled ? 'true' : 'false');
-      if (hasValue || inputIsAutofilled) {
-        input.dataset.autofilled = inputIsAutofilled ? 'true' : (hasValue ? 'false' : 'false');
-      }
       // Don't add inline styles - let CSS handle padding
       // CSS rules in style.css handle padding for selects with labels
     } else {
       // Only remove if not focused
       if (!isFocused) {
         container.removeAttribute('data-input');
+        // Also ensure we don't leave any stale custom attributes
         container.removeAttribute('data-autofilled');
-        input.dataset.autofilled = 'false';
+        if (input.dataset) {
+          delete input.dataset.autofilled;
+          delete input.dataset.userTyped;
+        }
         // Don't manipulate inline styles - CSS handles everything
       }
     }
@@ -67,6 +64,16 @@
     const inputs = document.querySelectorAll('.input input, .select select, .textarea textarea');
     
     inputs.forEach(function(input) {
+      // Clean any existing custom data attributes added previously
+      if (input.dataset) {
+        delete input.dataset.autofilled;
+        delete input.dataset.userTyped;
+      }
+      const container = input.closest('.input, .select');
+      if (container) {
+        container.removeAttribute('data-autofilled');
+      }
+
       // Check initial state
       updateInputFocusState(input);
 
@@ -83,28 +90,9 @@
         updateInputFocusState(input);
       });
 
-      // Mark when user types (to distinguish from autofill)
-      input.addEventListener('input', function() {
-        input.dataset.userTyped = 'true';
-        updateInputFocusState(input);
-      });
-
       // Check for autofill after delays (autofill happens asynchronously)
       setTimeout(function() {
         updateInputFocusState(input);
-        // If input has value, ensure label is shown (whether typed or autofilled)
-        if (input.value && input.value.trim() !== '') {
-          const container = input.closest('.input, .select');
-          if (container) {
-            container.setAttribute('data-input', 'focus');
-            // Mark as potentially autofilled if user didn't type
-            if (!input.dataset.userTyped) {
-              input.dataset.autofilled = 'true';
-              container.setAttribute('data-autofilled', 'true');
-              updateInputFocusState(input);
-            }
-          }
-        }
       }, 100);
       
       setTimeout(function() {

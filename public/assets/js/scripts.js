@@ -340,6 +340,105 @@
 
         });
 
+        // Handle experiences sort select display, width adjustment, and sorting
+        $( document ).on( 'change', '.experiences .sort select', function() {
+            const $select = $( this );
+            const $sort = $select.closest( '.sort' );
+            const $mirror = $sort.find( '.select .option' );
+            const selectedText = $select.find( 'option:selected' ).text();
+            $mirror.text( selectedText );
+            
+            // Fixed widths for each option
+            const widthMap = {
+                'relevance': 142,
+                'popular': 128,
+                'newest': 127,
+                'price-low': 188,
+                'price-high': 188
+            };
+            
+            const selectedValue = $select.val();
+            const width = widthMap[selectedValue] || 142; // Default to 142 if value not found
+            
+            $select.css({
+                width: width + 'px'
+            });
+            
+            // Sort and re-render experiences
+            if ( window.__API_EXPERIENCES__ && Array.isArray( window.__API_EXPERIENCES__ ) ) {
+                let sortedExperiences = [...window.__API_EXPERIENCES__];
+                
+                // Sort based on selected value
+                switch( selectedValue ) {
+                    case 'popular':
+                        sortedExperiences.sort( ( a, b ) => {
+                            const ratingA = parseFloat( a.rating ) || 0;
+                            const ratingB = parseFloat( b.rating ) || 0;
+                            const reviewsA = a._count?.reviews || a.reviews?.length || 0;
+                            const reviewsB = b._count?.reviews || b.reviews?.length || 0;
+                            
+                            if ( ratingB !== ratingA ) {
+                                return ratingB - ratingA;
+                            }
+                            return reviewsB - reviewsA;
+                        } );
+                        break;
+                        
+                    case 'newest':
+                        sortedExperiences.sort( ( a, b ) => {
+                            const dateA = a.createdAt ? new Date( a.createdAt ).getTime() : 0;
+                            const dateB = b.createdAt ? new Date( b.createdAt ).getTime() : 0;
+                            return dateB - dateA;
+                        } );
+                        break;
+                        
+                    case 'price-low':
+                        sortedExperiences.sort( ( a, b ) => {
+                            const priceA = parseFloat( a.price ) || 0;
+                            const priceB = parseFloat( b.price ) || 0;
+                            return priceA - priceB;
+                        } );
+                        break;
+                        
+                    case 'price-high':
+                        sortedExperiences.sort( ( a, b ) => {
+                            const priceA = parseFloat( a.price ) || 0;
+                            const priceB = parseFloat( b.price ) || 0;
+                            return priceB - priceA;
+                        } );
+                        break;
+                        
+                    case 'relevance':
+                    default:
+                        // Keep original order
+                        break;
+                }
+                
+                // Map sorted experiences to render format
+                const mappedExperiences = sortedExperiences.map( experience => {
+                    const primaryImage = experience.images && experience.images.length > 0 ? experience.images[0] : null;
+                    return {
+                        id: experience.id,
+                        slug: experience.slug,
+                        title: experience.title,
+                        duration: experience.duration || (experience.hours ? `${experience.hours} Hours` : 'N/A'),
+                        rating: experience.rating || '0',
+                        price: experience.price || '0',
+                        image: primaryImage?.medium || primaryImage?.large || primaryImage?.original || 
+                               '/assets/images/experiences/experience-1a.jpg',
+                        featured: experience.featured || false,
+                        new: experience.isNew || false,
+                        inWishlist: false
+                    };
+                } );
+                
+                // Re-render sorted experiences
+                renderExperiencesFromAPI( mappedExperiences ).catch( error => {
+                    console.error( 'Error rendering sorted experiences:', error );
+                } );
+            }
+        }).trigger( 'change' );
+
     });
 
     document.querySelectorAll( '.input input, .input textarea, .select select' ).forEach( input => {
@@ -581,13 +680,34 @@
         }, 100 );
     });
 
-    // Handle user icon click - redirect to account profile
+    // Handle user icon click - redirect based on login status
     $( document ).on( 'click', 'header .content .sections .section.three .blocks .block .icons .icon.four .action', function( e ) {
         e.preventDefault();
-        // Navigate to account profile page
-        if ( typeof window !== 'undefined' ) {
-            window.location.href = '/account/profile';
+        if ( typeof window === 'undefined' ) return;
+
+        // Try to read token from cookies
+        var token = null;
+        try {
+            var cookies = document.cookie ? document.cookie.split(';') : [];
+            for (var i = 0; i < cookies.length; i++) {
+                var c = cookies[i].trim();
+                if (c.indexOf('token=') === 0) {
+                    token = c.substring('token='.length, c.length);
+                    break;
+                }
+            }
+        } catch (err) {
+            token = null;
         }
+
+        // If no token, go directly to login page
+        if ( !token ) {
+            window.location.href = '/account/log-in';
+            return;
+        }
+
+        // If token exists, go to profile
+        window.location.href = '/account/profile';
     });
 
     $( '.bag .content .sections .section.one .blocks .block .close, .bag .overlay' ).click(function() {
@@ -1959,4 +2079,356 @@
         // If token exists, allow normal navigation
         return true;
     } );
+
+    // ============================================
+    // Filters Modal Functionality
+    // ============================================
+    
+    // Store selected filters globally
+    window.selectedFilters = window.selectedFilters || [];
+
+    // Open Filters Modal (from any Filters button)
+    $( document ).on( 'click', '[data-action="filters"], .experiences .two a.action', function( e ) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        $( 'body' ).addClass( 'active' );
+        const $modal = $( '.filters' );
+        if ( !$modal.length ) return;
+
+        // Hide the currently active category from filters
+        const $activeCategory = $( '.experiences .content .sections .section.one .blocks .block .links ul li.active' );
+        if ( $activeCategory.length > 0 ) {
+            const $categoryTitle = $activeCategory.find( '.title h4' );
+            if ( $categoryTitle.length > 0 ) {
+                const activeCategoryName = $categoryTitle.text().trim();
+                
+                // Map category names to filter labels (handle variations)
+                const categoryMap = {
+                    'featured': 'Featured',
+                    'sightseeing': 'Sightseeing',
+                    'wellness': 'Wellness',
+                    'art & culture': 'Art & Culture',
+                    'art-culture': 'Art & Culture',
+                    'entertainment': 'Entertainment',
+                    'food & drink': 'Food & Drink',
+                    'food-drink': 'Food & Drink',
+                    'sports': 'Sports',
+                    'sport': 'Sports'
+                };
+                
+                const categoryLower = activeCategoryName.toLowerCase();
+                const filterLabel = categoryMap[categoryLower] || activeCategoryName;
+                
+                // Hide the matching filter item in "Filter By Type" section (first taxonomy)
+                $( '.filters .taxonomies .block:first .taxonomy ul li' ).each( function() {
+                    const $li = $( this );
+                    const label = $li.attr( 'aria-label' );
+                    if ( label && ( label.toLowerCase() === filterLabel.toLowerCase() || label.toLowerCase() === categoryLower ) ) {
+                        $li.hide();
+                    }
+                } );
+            }
+        }
+
+        // Initialize selected filters list with any pre-selected languages (with active class)
+        // Always ensure English is selected and in the list
+        const englishLabel = 'English';
+        if ( window.selectedFilters.indexOf( englishLabel ) === -1 ) {
+            window.selectedFilters.push( englishLabel );
+        }
+        addSelectedFilter( englishLabel );
+        
+        // Also add any other pre-selected languages
+        $( '.filters .taxonomy ul li.active' ).each( function() {
+            const $li = $( this );
+            const label = $li.attr( 'aria-label' );
+            if ( label && label !== englishLabel && window.selectedFilters.indexOf( label ) === -1 ) {
+                window.selectedFilters.push( label );
+                addSelectedFilter( label );
+            }
+        } );
+        
+        // Ensure English language filter is always active
+        $( '.filters .taxonomy ul li[aria-label="' + englishLabel + '"]' ).addClass( 'active' );
+
+        // Sliding behaviour similar to bag
+        $modal.addClass( 'delay' );
+        setTimeout( function() {
+            $modal.addClass( 'active' );
+        }, 100 );
+    } );
+
+    // Close Filters Modal
+    $( document ).on( 'click', '.filters .overlay, .filters .close', function() {
+        $( 'body' ).removeClass( 'active' );
+        let $modal = $( this ).closest( '.filters' );
+        if ( !$modal.length ) {
+            $modal = $( '.filters' );
+        }
+
+        // Show all filter items again when closing
+        $( '.filters .taxonomy ul li' ).show();
+
+        // Sliding behaviour similar to bag
+        $modal.removeClass( 'active' );
+        setTimeout( function() {
+            $modal.removeClass( 'delay' );
+        }, 750 );
+    } );
+
+    // Toggle Filter Selection (handles all filters including languages)
+    $( document ).on( 'click', '.filters .taxonomy ul li', function() {
+        const $li = $( this );
+        const label = $li.attr( 'aria-label' );
+        const englishLabel = 'English';
+        
+        // Prevent removing English from selection
+        if ( label === englishLabel && $li.hasClass( 'active' ) ) {
+            return; // Don't allow deselecting English
+        }
+        
+        if ( !$li.hasClass( 'active' ) ) {
+            // Add filter
+            $li.addClass( 'active' );
+            if ( window.selectedFilters.indexOf( label ) === -1 ) {
+                window.selectedFilters.push( label );
+                addSelectedFilter( label );
+            }
+        } else {
+            // Remove filter (but not English)
+            $li.removeClass( 'active' );
+            const index = window.selectedFilters.indexOf( label );
+            if ( index > -1 ) {
+                window.selectedFilters.splice( index, 1 );
+                removeSelectedFilter( label );
+            }
+        }
+    } );
+
+    // Add Selected Filter to Terms List
+    function addSelectedFilter( label ) {
+        // Use the correct selector for the selected filters list
+        const $list = $( '.filters .content .sections .section.two .blocks .block[data-block="1B"] .blocks .block[data-block="1BA"] .terms .blocks .block[data-block="1BAA"] .list ul' );
+        if ( $list.length === 0 ) return;
+        
+        // Check if already exists to avoid duplicates
+        let exists = false;
+        $list.find( 'li' ).each( function() {
+            if ( $( this ).find( '.text' ).text() === label ) {
+                exists = true;
+                return false;
+            }
+        } );
+        if ( exists ) return;
+        
+        const englishLabel = 'English';
+        const isEnglish = label === englishLabel;
+        
+        const $blocks = $( '<div>' ).addClass( 'blocks' ).attr( 'data-blocks', '4' )
+            .append(
+                $( '<div>' ).addClass( 'block' ).attr( 'data-block', '1BAAA' )
+                    .append( $( '<div>' ).addClass( 'text' ).text( label ) )
+            );
+        
+        // Only add cross button if not English
+        if ( !isEnglish ) {
+            $blocks.append(
+                $( '<div>' ).addClass( 'block' ).attr( 'data-block', '1BAAB' )
+                    .append(
+                        $( '<div>' ).addClass( 'icon' )
+                            .html( '<i class="icons8 icons8-close"></i>' )
+                            .data( 'filter-label', label )
+                    )
+            );
+        }
+        
+        const $li = $( '<li>' ).append( $blocks );
+        $list.append( $li );
+    }
+
+    // Remove Selected Filter from Terms List
+    function removeSelectedFilter( label ) {
+        const englishLabel = 'English';
+        
+        // Prevent removing English
+        if ( label === englishLabel ) {
+            return;
+        }
+        
+        const $list = $( '.filters .content .sections .section.two .blocks .block[data-block="1B"] .blocks .block[data-block="1BA"] .terms .blocks .block[data-block="1BAA"] .list ul' );
+        $list.find( 'li' ).each( function() {
+            if ( $( this ).find( '.text' ).text() === label ) {
+                $( this ).remove();
+            }
+        } );
+        
+        // Also remove active class from taxonomy item
+        $( '.filters .taxonomy ul li[aria-label="' + label + '"]' ).removeClass( 'active' );
+    }
+
+    // Remove Filter from Terms List
+    $( document ).on( 'click', '.filters .content .sections .section.two .blocks .block[data-block="1B"] .blocks .block[data-block="1BA"] .terms .blocks .block[data-block="1BAA"] .list ul li .icon', function( e ) {
+        e.stopPropagation();
+        const label = $( this ).data( 'filter-label' ) || $( this ).closest( 'li' ).find( '.text' ).text();
+        const englishLabel = 'English';
+        
+        // Prevent removing English
+        if ( label === englishLabel ) {
+            return;
+        }
+        
+        removeSelectedFilter( label );
+        const index = window.selectedFilters.indexOf( label );
+        if ( index > -1 ) {
+            window.selectedFilters.splice( index, 1 );
+        }
+        
+        // Also remove active class from taxonomy item
+        $( '.filters .taxonomy ul li[aria-label="' + label + '"]' ).removeClass( 'active' );
+    } );
+
+    // Reset All Filters (but keep English)
+    $( document ).on( 'click', '.filters .button.text[data-button="3A"]', function() {
+        const englishLabel = 'English';
+        window.selectedFilters = [ englishLabel ];
+        const $list = $( '.filters .content .sections .section.two .blocks .block[data-block="1B"] .blocks .block[data-block="1BA"] .terms .blocks .block[data-block="1BAA"] .list ul' );
+        $list.empty();
+        // Re-add English
+        addSelectedFilter( englishLabel );
+        // Remove active class from all except English
+        $( '.filters .taxonomy ul li' ).removeClass( 'active' );
+        $( '.filters .taxonomy ul li[aria-label="' + englishLabel + '"]' ).addClass( 'active' );
+    } );
+
+    // Show Results Button - Apply Filters
+    $( document ).on( 'click', '.filters .button.medium[data-button="1A"]', function() {
+        console.log( 'Selected Filters:', window.selectedFilters );
+        
+        // Close modal
+        $( 'body' ).removeClass( 'active' );
+        $( '.filters' ).removeClass( 'active' );
+        setTimeout( function() {
+            $( '.filters' ).removeClass( 'delay' );
+        }, 750 );
+        
+        // Apply filters to experiences
+        applyFiltersToExperiences( window.selectedFilters );
+    } );
+
+    // Function to apply filters to experiences
+    function applyFiltersToExperiences( filters ) {
+        if ( !window.__API_EXPERIENCES__ || !Array.isArray( window.__API_EXPERIENCES__ ) ) {
+            console.warn( 'No experiences data available for filtering' );
+            return;
+        }
+
+        // If no filters selected, show all experiences
+        if ( !filters || filters.length === 0 ) {
+            const mappedExperiences = window.__API_EXPERIENCES__.map( experience => {
+                const primaryImage = experience.images && experience.images.length > 0 ? experience.images[0] : null;
+                return {
+                    id: experience.id,
+                    slug: experience.slug,
+                    title: experience.title,
+                    duration: experience.duration || (experience.hours ? `${experience.hours} Hours` : 'N/A'),
+                    rating: experience.rating || '0',
+                    price: experience.price || '0',
+                    image: primaryImage?.medium || primaryImage?.large || primaryImage?.original || 
+                           '/assets/images/experiences/experience-1a.jpg',
+                    featured: experience.featured || false,
+                    new: experience.isNew || false,
+                    inWishlist: false
+                };
+            } );
+            renderExperiencesFromAPI( mappedExperiences ).catch( error => {
+                console.error( 'Error rendering all experiences:', error );
+            } );
+            return;
+        }
+
+        let filteredExperiences = [...window.__API_EXPERIENCES__];
+
+        // Filter by category/type
+        const categoryFilters = filters.filter( filter => 
+            ['Featured', 'Sightseeing', 'Wellness', 'Art & Culture', 'Entertainment', 'Food & Drink', 'Sports'].includes( filter )
+        );
+
+        if ( categoryFilters.length > 0 ) {
+            filteredExperiences = filteredExperiences.filter( experience => {
+                // Check if experience matches any selected category
+                const categoryName = experience.category?.name || '';
+                const categorySlug = experience.category?.slug || '';
+                
+                return categoryFilters.some( filter => {
+                    const filterLower = filter.toLowerCase();
+                    // Map filter names to category slugs/names
+                    const categoryMap = {
+                        'featured': 'featured',
+                        'sightseeing': 'sightseeing',
+                        'wellness': 'wellness',
+                        'art & culture': 'art-culture',
+                        'entertainment': 'entertainment',
+                        'food & drink': 'food-drink',
+                        'sports': 'sports'
+                    };
+                    
+                    const mappedSlug = categoryMap[filterLower] || filterLower.replace( /\s+/g, '-' ).toLowerCase();
+                    
+                    // Check if experience is featured
+                    if ( filterLower === 'featured' && ( experience.featured === true || experience.isFeatured === true ) ) {
+                        return true;
+                    }
+                    
+                    // Check category match
+                    return categorySlug.toLowerCase() === mappedSlug || 
+                           categoryName.toLowerCase() === filterLower ||
+                           categoryName.toLowerCase().replace( /\s+/g, '-' ) === mappedSlug;
+                } );
+            } );
+        }
+
+        // Filter by time (if implemented in experience data)
+        const timeFilters = filters.filter( filter => 
+            ['Morning', 'Afternoon', 'Evening'].includes( filter )
+        );
+
+        if ( timeFilters.length > 0 ) {
+            // This would need to check availability slots or time fields in experiences
+            // For now, we'll skip time filtering if not available in data structure
+        }
+
+        // Filter by language (if implemented in experience data)
+        const languageFilters = filters.filter( filter => 
+            ['English', 'Spanish', 'German', 'French', 'Italian', 'Portuguese'].includes( filter )
+        );
+
+        if ( languageFilters.length > 0 ) {
+            // This would need to check language fields in experiences
+            // For now, we'll skip language filtering if not available in data structure
+        }
+
+        // Map filtered experiences to render format
+        const mappedExperiences = filteredExperiences.map( experience => {
+            const primaryImage = experience.images && experience.images.length > 0 ? experience.images[0] : null;
+            return {
+                id: experience.id,
+                slug: experience.slug,
+                title: experience.title,
+                duration: experience.duration || (experience.hours ? `${experience.hours} Hours` : 'N/A'),
+                rating: experience.rating || '0',
+                price: experience.price || '0',
+                image: primaryImage?.medium || primaryImage?.large || primaryImage?.original || 
+                       '/assets/images/experiences/experience-1a.jpg',
+                featured: experience.featured || false,
+                new: experience.isNew || false,
+                inWishlist: false
+            };
+        } );
+
+        // Re-render filtered experiences
+        renderExperiencesFromAPI( mappedExperiences ).catch( error => {
+            console.error( 'Error rendering filtered experiences:', error );
+        } );
+    }
 

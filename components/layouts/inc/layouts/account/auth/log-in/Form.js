@@ -135,37 +135,43 @@ export default function Form() {
                   <div className="fields">
                     <div className="fieldset">
                       <div className="blocks" data-blocks="2">
+                        {/* Email Address */}
                         <div className="block" data-block="1A" data-inputs="1">
-                          <div className="input">
-                            <label>Email Address</label>
-                            <input 
-                              type="text" 
-                              name="email" 
+                          <div className="input" data-input="">
+                            <label>
+                              <span>Email Address</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="email"
                               value={formData.email}
                               onChange={handleChange}
-                              autoCapitalize="none" 
-                              required 
+                              autoCapitalize="none"
+                              required
                             />
                           </div>
                         </div>
 
-                        <div className="block" data-block="1B" data-inputs="1">
+                        {/* Password with toggle */}
+                        <div className="block" data-block="1B" data-inputs="1" data-password="1">
                           <div className="blocks" data-blocks="3">
                             <div className="block" data-block="1BA">
                               <div className="input">
-                                <label>Password</label>
-                                <input 
-                                  type={showPassword ? "text" : "password"} 
-                                  name="password" 
+                                <label>
+                                  <span>Password</span>
+                                </label>
+                                <input
+                                  type={showPassword ? 'text' : 'password'}
+                                  name="password"
                                   value={formData.password}
                                   onChange={handleChange}
-                                  required 
+                                  required
                                 />
                               </div>
                             </div>
                             <div className="block" data-block="1BB">
-                              <div className="toggle" onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
-                                <div className={`icons ${showPassword ? 'active' : ''}`}>
+                              <div className="toggle" onClick={togglePasswordVisibility}>
+                                <div className="icons">
                                   <div className="icon" data-icon="1">
                                     <i className="icons8 icons8-eye"></i>
                                   </div>
@@ -178,15 +184,28 @@ export default function Form() {
                           </div>
                         </div>
 
+                        {/* Remember Me checkbox */}
                         <div className="block" data-block="1C">
-                          <div className="checkbox" onClick={() => setFormData(prev => ({ ...prev, rememberMe: !prev.rememberMe }))} style={{ cursor: 'pointer' }}>
+                          <div
+                            className="checkbox"
+                            onClick={() =>
+                              setFormData(prev => ({ ...prev, rememberMe: !prev.rememberMe }))
+                            }
+                            style={{ cursor: 'pointer' }}
+                          >
                             <div className="blocks" data-blocks="4">
                               <div className="block" data-block="1CA">
                                 <div className="icons">
-                                  <div className={`icon ${!formData.rememberMe ? 'active' : ''}`} data-icon="1">
+                                  <div
+                                    className={`icon ${!formData.rememberMe ? 'active' : ''}`}
+                                    data-icon="1"
+                                  >
                                     <i className="icons8 icons8-checkbox"></i>
                                   </div>
-                                  <div className={`icon ${formData.rememberMe ? 'active' : ''}`} data-icon="2">
+                                  <div
+                                    className={`icon ${formData.rememberMe ? 'active' : ''}`}
+                                    data-icon="2"
+                                  >
                                     <i className="icons8 icons8-checked-checkbox"></i>
                                   </div>
                                 </div>
@@ -198,20 +217,23 @@ export default function Form() {
                           </div>
                         </div>
 
+                        {/* Submit button */}
                         <div className="block" data-block="1D">
                           <div className="buttons">
                             <div className="button medium" data-button="1A">
-                              <button 
-                                type="submit" 
-                                className="action" 
+                              <button
+                                type="submit"
+                                className="action"
                                 disabled={isLoading}
-                                style={{ 
-                                  border: 'none', 
+                                style={{
+                                  border: 'none',
                                   cursor: isLoading ? 'wait' : 'pointer',
                                   width: '100%'
                                 }}
                               >
-                                <div className="text">{isLoading ? 'Logging in...' : 'Log In'}</div>
+                                <div className="text">
+                                  {isLoading ? 'Logging in...' : 'Log In'}
+                                </div>
                                 <div className="background"></div>
                               </button>
                             </div>

@@ -53,8 +53,8 @@ export default function Form() {
         // Also set cookie for server-side access
         document.cookie = `token=${response.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
         
-        // Redirect to profile page
-        router.push('/account/profile');
+        // Redirect to bookings page (same behavior as login)
+        router.push('/account/bookings');
       }
     } catch (error) {
       console.error('Registration error:', error);
@@ -139,57 +139,65 @@ export default function Form() {
                       <div className="blocks" data-blocks="2">
                         <div className="block" data-block="1A" data-inputs="2">
                           <div className="input">
-                            <label>First Name</label>
-                            <input 
-                              type="text" 
-                              name="firstName" 
+                            <label>
+                              <span>First Name</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="firstName"
                               value={formData.firstName}
                               onChange={handleChange}
-                              required 
+                              required
                             />
                           </div>
                           <div className="input">
-                            <label>Surname</label>
-                            <input 
-                              type="text" 
-                              name="lastName" 
+                            <label>
+                              <span>Surname</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="lastName"
                               value={formData.lastName}
                               onChange={handleChange}
-                              required 
-                            />
-                          </div>
-                        </div>
-
-                        <div className="block" data-block="1A" data-inputs="1">
-                          <div className="input">
-                            <label>Email Address</label>
-                            <input 
-                              type="text" 
-                              name="email" 
-                              value={formData.email}
-                              onChange={handleChange}
-                              autoCapitalize="none" 
-                              required 
+                              required
                             />
                           </div>
                         </div>
 
                         <div className="block" data-block="1B" data-inputs="1">
+                          <div className="input">
+                            <label>
+                              <span>Email Address</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleChange}
+                              autoCapitalize="none"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="block" data-block="1C" data-inputs="1" data-password="1">
                           <div className="blocks" data-blocks="3">
-                            <div className="block" data-block="1BA">
+                            <div className="block" data-block="1CA">
                               <div className="input">
-                                <label>Password</label>
-                                <input 
-                                  type={showPassword ? "text" : "password"} 
-                                  name="password" 
+                                <label>
+                                  <span>Password</span>
+                                </label>
+                                <input
+                                  type={showPassword ? 'text' : 'password'}
+                                  name="password"
                                   value={formData.password}
                                   onChange={handleChange}
-                                  required 
+                                  required
                                 />
                               </div>
                             </div>
-                            <div className="block" data-block="1BB">
-                              <div className="toggle" onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
+                            <div className="block" data-block="1CB">
+                              <div className="toggle" onClick={togglePasswordVisibility}>
                                 <div className={`icons ${showPassword ? 'active' : ''}`}>
                                   <div className="icon" data-icon="1">
                                     <i className="icons8 icons8-eye"></i>
@@ -203,31 +211,34 @@ export default function Form() {
                           </div>
                         </div>
 
-                        <div className="block" data-block="1A" data-inputs="1">
-                          <div className="select">
-                            <label>Account Type</label>
-                            <select 
-                              name="accountType" 
+                        <div className="block" data-block="1D" data-inputs="1">
+                          <div className="select" data-input="">
+                            <label>
+                              <span>Account Type</span>
+                            </label>
+                            <select
+                              type="text"
+                              name="accountType"
                               value={formData.accountType}
                               onChange={handleChange}
                               required
                             >
-                              <option value="">Select account type</option>
+                              <option></option>
                               <option value="Traveller">Traveller</option>
                               <option value="Host">Host</option>
                             </select>
                           </div>
                         </div>
 
-                        <div className="block" data-block="1C">
+                        <div className="block" data-block="1E">
                           <div className="buttons">
                             <div className="button medium" data-button="1A">
-                              <button 
-                                type="submit" 
-                                className="action" 
+                              <button
+                                type="submit"
+                                className="action"
                                 disabled={isLoading}
-                                style={{ 
-                                  border: 'none', 
+                                style={{
+                                  border: 'none',
                                   cursor: isLoading ? 'wait' : 'pointer',
                                   width: '100%'
                                 }}

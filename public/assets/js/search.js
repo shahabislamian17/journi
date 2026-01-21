@@ -26,7 +26,7 @@ if (typeof DatesTemplate === 'undefined') {
         <div class="block" data-block="2CB">
             <div class="blocks" data-blocks="7">
                 <div class="block" data-block="2CBA">
-                    <div class="buttons" v-if="! util.isMobile()">
+                    <div class="buttons">
                         <div class="button circle one" data-button="3A" @click="navigateDates('previous')" v-if="canNavigatePreviousDates">
                             <div class="action">
                                 <div class="icon">
@@ -46,7 +46,7 @@ if (typeof DatesTemplate === 'undefined') {
                 <div class="block" data-block="2CBB">
                     <div class="dates">
                         <div class="blocks" data-blocks="7">
-                            <div class="block" data-block="2CCA" v-for="month in months" :key="month.monthIndex + '-' + month.year">
+                            <div class="block" data-block="2CCA" v-for="month in months" :key="month.monthIndex + '-' + month.year" :attr="month.monthName">
                                 <div class="month">
                                     <div class="name">
                                         <div class="text">{{ month.monthName + ' ' + month.year }}</div>
@@ -217,7 +217,10 @@ if (typeof Vue !== 'undefined') {
             generateDates() {
                 const months = [];
                 let year = this.year;
-                let perPage = (this.util.isMobile && this.util.isMobile()) ? (this.minMonthIndex + 24) : this.minMonthIndex + 2;
+                // On desktop, show exactly 2 months side by side
+                // On mobile, show more months (24)
+                const monthsToShow = (this.util.isMobile && this.util.isMobile()) ? 24 : 2;
+                let perPage = this.minMonthIndex + monthsToShow;
                 for (let i = this.minMonthIndex; i < perPage; i++) {
                     year = (months.length > 0 && months[months.length - 1].monthIndex == 11) ? year + 1 : year;
                     const month = new Date(year, i, 1);
@@ -815,6 +818,32 @@ if (typeof $ !== 'undefined') {
             setTimeout(function() {
                 $modal.removeClass('delay');
             }, 200);
+        });
+
+        // Open dates modal on page load if URL has date parameters
+        $(document).ready(function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const checkInDate = urlParams.get('checkInDate');
+            const checkOutDate = urlParams.get('checkOutDate');
+            
+            // If dates are in URL, open the dates modal after a short delay to ensure Vue is ready
+            if (checkInDate || checkOutDate) {
+                setTimeout(function() {
+                    var $modal = $('.search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal[data-modal="dates"]');
+                    if ($modal.length) {
+                        $('body').attr('data-modal', 'search');
+                        $modal.addClass('delay');
+                        requestAnimationFrame(function() {
+                            requestAnimationFrame(function() {
+                                $modal.addClass('active');
+                            });
+                        });
+                        if (window.Dates && window.Dates.showDates) {
+                            window.Dates.showDates('check-in');
+                        }
+                    }
+                }, 500); // Wait for Vue component to be mounted
+            }
         });
     });
 }

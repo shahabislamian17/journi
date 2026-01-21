@@ -1,6 +1,7 @@
 import Layout from "../../components/Layout";
 import Template from "../../components/Template";
 import Script from "next/script";
+import Navigation from "../../components/layouts/inc/layouts/account/global/Navigation";
 
 export async function getStaticProps() {
   const { readTemplates } = await import("../../lib/templates");
@@ -55,7 +56,7 @@ export default function Page({ templates, layoutOptions, needsDates, inlineScrip
 
             
 
-<Template html={templates["inc/layouts/account/global/navigation.html"]} />
+          <Navigation />
 
 
 

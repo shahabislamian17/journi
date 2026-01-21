@@ -50,6 +50,7 @@ export async function getServerSideProps(context) {
       "inc/layouts/global/bag.html",
       "inc/layouts/global/concierge.html",
       "inc/layouts/global/dates.html",
+      "inc/layouts/global/filters.html",
       "inc/layouts/global/notifications.html",
       "inc/layouts/global/reviews.html",
       "inc/layouts/global/search.html"
@@ -139,6 +140,10 @@ export default function Page({ experiences, totalCount, category, wishlistIds = 
 
       <section className="description">
         <Template html={templates["inc/layouts/category/description.html"]} />
+      </section>
+
+      <section className="filters">
+        <Template html={templates["inc/layouts/global/filters.html"]} />
       </section>
 
       <section className="bag">
