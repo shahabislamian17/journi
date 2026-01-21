@@ -211,6 +211,16 @@ if (typeof Vue !== 'undefined') {
             hideModals() {
                 if (typeof $ !== 'undefined') {
                     $('html').removeAttr('data-modal');
+                    $('body').removeAttr('data-modal');
+                    
+                    // Close the dates modal
+                    var $modal = $('.search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal[data-modal="dates"]');
+                    if ($modal.length) {
+                        $modal.removeClass('active');
+                        setTimeout(function() {
+                            $modal.removeClass('delay');
+                        }, 200);
+                    }
                 }
                 this.showDates = false;
             },
