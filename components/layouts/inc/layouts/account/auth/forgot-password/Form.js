@@ -75,7 +75,7 @@ export default function Form() {
     
                                                     <div className="input">
     
-                                                        <label>Email Address</label>
+                                                        <label><span>Email Address</span></label>
     
                                                         <input type="text" name="email-address" autocapitalize="none" required />
     

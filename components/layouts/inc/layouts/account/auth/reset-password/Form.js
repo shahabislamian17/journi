@@ -79,7 +79,7 @@ export default function Form() {
     
                                                             <div className="input">
     
-                                                                <label>New Password</label>
+                                                                <label><span>New Password</span></label>
     
                                                                 <input type="password" name="new-password" required />
     

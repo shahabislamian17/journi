@@ -139,7 +139,7 @@ export default function Contact() {
     
                                                     <div className="input">
     
-                                                        <label>First Name</label>
+                                                        <label><span>First Name</span></label>
     
                                                         <input type="text" name="first-name" required />
     
@@ -147,7 +147,7 @@ export default function Contact() {
     
                                                     <div className="input">
     
-                                                        <label>Surname</label>
+                                                        <label><span>Surname</span></label>
     
                                                         <input type="text" name="surname" required />
     
@@ -159,7 +159,7 @@ export default function Contact() {
     
                                                     <div className="input">
     
-                                                        <label>Email Address</label>
+                                                        <label><span>Email Address</span></label>
     
                                                         <input type="text" name="email-address" autocapitalize="none" required />
     
@@ -171,7 +171,7 @@ export default function Contact() {
     
                                                     <div className="input">
     
-                                                        <label>Subject</label>
+                                                        <label><span>Subject</span></label>
     
                                                         <input type="text" name="subject" required />
     
@@ -183,7 +183,7 @@ export default function Contact() {
     
                                                     <div className="input">
     
-                                                        <label>Message</label>
+                                                        <label><span>Message</span></label>
     
                                                         <textarea rows="4" name="message" required></textarea>
     

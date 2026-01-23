@@ -60,9 +60,28 @@ export default function Bag() {
   };
 
   const handleRemove = (e, itemId) => {
-    e.preventDefault();
-    e.stopPropagation();
-    bagAPI.remove(itemId);
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    console.log('Removing item from bag:', itemId);
+    
+    try {
+      const result = bagAPI.remove(itemId);
+      console.log('Remove result:', result);
+      
+      if (result) {
+        // Force update by reloading bag items
+        const items = bagAPI.getAll();
+        setBagItems(items);
+        setSubtotal(bagAPI.getSubtotal());
+      } else {
+        console.error('Failed to remove item from bag');
+      }
+    } catch (error) {
+      console.error('Error in handleRemove:', error);
+    }
   };
 
   const handleCheckout = (e) => {
@@ -200,8 +219,8 @@ export default function Bag() {
                                                         <div className="experiences">
                                                             <div className="blocks" data-blocks="4">
                               {groupedByDate[dateKey].map((item) => (
-                                <div key={item.id} className="block">
-                                  <div className="experience">
+                                <div key={item.id} className="block" data-item-id={item.id}>
+                                  <div className="experience" data-item-id={item.id}>
                                     <div className="blocks" data-blocks="5">
                                       <div className="block">
                                         <a className="action" href={`/ibiza/sightseeing/experience?slug=${item.slug || item.experienceId || item.id || 'experience'}`}>

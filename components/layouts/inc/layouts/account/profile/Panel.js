@@ -181,7 +181,7 @@ export default function Panel({ user }) {
                       <div className="blocks" data-blocks="2">
                         <div className="block" data-block="1A" data-inputs="2">
                           <div className="input">
-                            <label>First Name</label>
+                            <label><span>First Name</span></label>
                             <input 
                               type="text" 
                               name="firstName" 
@@ -191,7 +191,7 @@ export default function Panel({ user }) {
                             />
                           </div>
                           <div className="input">
-                            <label>Surname</label>
+                            <label><span>Surname</span></label>
                             <input 
                               type="text" 
                               name="lastName" 
@@ -204,7 +204,7 @@ export default function Panel({ user }) {
 
                         <div className="block" data-block="1A" data-inputs="1">
                           <div className="input">
-                            <label>Email Address</label>
+                            <label><span>Email Address</span></label>
                             <input 
                               type="text" 
                               name="email" 
@@ -218,7 +218,7 @@ export default function Panel({ user }) {
 
                         <div className="block" data-block="1A" data-inputs="1">
                           <div className="select">
-                            <label>Account Type</label>
+                            <label><span>Account Type</span></label>
                             <select 
                               name="accountType" 
                               value={formData.accountType}

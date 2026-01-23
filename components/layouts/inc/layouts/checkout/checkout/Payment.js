@@ -56,7 +56,7 @@ export default function Payment() {
     
                                             <div className="input">
     
-                                                <label>First Name</label>
+                                                <label><span>First Name</span></label>
     
                                                 <input type="text" name="first-name" />
     
@@ -64,7 +64,7 @@ export default function Payment() {
     
                                             <div className="input">
     
-                                                <label>Surname</label>
+                                                <label><span>Surname</span></label>
     
                                                 <input type="text" name="surname" />
     
@@ -76,7 +76,7 @@ export default function Payment() {
     
                                             <div className="input">
     
-                                                <label>Email Address</label>
+                                                <label><span>Email Address</span></label>
     
                                                 <input type="text" name="email-address" autocapitalize="none" />
     
@@ -88,7 +88,7 @@ export default function Payment() {
     
                                             <div className="input">
     
-                                                <label>Phone Number</label>
+                                                <label><span>Phone Number</span></label>
     
                                                 <input type="text" name="phone-number" />
     
@@ -104,7 +104,7 @@ export default function Payment() {
     
                                                     <div className="input">
     
-                                                        <label>Password</label>
+                                                        <label><span>Password</span></label>
     
                                                         <input type="password" name="password" />
     

@@ -528,7 +528,7 @@ export default function Checkout() {
                             <div className="blocks" data-blocks="4">
                               <div className="block" data-block="2BA" data-inputs="2">
                                 <div className="input">
-                                  <label>First Name</label>
+                                  <label><span>First Name</span></label>
                                   <input 
                                     type="text" 
                                     name="firstName"
@@ -538,7 +538,7 @@ export default function Checkout() {
                                   />
                                 </div>
                                 <div className="input">
-                                  <label>Surname</label>
+                                  <label><span>Surname</span></label>
                                   <input 
                                     type="text" 
                                     name="surname"
@@ -550,7 +550,7 @@ export default function Checkout() {
                               </div>
                               <div className="block" data-block="2BB" data-inputs="1">
                                 <div className="input">
-                                  <label>Email Address</label>
+                                  <label><span>Email Address</span></label>
                                   <input 
                                     type="text" 
                                     name="email"
@@ -563,7 +563,7 @@ export default function Checkout() {
                               </div>
                               <div className="block" data-block="2BC" data-inputs="1">
                                 <div className="input">
-                                  <label>Phone Number</label>
+                                  <label><span>Phone Number</span></label>
                                   <input 
                                     type="text" 
                                     name="phoneNumber"
@@ -577,7 +577,7 @@ export default function Checkout() {
                                 <div className="blocks" data-blocks="5">
                                   <div className="block" data-block="2BDA">
                                     <div className="input">
-                                      <label>Password</label>
+                                      <label><span>Password</span></label>
                                       <input 
                                           type={showPassword ? "text" : "password"} 
                                         name="password"

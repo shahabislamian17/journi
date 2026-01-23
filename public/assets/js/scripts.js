@@ -717,6 +717,158 @@
         $( '.bag' ).removeClass( 'active' );
     });
 
+    // Handle Remove button in bag - jQuery fallback
+    $( document ).on( 'click', '.bag .remove', function( e ) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const $removeButton = $( this );
+        const $experience = $removeButton.closest( '.experience' );
+        const $block = $experience.closest( '.block[data-item-id]' );
+        
+        // Get item ID from data attribute
+        let itemId = $block.attr( 'data-item-id' ) || $experience.attr( 'data-item-id' );
+        
+        // If still no ID, try to get from localStorage by matching experience title
+        if ( !itemId ) {
+            const $title = $experience.find( '.title h3' );
+            const titleText = $title.text().trim();
+            
+            try {
+                const BAG_STORAGE_KEY = 'journi_bag';
+                const bagItems = JSON.parse( localStorage.getItem( BAG_STORAGE_KEY ) || '[]' );
+                const matchingItem = bagItems.find( item => item.experienceTitle === titleText );
+                if ( matchingItem ) {
+                    itemId = matchingItem.id;
+                }
+            } catch ( error ) {
+                console.error( 'Error reading bag items:', error );
+            }
+        }
+        
+        if ( !itemId ) {
+            console.error( 'Could not find item ID to remove' );
+            return;
+        }
+        
+        console.log( 'Removing item from bag (jQuery):', itemId );
+        
+        // Remove from localStorage
+        try {
+            const BAG_STORAGE_KEY = 'journi_bag';
+            const bagItems = JSON.parse( localStorage.getItem( BAG_STORAGE_KEY ) || '[]' );
+            const filteredItems = bagItems.filter( item => item.id !== itemId );
+            localStorage.setItem( BAG_STORAGE_KEY, JSON.stringify( filteredItems ) );
+            
+            // Dispatch bag updated event
+            if ( typeof window !== 'undefined' ) {
+                window.dispatchEvent( new CustomEvent( 'bagUpdated' ) );
+            }
+            
+            // Remove the experience block from DOM immediately
+            if ( $block.length ) {
+                $block.remove();
+            } else if ( $experience.length ) {
+                $experience.closest( '.block' ).remove();
+            }
+            
+            // Check if bag is now empty and update UI
+            const remainingItems = JSON.parse( localStorage.getItem( BAG_STORAGE_KEY ) || '[]' );
+            if ( remainingItems.length === 0 ) {
+                // Reload page to show empty state
+                setTimeout( function() {
+                    window.location.reload();
+                }, 100 );
+            }
+            
+        } catch ( error ) {
+            console.error( 'Error removing item from bag:', error );
+        }
+    } );
+
+    // Handle Select to Bag button click
+    $( document ).on( 'click', '.experience .details .content .sections .section.two .blocks .block .options .blocks .block .option .blocks .block .buttons .button.small[data-button="1A"] .action', function( e ) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if ( typeof window === 'undefined' || !window.__API_EXPERIENCE__ ) {
+            console.error( 'Experience data not available' );
+            return;
+        }
+
+        const experience = window.__API_EXPERIENCE__;
+        const $button = $( this );
+        const $optionBlock = $button.closest( '.block[data-block="1BA"]' );
+        
+        // Get slot data from data attributes
+        const slotId = $optionBlock.attr( 'data-slot-id' ) || $button.attr( 'data-slot-id' ) || Date.now().toString();
+        const slotDate = $optionBlock.attr( 'data-slot-date' ) || new Date().toISOString();
+        const slotStartTime = $optionBlock.attr( 'data-slot-start-time' ) || '';
+        const slotEndTime = $optionBlock.attr( 'data-slot-end-time' ) || '';
+        const slotPrice = parseFloat( $optionBlock.attr( 'data-slot-price' ) ) || experience.price || 0;
+        
+        // Get experience image
+        const primaryImage = experience.images && experience.images.length > 0 
+            ? ( experience.images.find( img => img.isPrimary ) || experience.images[0] )
+            : null;
+        const imageUrl = primaryImage?.original || primaryImage?.medium || primaryImage?.large || '/assets/images/experiences/experience-1a.jpg';
+        
+        // Prepare bag item
+        const guests = 1;
+        const dateString = slotDate instanceof Date 
+            ? slotDate.toISOString() 
+            : ( typeof slotDate === 'string' ? slotDate : new Date().toISOString() );
+        
+        const bagItem = {
+            id: `${experience.id}-${slotId}-${Date.now()}`,
+            experienceId: experience.id,
+            experienceTitle: experience.title,
+            slug: experience.slug,
+            slotId: slotId,
+            date: dateString,
+            startTime: slotStartTime,
+            endTime: slotEndTime,
+            price: slotPrice,
+            guests: guests,
+            totalPrice: slotPrice * guests,
+            image: imageUrl
+        };
+        
+        // Add to bag using localStorage directly
+        try {
+            const BAG_STORAGE_KEY = 'journi_bag';
+            const bagItems = JSON.parse( localStorage.getItem( BAG_STORAGE_KEY ) || '[]' );
+            
+            // Check if item already exists
+            const existingIndex = bagItems.findIndex( 
+                item => item.slotId === bagItem.slotId && item.experienceId === bagItem.experienceId 
+            );
+            
+            if ( existingIndex >= 0 ) {
+                bagItems[existingIndex] = bagItem;
+            } else {
+                bagItems.push( bagItem );
+            }
+            
+            localStorage.setItem( BAG_STORAGE_KEY, JSON.stringify( bagItems ) );
+            
+            // Dispatch bag updated event
+            if ( typeof window !== 'undefined' ) {
+                window.dispatchEvent( new CustomEvent( 'bagUpdated' ) );
+            }
+            
+            // Open bag directly
+            $( 'body' ).addClass( 'active' );
+            $( '.bag' ).addClass( 'delay' );
+            setTimeout( function() {
+                $( '.bag' ).addClass( 'active' );
+            }, 100 );
+            
+        } catch ( error ) {
+            console.error( 'Error adding to bag:', error );
+        }
+    } );
+
     $( '.checkout .payment .content .sections .section .blocks .block .form .fields .fieldset .blocks .block .blocks .block .blocks .block[data-block="2BDB"] .icons' ).click(function() {
         const $wrapper = $( this ).closest( '.blocks' );
         const $input = $wrapper.find( '.input input' );
@@ -2131,26 +2283,15 @@
             }
         }
 
-        // Initialize selected filters list with any pre-selected languages (with active class)
-        // Always ensure English is selected and in the list
-        const englishLabel = 'English';
-        if ( window.selectedFilters.indexOf( englishLabel ) === -1 ) {
-            window.selectedFilters.push( englishLabel );
-        }
-        addSelectedFilter( englishLabel );
-        
-        // Also add any other pre-selected languages
+        // Initialize selected filters list with any pre-selected filters (with active class)
         $( '.filters .taxonomy ul li.active' ).each( function() {
             const $li = $( this );
             const label = $li.attr( 'aria-label' );
-            if ( label && label !== englishLabel && window.selectedFilters.indexOf( label ) === -1 ) {
+            if ( label && window.selectedFilters.indexOf( label ) === -1 ) {
                 window.selectedFilters.push( label );
                 addSelectedFilter( label );
             }
         } );
-        
-        // Ensure English language filter is always active
-        $( '.filters .taxonomy ul li[aria-label="' + englishLabel + '"]' ).addClass( 'active' );
 
         // Sliding behaviour similar to bag
         $modal.addClass( 'delay' );
@@ -2181,12 +2322,6 @@
     $( document ).on( 'click', '.filters .taxonomy ul li', function() {
         const $li = $( this );
         const label = $li.attr( 'aria-label' );
-        const englishLabel = 'English';
-        
-        // Prevent removing English from selection
-        if ( label === englishLabel && $li.hasClass( 'active' ) ) {
-            return; // Don't allow deselecting English
-        }
         
         if ( !$li.hasClass( 'active' ) ) {
             // Add filter
@@ -2196,7 +2331,7 @@
                 addSelectedFilter( label );
             }
         } else {
-            // Remove filter (but not English)
+            // Remove filter
             $li.removeClass( 'active' );
             const index = window.selectedFilters.indexOf( label );
             if ( index > -1 ) {
@@ -2204,6 +2339,9 @@
                 removeSelectedFilter( label );
             }
         }
+        
+        // Apply filters live immediately
+        applyFiltersToExperiences( window.selectedFilters );
     } );
 
     // Add Selected Filter to Terms List
@@ -2222,18 +2360,12 @@
         } );
         if ( exists ) return;
         
-        const englishLabel = 'English';
-        const isEnglish = label === englishLabel;
-        
         const $blocks = $( '<div>' ).addClass( 'blocks' ).attr( 'data-blocks', '4' )
             .append(
                 $( '<div>' ).addClass( 'block' ).attr( 'data-block', '1BAAA' )
                     .append( $( '<div>' ).addClass( 'text' ).text( label ) )
-            );
-        
-        // Only add cross button if not English
-        if ( !isEnglish ) {
-            $blocks.append(
+            )
+            .append(
                 $( '<div>' ).addClass( 'block' ).attr( 'data-block', '1BAAB' )
                     .append(
                         $( '<div>' ).addClass( 'icon' )
@@ -2241,7 +2373,6 @@
                             .data( 'filter-label', label )
                     )
             );
-        }
         
         const $li = $( '<li>' ).append( $blocks );
         $list.append( $li );
@@ -2249,13 +2380,6 @@
 
     // Remove Selected Filter from Terms List
     function removeSelectedFilter( label ) {
-        const englishLabel = 'English';
-        
-        // Prevent removing English
-        if ( label === englishLabel ) {
-            return;
-        }
-        
         const $list = $( '.filters .content .sections .section.two .blocks .block[data-block="1B"] .blocks .block[data-block="1BA"] .terms .blocks .block[data-block="1BAA"] .list ul' );
         $list.find( 'li' ).each( function() {
             if ( $( this ).find( '.text' ).text() === label ) {
@@ -2267,16 +2391,10 @@
         $( '.filters .taxonomy ul li[aria-label="' + label + '"]' ).removeClass( 'active' );
     }
 
-    // Remove Filter from Terms List
-    $( document ).on( 'click', '.filters .content .sections .section.two .blocks .block[data-block="1B"] .blocks .block[data-block="1BA"] .terms .blocks .block[data-block="1BAA"] .list ul li .icon', function( e ) {
+    // Remove Filter from Terms List - Make entire list item clickable
+    $( document ).on( 'click', '.filters .content .sections .section.two .blocks .block[data-block="1B"] .blocks .block[data-block="1BA"] .terms .blocks .block[data-block="1BAA"] .list ul li', function( e ) {
         e.stopPropagation();
-        const label = $( this ).data( 'filter-label' ) || $( this ).closest( 'li' ).find( '.text' ).text();
-        const englishLabel = 'English';
-        
-        // Prevent removing English
-        if ( label === englishLabel ) {
-            return;
-        }
+        const label = $( this ).find( '.text' ).text().trim();
         
         removeSelectedFilter( label );
         const index = window.selectedFilters.indexOf( label );
@@ -2286,19 +2404,21 @@
         
         // Also remove active class from taxonomy item
         $( '.filters .taxonomy ul li[aria-label="' + label + '"]' ).removeClass( 'active' );
+        
+        // Apply filters live immediately
+        applyFiltersToExperiences( window.selectedFilters );
     } );
 
-    // Reset All Filters (but keep English)
+    // Reset All Filters
     $( document ).on( 'click', '.filters .button.text[data-button="3A"]', function() {
-        const englishLabel = 'English';
-        window.selectedFilters = [ englishLabel ];
+        window.selectedFilters = [];
         const $list = $( '.filters .content .sections .section.two .blocks .block[data-block="1B"] .blocks .block[data-block="1BA"] .terms .blocks .block[data-block="1BAA"] .list ul' );
         $list.empty();
-        // Re-add English
-        addSelectedFilter( englishLabel );
-        // Remove active class from all except English
+        // Remove active class from all
         $( '.filters .taxonomy ul li' ).removeClass( 'active' );
-        $( '.filters .taxonomy ul li[aria-label="' + englishLabel + '"]' ).addClass( 'active' );
+        
+        // Apply filters live immediately (show all experiences)
+        applyFiltersToExperiences( [] );
     } );
 
     // Show Results Button - Apply Filters

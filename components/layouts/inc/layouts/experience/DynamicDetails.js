@@ -132,81 +132,112 @@ export default function DynamicDetails({ experience, reviews = [] }) {
     return icons[type] || 'icons8-info';
   };
 
-  const handleSelectSlot = (slot) => {
-    if (typeof window === 'undefined') return;
-
-    // Get experience image
-    const primaryImage = experienceData.images?.find(img => img.isPrimary) || experienceData.images?.[0];
-    const imageUrl = primaryImage?.original || primaryImage?.medium || '/assets/images/experiences/experience-1a.jpg';
-
-    // Prepare bag item
-    const slotPrice = slot.price || experienceData.price || 0;
-    const guests = 1; // Default to 1 guest, can be made dynamic later
-    
-    // Normalize date format - ensure it's a string in ISO format
-    let dateString;
-    if (slot.date instanceof Date) {
-      dateString = slot.date.toISOString();
-    } else if (typeof slot.date === 'string') {
-      // If it's already a string, use it as-is
-      dateString = slot.date;
-    } else {
-      // Fallback to current date if invalid
-      dateString = new Date().toISOString();
+  const handleSelectSlot = (slot, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
     
-    const bagItem = {
-      id: `${experienceData.id}-${slot.id}-${Date.now()}`,
-      experienceId: experienceData.id,
-      experienceTitle: experienceData.title,
-      slug: experienceData.slug,
-      slotId: slot.id,
-      date: dateString,
-      startTime: slot.startTime,
-      endTime: slot.endTime,
-      price: slotPrice,
-      guests: guests,
-      totalPrice: slotPrice * guests,
-      image: imageUrl,
-    };
+    if (typeof window === 'undefined') {
+      console.error('handleSelectSlot: window is undefined');
+      return;
+    }
 
-    // Add to bag
-    bagAPI.add(bagItem);
-    
-    // Open bag sidebar with smooth animation
-    const openBagSmoothly = () => {
-      const bagElement = document.querySelector('section.bag');
-      if (bagElement) {
-        // First, make it visible with delay class (off-screen)
-        bagElement.classList.add('delay');
-        // Add body class for overlay management
-        if (document.body) {
-          document.body.classList.add('bag-active');
-          document.body.style.overflow = 'hidden';
-        }
-        // Use requestAnimationFrame to ensure smooth transition
-        requestAnimationFrame(() => {
-          // Now add active class to trigger slide-in animation
-          bagElement.classList.add('active');
-        });
-        return true;
+    if (!experienceData || !experienceData.id) {
+      console.error('handleSelectSlot: experienceData is missing or invalid', experienceData);
+      return;
+    }
+
+    if (!slot || !slot.id) {
+      console.error('handleSelectSlot: slot is missing or invalid', slot);
+      return;
+    }
+
+    try {
+      // Get experience image
+      const primaryImage = experienceData.images?.find(img => img.isPrimary) || experienceData.images?.[0];
+      const imageUrl = primaryImage?.original || primaryImage?.medium || '/assets/images/experiences/experience-1a.jpg';
+
+      // Prepare bag item
+      const slotPrice = slot.price || experienceData.price || 0;
+      const guests = 1; // Default to 1 guest, can be made dynamic later
+      
+      // Normalize date format - ensure it's a string in ISO format
+      let dateString;
+      if (slot.date instanceof Date) {
+        dateString = slot.date.toISOString();
+      } else if (typeof slot.date === 'string') {
+        // If it's already a string, use it as-is
+        dateString = slot.date;
+      } else {
+        // Fallback to current date if invalid
+        dateString = new Date().toISOString();
       }
-      return false;
-    };
+      
+      const bagItem = {
+        id: `${experienceData.id}-${slot.id}-${Date.now()}`,
+        experienceId: experienceData.id,
+        experienceTitle: experienceData.title,
+        slug: experienceData.slug,
+        slotId: slot.id,
+        date: dateString,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        price: slotPrice,
+        guests: guests,
+        totalPrice: slotPrice * guests,
+        image: imageUrl,
+      };
 
-    // Try to open immediately
-    if (!openBagSmoothly()) {
-      // If not found immediately, try with a very short delay
-      setTimeout(() => {
-        if (!openBagSmoothly()) {
-          // Last attempt after slightly longer delay
-          setTimeout(openBagSmoothly, 100);
+      console.log('Adding to bag:', bagItem);
+
+      // Add to bag
+      const result = bagAPI.add(bagItem);
+      
+      if (!result) {
+        console.error('Failed to add item to bag');
+        return;
+      }
+
+      console.log('Item added to bag successfully');
+      
+      // Open bag sidebar with smooth animation
+      const openBagSmoothly = () => {
+        const bagElement = document.querySelector('section.bag');
+        if (bagElement) {
+          // First, make it visible with delay class (off-screen)
+          bagElement.classList.add('delay');
+          // Add body class for overlay management
+          if (document.body) {
+            document.body.classList.add('bag-active');
+            document.body.style.overflow = 'hidden';
+          }
+          // Use requestAnimationFrame to ensure smooth transition
+          requestAnimationFrame(() => {
+            // Now add active class to trigger slide-in animation
+            bagElement.classList.add('active');
+          });
+          return true;
         }
-      }, 10);
+        return false;
+      };
+
+      // Try to open immediately
+      if (!openBagSmoothly()) {
+        // If not found immediately, try with a very short delay
+        setTimeout(() => {
+          if (!openBagSmoothly()) {
+            // Last attempt after slightly longer delay
+            setTimeout(openBagSmoothly, 100);
+          }
+        }, 10);
+      }
+      
+      // Force a reload of bag items after adding
+      window.dispatchEvent(new CustomEvent('bagUpdated'));
+    } catch (error) {
+      console.error('Error in handleSelectSlot:', error);
     }
-    
-    // Force a reload of bag items after adding
-    window.dispatchEvent(new CustomEvent('bagUpdated'));
   };
 
   return (
@@ -577,7 +608,7 @@ export default function DynamicDetails({ experience, reviews = [] }) {
                       <div className="options">
                         <div className="blocks" data-blocks="4">
                           {availabilitySlots.map((slot, idx) => (
-                            <div key={slot.id || idx} className="block" data-block="1BA">
+                            <div key={slot.id || idx} className="block" data-block="1BA" data-slot-id={slot.id} data-slot-date={slot.date} data-slot-start-time={slot.startTime} data-slot-end-time={slot.endTime} data-slot-price={slot.price || experienceData.price}>
                               <div className="option">
                                 <div className="blocks" data-blocks="5">
                                   <div className="block" data-block="1BAA">
@@ -598,8 +629,9 @@ export default function DynamicDetails({ experience, reviews = [] }) {
                                       <div className="button small" data-button="1A">
                                         <div 
                                           className="action" 
-                                          onClick={() => handleSelectSlot(slot)}
+                                          onClick={(e) => handleSelectSlot(slot, e)}
                                           style={{ cursor: 'pointer' }}
+                                          data-slot-id={slot.id}
                                         >
                                           <div className="text">Select</div>
                                           <div className="background"></div>
