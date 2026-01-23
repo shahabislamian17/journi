@@ -70,6 +70,24 @@ export default function Form() {
     setShowPassword(!showPassword);
   };
 
+  // Read URL parameters and pre-fill form
+  useEffect(() => {
+    if (typeof window !== 'undefined' && router.isReady) {
+      const { firstName, lastName, email, password, accountType } = router.query;
+      
+      if (firstName || lastName || email || password || accountType) {
+        setFormData(prev => ({
+          ...prev,
+          ...(firstName && typeof firstName === 'string' ? { firstName: decodeURIComponent(firstName) } : {}),
+          ...(lastName && typeof lastName === 'string' ? { lastName: decodeURIComponent(lastName) } : {}),
+          ...(email && typeof email === 'string' ? { email: decodeURIComponent(email) } : {}),
+          ...(password && typeof password === 'string' ? { password: decodeURIComponent(password) } : {}),
+          ...(accountType && typeof accountType === 'string' ? { accountType: decodeURIComponent(accountType) } : {}),
+        }));
+      }
+    }
+  }, [router.isReady, router.query]);
+
   // Update select label position when value changes
   useEffect(() => {
     if (typeof window !== 'undefined') {

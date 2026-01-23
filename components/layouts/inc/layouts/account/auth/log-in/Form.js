@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { authAPI } from '../../../../../../../lib/api';
@@ -15,6 +15,27 @@ export default function Form() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Read URL parameters and pre-fill form
+  useEffect(() => {
+    if (typeof window !== 'undefined' && router.isReady) {
+      const { email, password } = router.query;
+      
+      if (email && typeof email === 'string') {
+        setFormData(prev => ({
+          ...prev,
+          email: decodeURIComponent(email)
+        }));
+      }
+      
+      if (password && typeof password === 'string') {
+        setFormData(prev => ({
+          ...prev,
+          password: decodeURIComponent(password)
+        }));
+      }
+    }
+  }, [router.isReady, router.query]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
