@@ -15,6 +15,7 @@
             html.classList.add( 'mac' );
         }
 
+        
         if ( /chrome|crios/i.test(ua) && !/edge|edg|opr|opera/i.test(ua) ) {
             html.classList.add( 'chrome' );
         } else if ( /firefox|fxios/i.test(ua) ) {
