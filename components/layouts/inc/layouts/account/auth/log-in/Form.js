@@ -42,16 +42,30 @@ export default function Form() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    // CRITICAL: Prevent default form submission
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Validate form
+    if (!formData.email || !formData.password) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
     setError('');
     setIsLoading(true);
 
+    console.log('[Login] Form submitted', { email: formData.email, hasPassword: !!formData.password });
+
     try {
+      console.log('[Login] Calling API...');
       const response = await authAPI.login({
         email: formData.email,
         password: formData.password,
       });
+      console.log('[Login] API response received', { hasToken: !!response.token });
 
       // Store token in localStorage
       if (response.token) {
@@ -76,6 +90,7 @@ export default function Form() {
         return; // Prevent any further execution
       }
     } catch (error) {
+      console.error('[Login] Error:', error);
       // Prevent error from bubbling up in development
       if (error && error.message) {
         const errorMessage = error.message.includes('Invalid credentials') 
@@ -135,7 +150,16 @@ export default function Form() {
           <div className="section two">
             <div className="blocks" data-blocks="1">
               <div className="block" data-block="1">
-                <form className="form" data-form="log-in" method="post" onSubmit={handleSubmit}>
+                <form 
+                  className="form" 
+                  data-form="log-in" 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSubmit(e);
+                  }}
+                  noValidate
+                >
                   {error && (
                     <div style={{ 
                       color: 'red', 

@@ -28,9 +28,22 @@ export default function Form() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    // CRITICAL: Prevent default form submission
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Validate form
+    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.accountType) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
     setError('');
     setIsLoading(true);
+
+    console.log('[Register] Form submitted', { email: formData.email, hasPassword: !!formData.password, accountType: formData.accountType });
 
     try {
       // Convert accountType (Traveller/Host) to role (TRAVELLER/HOST) for API
@@ -38,6 +51,7 @@ export default function Form() {
         ? 'HOST' 
         : 'TRAVELLER'; // Default to TRAVELLER
       
+      console.log('[Register] Calling API...');
       const response = await authAPI.register({
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -48,16 +62,18 @@ export default function Form() {
       });
 
       // Store token in localStorage and cookies
+      console.log('[Register] API response received', { hasToken: !!response.token });
       if (response.token) {
         localStorage.setItem('token', response.token);
         // Also set cookie for server-side access
         document.cookie = `token=${response.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
         
+        console.log('[Register] Token stored, redirecting...');
         // Redirect to bookings page (same behavior as login)
         router.push('/account/bookings');
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('[Register] Error:', error);
       setError(error.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
@@ -150,7 +166,16 @@ export default function Form() {
           <div className="section two">
             <div className="blocks" data-blocks="1">
               <div className="block" data-block="1">
-                <form className="form" data-form="register" method="post" onSubmit={handleSubmit}>
+                <form 
+                  className="form" 
+                  data-form="register" 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSubmit(e);
+                  }}
+                  noValidate
+                >
                   {error && (
                     <div style={{ 
                       color: 'red', 
