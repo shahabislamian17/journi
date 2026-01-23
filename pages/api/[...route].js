@@ -103,32 +103,37 @@ function handler(req, res) {
   const finalUrl = fullPath + queryString;
   
   // Update request object for Express
-  // Express expects req.url and req.path to match its route definitions
-  const expressReq = Object.create(req);
-  expressReq.url = finalUrl;
-  expressReq.path = fullPath;
-  expressReq.originalUrl = finalUrl;
-  expressReq.baseUrl = '';
-  expressReq.params = {};
-
-  // Ensure body is available - Next.js will parse it with bodyParser config
-  // Copy all request properties to Express request
-  if (req.body) {
-    expressReq.body = req.body;
+  // Use the original req object but modify URL properties
+  // This ensures all request properties (including body) are properly available
+  const expressReq = req;
+  
+  // Override URL-related properties for Express routing
+  const originalUrl = req.url;
+  const originalPath = req.path;
+  const originalOriginalUrl = req.originalUrl;
+  const originalBaseUrl = req.baseUrl;
+  
+  // Set Express routing properties
+  Object.defineProperty(expressReq, 'url', { value: finalUrl, writable: true, configurable: true });
+  Object.defineProperty(expressReq, 'path', { value: fullPath, writable: true, configurable: true });
+  Object.defineProperty(expressReq, 'originalUrl', { value: finalUrl, writable: true, configurable: true });
+  Object.defineProperty(expressReq, 'baseUrl', { value: '', writable: true, configurable: true });
+  
+  // Ensure params is an object
+  if (!expressReq.params) {
+    expressReq.params = {};
   }
   
-  // Copy headers to ensure Express gets all necessary headers
-  expressReq.headers = { ...req.headers };
-  
-  // Ensure Content-Type is preserved for Express body parsing
-  if (req.headers['content-type']) {
-    expressReq.headers['content-type'] = req.headers['content-type'];
+  // Log body for debugging POST requests
+  if (req.method === 'POST' || req.method === 'PUT') {
+    console.log('[Bridge] Request body:', {
+      hasBody: !!req.body,
+      bodyType: req.body ? typeof req.body : 'undefined',
+      bodyKeys: req.body && typeof req.body === 'object' ? Object.keys(req.body) : [],
+      contentType: req.headers['content-type'],
+      bodyPreview: req.body ? JSON.stringify(req.body).substring(0, 200) : 'no body'
+    });
   }
-  
-  // Mark that body is already parsed (so Express doesn't try to parse again)
-  // We'll handle this by not using Express body parser middleware for these requests
-  // But since we're passing through, Express will still try to parse
-  // So we need to ensure the body is in the right format
 
   // Log the path being sent to Express for debugging
   console.log('[Bridge] Passing to Express:', {

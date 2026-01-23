@@ -70,22 +70,17 @@ export default function Form() {
     setShowPassword(!showPassword);
   };
 
-  // SECURITY: Remove email and password from URL immediately on page load
-  // Never read credentials from URL - only use POST body
+  // SECURITY: Never read email/password from URL - only use POST body
+  // Only pre-fill non-sensitive fields if needed
   useEffect(() => {
     if (typeof window !== 'undefined' && router.isReady) {
-      const { firstName, lastName, email, password, accountType } = router.query;
+      const { firstName, lastName, accountType } = router.query;
       
-      // If credentials are in URL, remove them immediately
-      if (email || password) {
+      // Remove email and password from URL if present
+      if (router.query.email || router.query.password) {
         const newQuery = { ...router.query };
         delete newQuery.email;
         delete newQuery.password;
-        
-        // Only keep non-sensitive fields if needed (firstName, lastName, accountType are OK)
-        // But for security, we'll remove email and password only
-        
-        // Update URL without credentials
         router.replace({
           pathname: router.pathname,
           query: newQuery
@@ -155,7 +150,7 @@ export default function Form() {
           <div className="section two">
             <div className="blocks" data-blocks="1">
               <div className="block" data-block="1">
-                <form className="form" data-form="register" onSubmit={handleSubmit}>
+                <form className="form" data-form="register" method="post" onSubmit={handleSubmit}>
                   {error && (
                     <div style={{ 
                       color: 'red', 
