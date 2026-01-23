@@ -828,7 +828,7 @@ export default function DynamicDetails({ experience, reviews = [] }) {
                   <div className="block" data-block="2C">
                     <div className="buttons">
                       <div className="button small" data-button="2A">
-                        <a className="action" href={`/account/messages?host=${experienceData.hostId || ''}`}>
+                        <a className="action" href={`/account/messages?host=${experienceData.hostId || ''}&experience=${experienceData.id || ''}`}>
                           <div className="text">Message Host</div>
                         </a>
                       </div>

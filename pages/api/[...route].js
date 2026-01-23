@@ -5,14 +5,50 @@
 const path = require('path');
 
 // Get Express app instance (singleton pattern for serverless)
-let expressApp;
-if (!global.__expressApp) {
-  // Import the Express app from backend/app.js
-  const appPath = path.join(process.cwd(), 'backend', 'app.js');
-  expressApp = require(appPath);
-  global.__expressApp = expressApp;
-} else {
-  expressApp = global.__expressApp;
+// Use lazy loading to avoid webpack trying to bundle it at build time
+function getExpressApp() {
+  if (global.__expressApp) {
+    return global.__expressApp;
+  }
+  
+  try {
+    // Import the Express app from backend/app.js
+    // Build path using variables that webpack can't statically analyze
+    const fs = require('fs');
+    const cwd = process.cwd(); // Get at runtime, not build time
+    const parts = ['backend', 'app.js']; // Split path to prevent static analysis
+    const appPath = path.join(cwd, ...parts);
+    
+    // Verify file exists
+    if (!fs.existsSync(appPath)) {
+      throw new Error(`Backend app.js not found at: ${appPath}`);
+    }
+    
+    // Use eval with a template string to prevent webpack from analyzing
+    // This is safe because it only runs server-side
+    const appModule = eval(`require(${JSON.stringify(appPath)})`);
+    
+    global.__expressApp = appModule;
+    console.log('[API] Express app loaded successfully from:', appPath);
+    return appModule;
+  } catch (error) {
+    console.error('[API] Failed to load Express app:', error);
+    console.error('[API] Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    // Create error handler that returns proper error
+    const errorHandler = (req, res, next) => {
+      res.status(500).json({ 
+        error: 'Backend server not available',
+        message: error.message || 'Failed to load Express app',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    };
+    global.__expressApp = errorHandler;
+    return errorHandler;
+  }
 }
 
 // Handler function
@@ -36,8 +72,23 @@ function handler(req, res) {
     segments = [routeSegments];
   }
 
+  // If no segments, try to extract from URL
+  if (segments.length === 0 && req.url) {
+    const urlPath = req.url.split('?')[0]; // Remove query string
+    const pathParts = urlPath.split('/').filter(Boolean);
+    if (pathParts[0] === 'api' && pathParts.length > 1) {
+      segments = pathParts.slice(1); // Get everything after /api
+    }
+  }
+
   // Reconstruct full path - ALWAYS include /api prefix
   let fullPath = '/api/' + segments.join('/');
+  
+  // Ensure we have a valid path
+  if (segments.length === 0) {
+    console.error('[Bridge] No route segments found. URL:', req.url, 'Query:', req.query);
+    return res.status(404).json({ error: 'API route not found' });
+  }
   
   // Reconstruct query string (remove the 'route' param)
   const cleanQuery = { ...req.query };
@@ -72,12 +123,25 @@ function handler(req, res) {
     path: expressReq.path
   });
 
+  // Get Express app (lazy load to avoid webpack bundling)
+  const expressApp = getExpressApp();
+  
   // Call Express app - it will handle routing, method matching, param extraction, etc.
   // Express will call the appropriate route handler based on path and method
   // Wrap in Promise to prevent Vercel from killing the function early
   return new Promise((resolve, reject) => {
+    // Set a timeout to ensure we always respond
+    const timeout = setTimeout(() => {
+      if (!res.headersSent) {
+        console.error('[Bridge] Timeout - no response from Express');
+        res.status(500).json({ error: 'Request timeout' });
+        resolve();
+      }
+    }, 30000); // 30 second timeout
+
     // Express app is a function that takes (req, res, next)
     expressApp(expressReq, res, (err) => {
+      clearTimeout(timeout);
       if (err) {
         console.error('[Bridge Error]:', err);
         if (!res.headersSent) {
@@ -89,8 +153,8 @@ function handler(req, res) {
       }
       // Response should have been sent by Express
       if (!res.headersSent) {
-        console.error('[Bridge] No response sent by Express');
-        res.status(500).json({ error: 'No response from Express handler' });
+        console.error('[Bridge] No response sent by Express for:', fullPath);
+        res.status(404).json({ error: 'Route not found in Express', path: fullPath });
       }
       resolve();
     });

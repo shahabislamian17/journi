@@ -808,7 +808,7 @@ input::-ms-clear {
 .form .fields .fieldset .blocks .block .blocks .block .icons .icon {
     left: 50%;
     position: absolute;
-    top: 50%;
+    top: calc(50% + 0.025em);
     transform: translate(-50%, -50%);
     -webkit-transform: translate(-50%, -50%);
 }
@@ -855,15 +855,15 @@ input::-ms-clear {
     cursor: pointer;
     margin: -0.0125em 0 0;
     padding: 0 5px 0 0;
-    width: 20px;
+    width: 20px !important;
 }
 
 .form .fields .fieldset .blocks .block .checkbox .blocks .block:nth-child(2) {
-    width: calc(100% - 25px);
+    width: calc(100% - 25px) !important;
 }
 
 .form .fields .fieldset .blocks .block .checkbox .blocks .block .icons .icon {
-    font-size: 15px;
+    font-size: 16px;
 }
 
 .form .fields .fieldset .blocks .block .checkbox .blocks .block .text {
@@ -872,7 +872,7 @@ input::-ms-clear {
     font-weight: 390;
     letter-spacing: -0.00375em;
     line-height: 1.425em;
-    margin: calc(1px + 0.05em) 0 0;
+    margin: calc(1px + 0.025em) 0 0;
 }
 
 @media {
@@ -880,6 +880,25 @@ input::-ms-clear {
         font-size: 0.8875em;
         font-weight: 440;
     }
+}
+
+.form .message {
+    border: 1px solid #F5F5F6;
+    border-radius: 8px;
+    box-sizing: border-box;
+    display: flex;
+    float: left;
+    justify-content: center;
+    margin: 35px 0 0;
+    padding: 20px 25px;
+    text-align: center;
+    width: 100%;
+}
+
+.form .message .text {
+    float: left;
+    max-width: 275px;
+    width: 100%;
 }
 
 input {
@@ -915,6 +934,16 @@ input {
         letter-spacing: 0;
         line-height: 2.625em;
     }
+}
+
+input[type='checkbox'] {
+    visibility: hidden;
+    padding: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
 }
 
 input[type='number'] {
@@ -13455,6 +13484,7 @@ html:not(.mobile) .experience .navigation .content .sections .section.one .block
 
 .experience .details .content .sections .section.one .itinerary .content .sections .section .blocks .block .activities .blocks .block .activity .blocks .block .text p.small.four {
     font-weight: 405;
+    text-transform: capitalize;
 }
 
 @media {
@@ -21639,6 +21669,18 @@ html:not(.mobile) .account .experience .panel .content .sections .section.two .b
         gap: 10px 0;
         grid-template-columns: repeat(1, minmax(0, 1fr));
     }
+}
+
+.account .experience .panel .content .sections .section.three .blocks .block .form .tabs .tab[data-tab='Availability'] .fields .fieldset[data-fieldset='1'] .blocks .block[data-block='1BB'] {
+    margin: 7px 0 19px;
+}
+
+.account .experience .panel .content .sections .section.three .blocks .block .form .tabs .tab[data-tab='Availability'] .fields .fieldset[data-fieldset='1'] .blocks .block .checkbox {
+    margin: 0 0 2px;
+}
+
+.account .experience .panel .content .sections .section.three .blocks .block .form .tabs .tab[data-tab='Availability'] .fields .fieldset[data-fieldset='1'] .blocks .block .checkbox:last-child {
+    margin: 0 0 2px;
 }
 
 .account .experience .panel .content .sections .section.three .blocks .block .form .tabs .tab .fields .fieldset .blocks .block[data-block='1A'] {

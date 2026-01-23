@@ -14,6 +14,35 @@ const nextConfig = {
   
   // Webpack configuration to handle server-only modules
   webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Exclude backend directory from webpack bundling completely
+      const originalExternals = config.externals || [];
+      config.externals = [
+        ...(Array.isArray(originalExternals) ? originalExternals : [originalExternals]),
+        // Function-based externals for dynamic requires
+        ({ request, context }, callback) => {
+          // Exclude any require that points to backend directory
+          if (request && typeof request === 'string') {
+            if (request.includes('backend/app.js') || 
+                request.includes('backend/') ||
+                request.endsWith('backend/app.js')) {
+              return callback(null, `commonjs ${request}`);
+            }
+            // Also check resolved path
+            try {
+              const resolvedPath = require('path').resolve(context || process.cwd(), request);
+              if (resolvedPath.includes('backend') && resolvedPath.includes('app.js')) {
+                return callback(null, `commonjs ${request}`);
+              }
+            } catch (e) {
+              // Ignore path resolution errors
+            }
+          }
+          callback();
+        }
+      ];
+    }
+    
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,

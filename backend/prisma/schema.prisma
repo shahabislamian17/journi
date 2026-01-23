@@ -11,37 +11,40 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
+  id            String   @id @default(uuid())
+  email         String   @unique
   password      String
-  firstName     String?   @map("first_name")
-  lastName      String?   @map("last_name")
+  firstName     String?  @map("first_name")
+  lastName      String?  @map("last_name")
   phone         String?
   avatar        String?
-  languages     String?   @db.Text // JSON array of languages for HOST users
-  role          String    @default("TRAVELLER") // TRAVELLER or HOST
-  emailVerified Boolean   @default(false) @map("email_verified")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  languages     String?  @db.Text // JSON array of languages for HOST users
+  role          String   @default("TRAVELLER") // TRAVELLER or HOST
+  emailVerified Boolean  @default(false) @map("email_verified")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  bookings      Booking[]
-  wishlistItems WishlistItem[]
-  messages      Message[]
-  reviews       Review[]
-  websiteReviews WebsiteReview[]
+  bookings                    Booking[]
+  wishlistItems               WishlistItem[]
+  messages                    Message[]
+  reviews                     Review[]
+  websiteReviews              WebsiteReview[]
+  conversationsAsParticipant1 Conversation[]        @relation("ConversationsAsParticipant1")
+  conversationsAsParticipant2 Conversation[]        @relation("ConversationsAsParticipant2")
+  conversationMessages        ConversationMessage[]
 
   @@map("users")
 }
 
 model Category {
-  id          String       @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
-  slug        String       @unique
+  slug        String   @unique
   description String?
   image       String?
   banner      String?
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   experiences Experience[]
 
@@ -49,121 +52,122 @@ model Category {
 }
 
 model Experience {
-  id          String       @id @default(uuid())
-  title       String
-  slug        String       @unique
-  description String?      @db.Text
-  categoryId  String       @map("category_id")
-  duration    String?      // e.g., "4 Hours"
-  hours       Float?       // numeric hours for sorting
-  price       Float
-  rating      Float        @default(0)
-  featured    Boolean      @default(false)
-  isNew       Boolean      @default(false) @map("is_new")
-  location    String?
-  itinerary   String?      @db.Text
-  hostId      String?      @map("host_id")
-  hostName    String?      @map("host_name")
-  hostImage   String?      @map("host_image")
-  languages   String?      @db.Text // JSON array of languages
-  includedItems String?    @db.Text @map("included_items") // JSON array of included items
-  requirements String?     @db.Text // Requirements text
-  accessibility String?    @db.Text // Accessibility information
-  cancellationPolicy String? @db.Text @map("cancellation_policy") // Cancellation policy
-  locationDetails String?  @db.Text @map("location_details") // Detailed location info
-  latitude    Float?
-  longitude   Float?
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  id                 String   @id @default(uuid())
+  title              String
+  slug               String   @unique
+  description        String?  @db.Text
+  categoryId         String   @map("category_id")
+  duration           String? // e.g., "4 Hours"
+  hours              Float? // numeric hours for sorting
+  price              Float
+  rating             Float    @default(0)
+  featured           Boolean  @default(false)
+  isNew              Boolean  @default(false) @map("is_new")
+  location           String?
+  itinerary          String?  @db.Text
+  hostId             String?  @map("host_id")
+  hostName           String?  @map("host_name")
+  hostImage          String?  @map("host_image")
+  languages          String?  @db.Text // JSON array of languages
+  includedItems      String?  @map("included_items") @db.Text // JSON array of included items
+  requirements       String?  @db.Text // Requirements text
+  accessibility      String?  @db.Text // Accessibility information
+  cancellationPolicy String?  @map("cancellation_policy") @db.Text // Cancellation policy
+  locationDetails    String?  @map("location_details") @db.Text // Detailed location info
+  latitude           Float?
+  longitude          Float?
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
-  category    Category     @relation(fields: [categoryId], references: [id])
-  images      ExperienceImage[]
-  bookings    Booking[]
-  wishlistItems WishlistItem[]
-  reviews     Review[]
+  category          Category           @relation(fields: [categoryId], references: [id])
+  images            ExperienceImage[]
+  bookings          Booking[]
+  wishlistItems     WishlistItem[]
+  reviews           Review[]
   availabilitySlots AvailabilitySlot[]
+  conversations     Conversation[]
 
   @@map("experiences")
 }
 
 model ExperienceImage {
-  id           String     @id @default(uuid())
-  experienceId String    @map("experience_id")
+  id           String   @id @default(uuid())
+  experienceId String   @map("experience_id")
   original     String
   large        String?
   medium       String?
   small        String?
   thumbnail    String?
-  isPrimary    Boolean    @default(false) @map("is_primary")
-  order        Int        @default(0)
-  createdAt    DateTime   @default(now()) @map("created_at")
+  isPrimary    Boolean  @default(false) @map("is_primary")
+  order        Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at")
 
-  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  experience Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
 
   @@map("experience_images")
 }
 
 model Booking {
-  id            String    @id @default(uuid())
-  userId        String    @map("user_id")
-  experienceId  String    @map("experience_id")
-  date          DateTime
-  guests        Int       @default(1)
-  totalPrice    Float     @map("total_price")
-  status        String    @default("pending") // pending, confirmed, cancelled, completed
-  paymentStatus String    @default("pending") @map("payment_status") // pending, paid, refunded
-  paymentIntentId String? @map("payment_intent_id")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  experienceId    String   @map("experience_id")
+  date            DateTime
+  guests          Int      @default(1)
+  totalPrice      Float    @map("total_price")
+  status          String   @default("pending") // pending, confirmed, cancelled, completed
+  paymentStatus   String   @default("pending") @map("payment_status") // pending, paid, refunded
+  paymentIntentId String?  @map("payment_intent_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  user          User      @relation(fields: [userId], references: [id])
-  experience    Experience @relation(fields: [experienceId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+  experience Experience @relation(fields: [experienceId], references: [id])
 
   @@map("bookings")
 }
 
 model WishlistItem {
-  id          String     @id @default(uuid())
-  userId      String     @map("user_id")
-  experienceId String    @map("experience_id")
-  createdAt   DateTime   @default(now()) @map("created_at")
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  experienceId String   @map("experience_id")
+  createdAt    DateTime @default(now()) @map("created_at")
 
-  user        User       @relation(fields: [userId], references: [id])
-  experience  Experience @relation(fields: [experienceId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+  experience Experience @relation(fields: [experienceId], references: [id])
 
   @@unique([userId, experienceId])
   @@map("wishlist_items")
 }
 
 model Review {
-  id          String     @id @default(uuid())
-  userId      String     @map("user_id")
-  experienceId String    @map("experience_id")
-  bookingId   String?    @unique @map("booking_id")
-  rating      Int        // 1-5
-  comment     String?    @db.Text
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  experienceId String   @map("experience_id")
+  bookingId    String?  @unique @map("booking_id")
+  rating       Int // 1-5
+  comment      String?  @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  user        User       @relation(fields: [userId], references: [id])
-  experience  Experience @relation(fields: [experienceId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+  experience Experience @relation(fields: [experienceId], references: [id])
 
   @@map("reviews")
 }
 
 model WebsiteReview {
-  id          String     @id @default(uuid())
-  userId      String     @map("user_id")
-  rating      Int        // 1-5
-  comment     String?    @db.Text
-  featured    Boolean    @default(false) // For home page display
-  reviewCount Int?       @map("review_count") // Number of reviews by this user (e.g., "3 Reviews")
-  localGuide  Boolean    @default(false) @map("local_guide") // "Local Guide" badge
-  source      String     @default("Google") // Review source (Google, etc.)
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  rating      Int // 1-5
+  comment     String?  @db.Text
+  featured    Boolean  @default(false) // For home page display
+  reviewCount Int?     @map("review_count") // Number of reviews by this user (e.g., "3 Reviews")
+  localGuide  Boolean  @default(false) @map("local_guide") // "Local Guide" badge
+  source      String   @default("Google") // Review source (Google, etc.)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  user        User       @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@map("website_reviews")
 }
@@ -176,24 +180,56 @@ model Message {
   read      Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
 
-  user      User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@map("messages")
 }
 
-model AvailabilitySlot {
-  id           String     @id @default(uuid())
-  experienceId String     @map("experience_id")
-  date         DateTime
-  startTime    String?    @map("start_time") // e.g., "10:30"
-  endTime      String?    @map("end_time") // e.g., "14:00"
-  price        Float?     // Override price for this slot
-  maxGuests    Int?       @default(10) @map("max_guests")
-  available    Boolean    @default(true)
-  createdAt    DateTime   @default(now()) @map("created_at")
-  updatedAt    DateTime   @updatedAt @map("updated_at")
+model Conversation {
+  id             String    @id @default(uuid())
+  participant1Id String    @map("participant1_id")
+  participant2Id String    @map("participant2_id")
+  experienceId   String?   @map("experience_id")
+  lastMessageAt  DateTime? @map("last_message_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  participant1 User                  @relation("ConversationsAsParticipant1", fields: [participant1Id], references: [id])
+  participant2 User                  @relation("ConversationsAsParticipant2", fields: [participant2Id], references: [id])
+  experience   Experience?           @relation(fields: [experienceId], references: [id])
+  messages     ConversationMessage[]
+
+  @@unique([participant1Id, participant2Id, experienceId])
+  @@map("conversations")
+}
+
+model ConversationMessage {
+  id             String   @id @default(uuid())
+  conversationId String   @map("conversation_id")
+  senderId       String   @map("sender_id")
+  message        String   @db.Text
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id])
+
+  @@map("conversation_messages")
+}
+
+model AvailabilitySlot {
+  id           String   @id @default(uuid())
+  experienceId String   @map("experience_id")
+  date         DateTime
+  startTime    String?  @map("start_time") // e.g., "10:30"
+  endTime      String?  @map("end_time") // e.g., "14:00"
+  price        Float? // Override price for this slot
+  maxGuests    Int?     @default(10) @map("max_guests")
+  available    Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  experience Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
 
   @@map("availability_slots")
 }
@@ -217,7 +253,7 @@ model Stay {
 model Car {
   id          String   @id @default(uuid())
   name        String
-  type        String   // e.g., "Compact", "Luxury SUV", "Sport"
+  type        String // e.g., "Compact", "Luxury SUV", "Sport"
   price       Float
   image       String
   featured    Boolean  @default(false)
@@ -227,4 +263,3 @@ model Car {
 
   @@map("cars")
 }
-

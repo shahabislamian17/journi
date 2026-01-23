@@ -857,26 +857,13 @@ if (typeof $ !== 'undefined') {
         // Open dates modal on page load if URL has date parameters
         $(document).ready(function() {
             const urlParams = new URLSearchParams(window.location.search);
-            const checkInDate = urlParams.get('checkInDate');
-            const checkOutDate = urlParams.get('checkOutDate');
-            
-            // If dates are in URL, open the dates modal after a short delay to ensure Vue is ready
-            if (checkInDate || checkOutDate) {
-                setTimeout(function() {
-                    var $modal = $('.search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal[data-modal="dates"]');
-                    if ($modal.length) {
-                        $('body').attr('data-modal', 'search');
-                        $modal.addClass('delay');
-                        requestAnimationFrame(function() {
-                            requestAnimationFrame(function() {
-                                $modal.addClass('active');
-                            });
-                        });
-                        if (window.Dates && window.Dates.showDates) {
-                            window.Dates.showDates('check-in');
-                        }
-                    }
-                }, 500); // Wait for Vue component to be mounted
+            // Don't auto-open dates modal on page refresh
+            // Only open if user explicitly clicks the dates input
+            // Remove any lingering delay/active classes from previous session
+            var $datesModal = $('.search .content .sections .section.two .blocks .block .form .blocks .block .modals .modal[data-modal="dates"]');
+            if ($datesModal.length) {
+                $datesModal.removeClass('delay active');
+                $('body').removeAttr('data-modal');
             }
         });
     });

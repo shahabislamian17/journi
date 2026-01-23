@@ -33,6 +33,7 @@ app.use('/api/bookings', require(path.join(backendPath, 'bookings')));
 app.use('/api/wishlist', require(path.join(backendPath, 'wishlist')));
 app.use('/api/reviews', require(path.join(backendPath, 'reviews')));
 app.use('/api/messages', require(path.join(backendPath, 'messages')));
+app.use('/api/conversations', require(path.join(backendPath, 'conversations')));
 app.use('/api/stays', require(path.join(backendPath, 'stays')));
 app.use('/api/cars', require(path.join(backendPath, 'cars')));
 app.use('/api/stripe', require(path.join(backendPath, 'stripe')));

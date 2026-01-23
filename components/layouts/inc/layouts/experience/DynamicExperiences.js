@@ -27,13 +27,34 @@ export default function DynamicExperiences({ currentExperience }) {
         setLoading(true);
         
         // Fetch experiences from same category
+        // Prefer slug over ID for better API compatibility
+        const categoryParam = experience.category?.slug || 
+                              (experience.category?.name ? experience.category.name.toLowerCase().replace(/\s+/g, '-') : null) ||
+                              experience.categoryId;
+        
+        if (!categoryParam) {
+          console.warn('No category found for experience:', experience);
+          setLoading(false);
+          return;
+        }
+        
         const params = {
-          category: experience.category?.slug || experience.categoryId,
+          category: categoryParam,
           limit: 10
         };
         
+        console.log('[DynamicExperiences] Fetching similar experiences with params:', params);
+        
         const response = await experiencesAPI.getAll(params);
-        const experiences = response?.experiences?.data || [];
+        console.log('[DynamicExperiences] API Response:', response);
+        
+        const experiences = response?.experiences?.data || response?.experiences || [];
+        
+        if (!Array.isArray(experiences)) {
+          console.error('[DynamicExperiences] Invalid response structure:', response);
+          setLoading(false);
+          return;
+        }
         
         // Filter out current experience and limit to 5
         const filtered = experiences
@@ -42,7 +63,14 @@ export default function DynamicExperiences({ currentExperience }) {
         
         setSimilarExperiences(filtered);
       } catch (error) {
-        console.error('Error fetching similar experiences:', error);
+        console.error('[DynamicExperiences] Error fetching similar experiences:', error);
+        console.error('[DynamicExperiences] Error details:', {
+          message: error.message,
+          status: error.status,
+          data: error.data
+        });
+        // Don't throw - just log and show empty state (component will return null)
+        setSimilarExperiences([]);
       } finally {
         setLoading(false);
       }

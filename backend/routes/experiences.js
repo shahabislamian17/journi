@@ -21,10 +21,26 @@ router.get('/', async (req, res) => {
       children
     } = req.query;
 
+    console.log('[Experiences API] Request params:', {
+      category,
+      featured,
+      isNew,
+      limit,
+      search,
+      destination
+    });
+
     const where = {};
     
     if (category) {
-      where.category = { slug: category };
+      // Support both slug and ID
+      // If it looks like a UUID, treat it as categoryId, otherwise as slug
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(category);
+      if (isUUID) {
+        where.categoryId = category;
+      } else {
+        where.category = { slug: category };
+      }
     }
     
     if (featured === 'true') {
@@ -238,7 +254,18 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Get experiences error:', error);
-    res.status(500).json({ error: 'Failed to fetch experiences' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to fetch experiences',
+      message: error.message,
+      ...(process.env.NODE_ENV === 'development' && { 
+        stack: error.stack,
+        details: {
+          code: error.code,
+          meta: error.meta
+        }
+      })
+    });
   }
 });
 

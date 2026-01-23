@@ -659,6 +659,37 @@
         $( 'body' ).addClass( 'alt' );
     });
 
+    // Reviews view button handler (jQuery fallback for React onClick)
+    $(document).on('click', '.experience .details .reviews .blocks .block .reviews .blocks .block .review .blocks .block .buttons .button.small[data-button="1A"] .action', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const $button = $(this);
+        const $review = $button.closest('.review');
+        const $textBlock = $review.find('.blocks .block[data-block="2AC"] .text p');
+        const $buttonText = $button.find('.text');
+        
+        if ($textBlock.length && $buttonText.length) {
+            const currentText = $buttonText.text().trim();
+            const isExpanded = currentText === 'Hide';
+            
+            // Toggle expanded state
+            if (isExpanded) {
+                // Collapse - show truncated text
+                const fullText = $textBlock.data('full-text') || $textBlock.text();
+                const truncated = fullText.length > 125 ? fullText.substring(0, 125) + '...' : fullText;
+                $textBlock.text(truncated);
+                $buttonText.text('View');
+            } else {
+                // Expand - show full text
+                const currentText = $textBlock.text();
+                $textBlock.data('full-text', currentText.replace('...', ''));
+                const fullText = $textBlock.data('full-text') || currentText;
+                $textBlock.text(fullText);
+                $buttonText.text('Hide');
+            }
+        }
+    });
+
     $( '.home .experiences .content .sections .section.four .blocks .block .buttons .button.medium' ).click(function() {
         $( '.home .experiences .content .sections .section.three .calendar' ).addClass( 'delay' );
         setTimeout(function() {

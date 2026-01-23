@@ -173,10 +173,18 @@ export default function ExperienceReviews({ experience, reviews: initialReviews 
                                   </div>
                                 </div>
                                 {shouldTruncate && (
-                                <div className="block" data-block="2AD">
-                                  <div className="buttons">
-                                    <div className="button small" data-button="1A">
-                                        <div className="action" onClick={toggleReview} style={{ cursor: 'pointer' }}>
+                                  <div className="block" data-block="2AD">
+                                    <div className="buttons">
+                                      <div className="button small" data-button="1A">
+                                        <div 
+                                          className="action"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            toggleReview();
+                                          }}
+                                          style={{ cursor: 'pointer' }}
+                                        >
                                           <div className="text">{buttonText}</div>
                                         </div>
                                       </div>
