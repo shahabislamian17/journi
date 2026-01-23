@@ -27,13 +27,7 @@ if (typeof DatesTemplate === 'undefined') {
             <div class="blocks" data-blocks="7">
                 <div class="block" data-block="2CBA">
                     <div class="buttons">
-                        <div class="button circle one" data-button="3A" @click="navigateDates('previous')" v-if="canNavigatePreviousDates">
-                            <div class="action">
-                                <div class="icon">
-                                    <i class="icons8 icons8-less-than"></i>
-                                </div>
-                            </div>
-                        </div>
+                        <!---->
                         <div class="button circle two" data-button="3A" @click="navigateDates('next')">
                             <div class="action">
                                 <div class="icon">

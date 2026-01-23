@@ -78,13 +78,30 @@ export default function Search() {
                       </div>
                     </div>
                     <div className="block" data-block="1C">
-                      <div className="modals">
+                      <div className="modals delay active">
                         <div className="modal" data-modal="destination">
-                          <div className="blocks" data-blocks="4">
-                            <div className="block" data-block="1CA">
-                              <div className="title">Destinations</div>
+                          <div className="blocks" data-blocks="5">
+                            <div className="block" data-block="2CA">
+                              <div className="blocks" data-blocks="6">
+                                <div className="block" data-block="2CAA">
+                                  <div className="close">
+                                    <div className="button circle" data-button="2A">
+                                      <div className="action">
+                                        <div className="icon">
+                                          <i className="icons8 icons8-less-than"></i>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="block" data-block="2CAB">
+                                  <div className="title">
+                                    <h3 className="six">Destinations</h3>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="block" data-block="1CB">
+                            <div className="block" data-block="2CB">
                               <div className="list">
                                 <ul>
                                   <li>
@@ -137,21 +154,36 @@ export default function Search() {
                             </div>
                           </div>
                         </div>
-                        <div className="modal dates" data-modal="dates">
-                          {/* Dates component will be injected here */}
-                        </div>
+                        <div className="modal dates" data-modal="dates" dangerouslySetInnerHTML={{ __html: '<dates :query="query"></dates>' }} />
                         <div className="modal" data-modal="guests">
                           <div className="blocks" data-blocks="5">
-                            <div className="block" data-block="1CA">
-                              <div className="title">Guests</div>
+                            <div className="block" data-block="2CA">
+                              <div className="blocks" data-blocks="6">
+                                <div className="block" data-block="2CAA">
+                                  <div className="close">
+                                    <div className="button circle" data-button="2A">
+                                      <div className="action">
+                                        <div className="icon">
+                                          <i className="icons8 icons8-less-than"></i>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="block" data-block="2CAB">
+                                  <div className="title">
+                                    <h3 className="six">Guests</h3>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="block" data-block="1CB">
+                            <div className="block" data-block="2CB">
                               <div className="numbers">
-                                <div className="blocks" data-blocks="6">
-                                  <div className="block" data-block="1CBA">
+                                <div className="blocks" data-blocks="7">
+                                  <div className="block" data-block="2CBA">
                                     <div className="number">
-                                      <div className="blocks" data-blocks="7">
-                                        <div className="block" data-block="1CBAA">
+                                      <div className="blocks" data-blocks="8">
+                                        <div className="block" data-block="2CBAA">
                                           <div className="icon">
                                             <i className="icons8 icons8-guardian"></i>
                                           </div>
@@ -160,14 +192,14 @@ export default function Search() {
                                             <span className="two">Ages 18+</span>
                                           </div>
                                         </div>
-                                        <div className="block" data-block="1CBAB">
+                                        <div className="block" data-block="2CBAB">
                                           <div className="buttons">
                                             <div className="button circle alt" data-button="2A">
                                               <div className="action">
                                                 <div className="icon">-</div>
                                               </div>
                                             </div>
-                                            <input name="quantity" value="1" className="amount" readOnly />
+                                            <input name="quantity" value="1" readOnly className="amount" />
                                             <div className="button circle alt" data-button="2A">
                                               <div className="action">
                                                 <div className="icon">+</div>
@@ -178,10 +210,10 @@ export default function Search() {
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="block" data-block="1CBB">
+                                  <div className="block" data-block="2CBB">
                                     <div className="number">
-                                      <div className="blocks" data-blocks="8">
-                                        <div className="block" data-block="1CBBA">
+                                      <div className="blocks" data-blocks="9">
+                                        <div className="block" data-block="2CBBA">
                                           <div className="icon">
                                             <i className="icons8 icons8-guardian"></i>
                                           </div>
@@ -190,14 +222,14 @@ export default function Search() {
                                             <span className="two">Ages 0-17</span>
                                           </div>
                                         </div>
-                                        <div className="block" data-block="1CBBB">
+                                        <div className="block" data-block="2CBBB">
                                           <div className="buttons">
                                             <div className="button circle alt" data-button="2A">
                                               <div className="action">
                                                 <div className="icon">-</div>
                                               </div>
                                             </div>
-                                            <input name="quantity" value="0" className="amount" readOnly />
+                                            <input name="quantity" value="0" readOnly className="amount" />
                                             <div className="button circle alt" data-button="2A">
                                               <div className="action">
                                                 <div className="icon">+</div>

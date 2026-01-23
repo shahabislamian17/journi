@@ -267,10 +267,43 @@ export default function Search() {
     
                                                 </div>
     
-                                                <div className="modal dates" data-modal="dates">
-    
-                                                    {/* Dates component */}
-    
+                                                <div className="modal dates delay active" data-modal="dates">
+                                                    <div className="blocks" data-blocks="5">
+                                                        <div className="block" data-block="2CA">
+                                                            <div className="blocks" data-blocks="6">
+                                                                <div className="block" data-block="2CAA">
+                                                                    <div className="close">
+                                                                        <div className="button circle" data-button="2A">
+                                                                            <div className="action">
+                                                                                <div className="icon">
+                                                                                    <i className="icons8 icons8-less-than"></i>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="block" data-block="2CAB">
+                                                                    <div className="title">
+                                                                        <h3 className="six">Dates</h3>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="block" data-block="2CB">
+                                                            <div className="blocks" data-blocks="7">
+                                                                <div className="block" data-block="2CBA">
+                                                                    <div className="buttons">
+                                                                        {/* Vue will inject navigation button here */}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="block" data-block="2CBB">
+                                                                    <div className="dates">
+                                                                        {/* Vue will inject calendar months here */}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
     
                                                 <div className="modal" data-modal="guests">
