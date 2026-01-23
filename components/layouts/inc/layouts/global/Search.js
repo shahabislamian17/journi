@@ -267,7 +267,7 @@ export default function Search() {
     
                                                 </div>
     
-                                                <div className="modal dates delay active" data-modal="dates">
+                                                <div className="modal dates" data-modal="dates">
                                                     <div className="blocks" data-blocks="5">
                                                         <div className="block" data-block="2CA">
                                                             <div className="blocks" data-blocks="6">

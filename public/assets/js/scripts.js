@@ -813,11 +813,59 @@
             : null;
         const imageUrl = primaryImage?.original || primaryImage?.medium || primaryImage?.large || '/assets/images/experiences/experience-1a.jpg';
         
-        // Prepare bag item
-        const guests = 1;
+        // Get guests from URL params or Vue Search instance
+        let guests = 1; // Default to 1 guest
+        try {
+            // First, try to get from URL params
+            const urlParams = new URLSearchParams( window.location.search );
+            const adultsParam = urlParams.get( 'adults' );
+            const childrenParam = urlParams.get( 'children' );
+            
+            // Parse adults and children from URL
+            let adults = 0;
+            let children = 0;
+            
+            if ( adultsParam !== null && adultsParam !== '' ) {
+                adults = parseInt( adultsParam, 10 );
+                if ( isNaN( adults ) ) adults = 0;
+            }
+            
+            if ( childrenParam !== null && childrenParam !== '' ) {
+                children = parseInt( childrenParam, 10 );
+                if ( isNaN( children ) ) children = 0;
+            }
+            
+            // If we have adults or children in URL, use them
+            if ( adults > 0 || children > 0 ) {
+                guests = adults + children;
+                if ( guests < 1 ) guests = 1;
+                console.log( '[jQuery Select Handler] ✅ Guests from URL:', { adults, children, total: guests } );
+            } else {
+                // If no guests in URL, try Vue Search instance
+                if ( typeof window !== 'undefined' && window.Search && window.Search.guests ) {
+                    const searchGuests = window.Search.guests;
+                    const searchAdults = parseInt( searchGuests.adults, 10 ) || 1;
+                    const searchChildren = parseInt( searchGuests.children, 10 ) || 0;
+                    guests = searchAdults + searchChildren;
+                    if ( guests < 1 ) guests = 1;
+                    console.log( '[jQuery Select Handler] ✅ Guests from Vue Search:', { searchAdults, searchChildren, total: guests } );
+                } else {
+                    console.warn( '[jQuery Select Handler] ⚠️ No guests found in URL or Vue Search, using default: 1' );
+                }
+            }
+            
+            console.log( '[jQuery Select Handler] 🎯 Final guests count:', guests );
+        } catch ( err ) {
+            console.error( '[jQuery Select Handler] ❌ Error getting guests:', err );
+            console.warn( 'Using default guests: 1' );
+        }
+        
         const dateString = slotDate instanceof Date 
             ? slotDate.toISOString() 
             : ( typeof slotDate === 'string' ? slotDate : new Date().toISOString() );
+        
+        // Calculate total price: price per person * number of guests
+        const totalPrice = slotPrice * guests;
         
         const bagItem = {
             id: `${experience.id}-${slotId}-${Date.now()}`,
@@ -828,11 +876,16 @@
             date: dateString,
             startTime: slotStartTime,
             endTime: slotEndTime,
-            price: slotPrice,
-            guests: guests,
-            totalPrice: slotPrice * guests,
+            price: slotPrice, // Price per person
+            guests: guests, // Number of guests
+            totalPrice: totalPrice, // Total price = price per person * guests
             image: imageUrl
         };
+        
+        console.log( '[jQuery Select Handler] 📦 Adding to bag:', {
+            ...bagItem,
+            calculation: `${slotPrice} (price per person) × ${guests} (guests) = ${totalPrice} (total)`
+        } );
         
         // Add to bag using localStorage directly
         try {

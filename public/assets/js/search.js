@@ -27,7 +27,13 @@ if (typeof DatesTemplate === 'undefined') {
             <div class="blocks" data-blocks="7">
                 <div class="block" data-block="2CBA">
                     <div class="buttons">
-                        <!---->
+                        <div class="button circle one" data-button="3A" @click="navigateDates('previous')" v-if="canNavigatePreviousDates">
+                            <div class="action">
+                                <div class="icon">
+                                    <i class="icons8 icons8-less-than"></i>
+                                </div>
+                            </div>
+                        </div>
                         <div class="button circle two" data-button="3A" @click="navigateDates('next')">
                             <div class="action">
                                 <div class="icon">
@@ -608,11 +614,35 @@ var Search = new Vue({
                     params.append('children', children);
                 }
                 
-                // Navigate to search results
-                const queryString = params.toString();
-                const searchUrl = queryString ? `/?${queryString}` : '/';
-                console.log('Search URL:', searchUrl);
-                window.location.href = searchUrl;
+                // Check if we're on an experience detail page
+                const currentPath = window.location.pathname;
+                const isExperiencePage = currentPath.includes('/experience');
+                
+                if (isExperiencePage) {
+                    // Preserve existing query params (especially slug) and merge with new search params
+                    const currentUrl = new URL(window.location.href);
+                    const existingParams = new URLSearchParams(currentUrl.search);
+                    
+                    // Merge new search params with existing ones (new params override existing)
+                    params.forEach((value, key) => {
+                        existingParams.set(key, value);
+                    });
+                    
+                    // Build new URL preserving the pathname and all params
+                    const queryString = existingParams.toString();
+                    const newUrl = queryString ? `${currentPath}?${queryString}` : currentPath;
+                    console.log('Updating URL on experience page:', newUrl);
+                    window.history.pushState({}, '', newUrl);
+                    
+                    // Trigger page reload to update availability slots
+                    window.location.reload();
+                } else {
+                    // Navigate to search results on home page
+                    const queryString = params.toString();
+                    const searchUrl = queryString ? `/?${queryString}` : '/';
+                    console.log('Search URL:', searchUrl);
+                    window.location.href = searchUrl;
+                }
             }
         }
     });

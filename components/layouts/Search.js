@@ -78,7 +78,7 @@ export default function Search() {
                       </div>
                     </div>
                     <div className="block" data-block="1C">
-                      <div className="modals delay active">
+                      <div className="modals">
                         <div className="modal" data-modal="destination">
                           <div className="blocks" data-blocks="5">
                             <div className="block" data-block="2CA">

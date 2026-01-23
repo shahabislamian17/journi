@@ -23,7 +23,13 @@
 <div data-blocks="7" class="blocks">
 <div data-block="2CBA" class="block">
 <div class="buttons">
-<!---->
+<div data-button="3A" class="button circle one" @click="navigateDates('previous')" v-if="canNavigatePreviousDates">
+<div class="action">
+<div class="icon">
+<i class="icons8 icons8-less-than"></i>
+</div>
+</div>
+</div>
 <div data-button="3A" class="button circle two" @click="navigateDates('next')">
 <div class="action">
 <div class="icon">

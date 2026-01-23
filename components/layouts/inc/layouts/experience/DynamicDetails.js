@@ -8,6 +8,7 @@ import { bagAPI } from '../../../../../lib/bag';
 export default function DynamicDetails({ experience, reviews = [] }) {
   const router = useRouter();
   const [experienceData, setExperienceData] = useState(experience);
+  const [filteredSlots, setFilteredSlots] = useState(null);
 
   useEffect(() => {
     // Get experience data from window if not passed as prop
@@ -15,6 +16,56 @@ export default function DynamicDetails({ experience, reviews = [] }) {
       setExperienceData(window.__API_EXPERIENCE__);
     }
   }, [experienceData]);
+  
+  // Filter availability slots based on search dates from URL params
+  useEffect(() => {
+    if (!experienceData || !router.isReady) return;
+    
+    const { checkInDate, checkOutDate } = router.query;
+    const allSlots = experienceData.availabilitySlots || [];
+    
+    if (checkInDate || checkOutDate) {
+      const checkIn = checkInDate ? new Date(checkInDate) : null;
+      const checkOut = checkOutDate ? new Date(checkOutDate) : null;
+      
+      if (checkIn || checkOut) {
+        // Filter slots based on date range
+        const filtered = allSlots.filter(slot => {
+          if (!slot.available) return false;
+          
+          const slotDate = new Date(slot.date);
+          slotDate.setHours(0, 0, 0, 0);
+          
+          if (checkIn && checkOut) {
+            // Both dates provided - slot must be within range
+            const checkInDateObj = new Date(checkIn);
+            const checkOutDateObj = new Date(checkOut);
+            checkInDateObj.setHours(0, 0, 0, 0);
+            checkOutDateObj.setHours(23, 59, 59, 999);
+            return slotDate >= checkInDateObj && slotDate <= checkOutDateObj;
+          } else if (checkIn) {
+            // Only check-in date - slot must be on or after check-in
+            const checkInDateObj = new Date(checkIn);
+            checkInDateObj.setHours(0, 0, 0, 0);
+            return slotDate >= checkInDateObj;
+          } else if (checkOut) {
+            // Only check-out date - slot must be on or before check-out
+            const checkOutDateObj = new Date(checkOut);
+            checkOutDateObj.setHours(23, 59, 59, 999);
+            return slotDate <= checkOutDateObj;
+          }
+          
+          return true;
+        });
+        
+        setFilteredSlots(filtered);
+      } else {
+        setFilteredSlots(null);
+      }
+    } else {
+      setFilteredSlots(null);
+    }
+  }, [router.query, router.isReady, experienceData]);
 
   if (!experienceData) {
     return <div>Loading experience details...</div>;
@@ -57,7 +108,8 @@ export default function DynamicDetails({ experience, reviews = [] }) {
     }
   }
   
-  const availabilitySlots = experienceData.availabilitySlots || [];
+  // Use filtered slots if available, otherwise use all slots
+  const availabilitySlots = filteredSlots !== null ? filteredSlots : (experienceData?.availabilitySlots || []);
   
   // Debug logging for availability slots
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
@@ -133,6 +185,8 @@ export default function DynamicDetails({ experience, reviews = [] }) {
   };
 
   const handleSelectSlot = (slot, e) => {
+    console.log('🚀 handleSelectSlot CALLED!', { slot, e, timestamp: new Date().toISOString() });
+    
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -158,9 +212,77 @@ export default function DynamicDetails({ experience, reviews = [] }) {
       const primaryImage = experienceData.images?.find(img => img.isPrimary) || experienceData.images?.[0];
       const imageUrl = primaryImage?.original || primaryImage?.medium || '/assets/images/experiences/experience-1a.jpg';
 
+      // Get guests from URL params (router.query or window.location) or Vue Search instance
+      let guests = 1; // Default to 1 guest
+      try {
+        // Try router.query first (Next.js way)
+        let adults = 0;
+        let children = 0;
+        
+        if (router.isReady && router.query) {
+          const queryAdults = router.query.adults;
+          const queryChildren = router.query.children;
+          
+          if (queryAdults) {
+            adults = parseInt(String(queryAdults), 10);
+            if (isNaN(adults)) adults = 0;
+          }
+          
+          if (queryChildren) {
+            children = parseInt(String(queryChildren), 10);
+            if (isNaN(children)) children = 0;
+          }
+          
+          console.log('[handleSelectSlot] From router.query:', { queryAdults, queryChildren, adults, children });
+        }
+        
+        // If router.query didn't have values, try window.location.search
+        if (adults === 0 && children === 0 && typeof window !== 'undefined') {
+          const urlParams = new URLSearchParams(window.location.search);
+          const adultsParam = urlParams.get('adults');
+          const childrenParam = urlParams.get('children');
+          
+          if (adultsParam !== null && adultsParam !== '') {
+            adults = parseInt(adultsParam, 10);
+            if (isNaN(adults)) adults = 0;
+          }
+          
+          if (childrenParam !== null && childrenParam !== '') {
+            children = parseInt(childrenParam, 10);
+            if (isNaN(children)) children = 0;
+          }
+          
+          console.log('[handleSelectSlot] From window.location.search:', { adultsParam, childrenParam, adults, children });
+        }
+        
+        // If we have adults or children, use them
+        if (adults > 0 || children > 0) {
+          guests = adults + children;
+          // Ensure at least 1 guest
+          if (guests < 1) guests = 1;
+          console.log('[handleSelectSlot] ✅ Guests from URL:', { adults, children, total: guests });
+        } else {
+          // If no guests in URL, try Vue Search instance
+          if (typeof window !== 'undefined' && window.Search && window.Search.guests) {
+            const searchGuests = window.Search.guests;
+            const searchAdults = parseInt(searchGuests.adults, 10) || 1;
+            const searchChildren = parseInt(searchGuests.children, 10) || 0;
+            guests = searchAdults + searchChildren;
+            if (guests < 1) guests = 1;
+            console.log('[handleSelectSlot] ✅ Guests from Vue Search:', { searchAdults, searchChildren, total: guests });
+          } else {
+            console.warn('[handleSelectSlot] ⚠️ No guests found in URL or Vue Search, using default: 1');
+          }
+        }
+        
+        console.log('[handleSelectSlot] 🎯 Final guests count:', guests);
+      } catch (err) {
+        console.error('❌ Error getting guests from URL or Search instance:', err);
+        console.warn('Using default guests: 1');
+      }
+
       // Prepare bag item
       const slotPrice = slot.price || experienceData.price || 0;
-      const guests = 1; // Default to 1 guest, can be made dynamic later
       
       // Normalize date format - ensure it's a string in ISO format
       let dateString;
@@ -174,6 +296,9 @@ export default function DynamicDetails({ experience, reviews = [] }) {
         dateString = new Date().toISOString();
       }
       
+      // Calculate total price: price per person * number of guests
+      const totalPrice = slotPrice * guests;
+      
       const bagItem = {
         id: `${experienceData.id}-${slot.id}-${Date.now()}`,
         experienceId: experienceData.id,
@@ -183,23 +308,40 @@ export default function DynamicDetails({ experience, reviews = [] }) {
         date: dateString,
         startTime: slot.startTime,
         endTime: slot.endTime,
-        price: slotPrice,
-        guests: guests,
-        totalPrice: slotPrice * guests,
+        price: slotPrice, // Price per person
+        guests: guests, // Number of guests
+        totalPrice: totalPrice, // Total price = price per person * guests
         image: imageUrl,
       };
 
-      console.log('Adding to bag:', bagItem);
+      console.log('📦 Adding to bag:', {
+        ...bagItem,
+        calculation: `${slotPrice} (price per person) × ${guests} (guests) = ${totalPrice} (total)`,
+        breakdown: {
+          slotPrice,
+          guests,
+          totalPrice,
+          formula: `${slotPrice} × ${guests} = ${totalPrice}`
+        }
+      });
 
       // Add to bag
       const result = bagAPI.add(bagItem);
       
       if (!result) {
-        console.error('Failed to add item to bag');
+        console.error('❌ Failed to add item to bag');
         return;
       }
 
-      console.log('Item added to bag successfully');
+      // Verify what was actually stored
+      const storedItems = bagAPI.getAll();
+      const storedItem = storedItems.find(i => i.id === bagItem.id || (i.slotId === bagItem.slotId && i.experienceId === bagItem.experienceId));
+      console.log('✅ Item added to bag successfully');
+      console.log('🔍 Stored item verification:', {
+        stored: storedItem,
+        expected: bagItem,
+        match: storedItem && storedItem.guests === guests && storedItem.totalPrice === totalPrice
+      });
       
       // Open bag sidebar with smooth animation
       const openBagSmoothly = () => {
@@ -583,28 +725,28 @@ export default function DynamicDetails({ experience, reviews = [] }) {
           {/* Availability Section */}
           <div className="section two">
             <a className="anchor" data-anchor="1" name="availability"></a>
-            {availabilitySlots.length > 0 && (
-              <div className="blocks" data-blocks="1">
-                <div className="block" data-block="1">
-                  <div className="blocks" data-blocks="2">
-                    <div className="block" data-block="1A">
-                      <div className="blocks" data-blocks="3">
-                        <div className="block" data-block="1AA">
-                          <div className="title">
-                            <h2 className="two alt">Availability</h2>
-                          </div>
+            <div className="blocks" data-blocks="1">
+              <div className="block" data-block="1">
+                <div className="blocks" data-blocks="2">
+                  <div className="block" data-block="1A">
+                    <div className="blocks" data-blocks="3">
+                      <div className="block" data-block="1AA">
+                        <div className="title">
+                          <h2 className="two alt">Availability</h2>
                         </div>
-                        <div className="block" data-block="1AB">
-                          <div className="labels">
-                            <div className="label">
-                              <div className="text">Lowest Price Guarantee</div>
-                              <div className="icon">?</div>
-                            </div>
+                      </div>
+                      <div className="block" data-block="1AB">
+                        <div className="labels">
+                          <div className="label">
+                            <div className="text">Lowest Price Guarantee</div>
+                            <div className="icon">?</div>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <div className="block" data-block="1B">
+                  </div>
+                  <div className="block" data-block="1B">
+                    {availabilitySlots.length > 0 ? (
                       <div className="options">
                         <div className="blocks" data-blocks="4">
                           {availabilitySlots.map((slot, idx) => (
@@ -645,11 +787,25 @@ export default function DynamicDetails({ experience, reviews = [] }) {
                           ))}
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="blocks" data-blocks="4">
+                        <div className="block" data-block="1BA">
+                          <div className="option">
+                            <div className="blocks" data-blocks="5">
+                              <div className="block" data-block="1BAA">
+                                <div className="text">
+                                  <p>There is no availability on the selected dates.</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            )}
+            </div>
             {/* Payment Protection Section */}
             <div className="blocks" data-blocks="2">
               <div className="block" data-block="2">
