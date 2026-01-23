@@ -70,18 +70,34 @@ export default function Form() {
     setShowPassword(!showPassword);
   };
 
-  // Read URL parameters and pre-fill form
+  // SECURITY: Remove email and password from URL immediately on page load
+  // Never read credentials from URL - only use POST body
   useEffect(() => {
     if (typeof window !== 'undefined' && router.isReady) {
       const { firstName, lastName, email, password, accountType } = router.query;
       
-      if (firstName || lastName || email || password || accountType) {
+      // If credentials are in URL, remove them immediately
+      if (email || password) {
+        const newQuery = { ...router.query };
+        delete newQuery.email;
+        delete newQuery.password;
+        
+        // Only keep non-sensitive fields if needed (firstName, lastName, accountType are OK)
+        // But for security, we'll remove email and password only
+        
+        // Update URL without credentials
+        router.replace({
+          pathname: router.pathname,
+          query: newQuery
+        }, undefined, { shallow: true });
+      }
+      
+      // Only pre-fill non-sensitive fields (firstName, lastName, accountType)
+      if (firstName || lastName || accountType) {
         setFormData(prev => ({
           ...prev,
           ...(firstName && typeof firstName === 'string' ? { firstName: decodeURIComponent(firstName) } : {}),
           ...(lastName && typeof lastName === 'string' ? { lastName: decodeURIComponent(lastName) } : {}),
-          ...(email && typeof email === 'string' ? { email: decodeURIComponent(email) } : {}),
-          ...(password && typeof password === 'string' ? { password: decodeURIComponent(password) } : {}),
           ...(accountType && typeof accountType === 'string' ? { accountType: decodeURIComponent(accountType) } : {}),
         }));
       }

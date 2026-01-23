@@ -16,23 +16,23 @@ export default function Form() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Read URL parameters and pre-fill form
+  // SECURITY: Remove email and password from URL immediately on page load
+  // Never read credentials from URL - only use POST body
   useEffect(() => {
     if (typeof window !== 'undefined' && router.isReady) {
       const { email, password } = router.query;
       
-      if (email && typeof email === 'string') {
-        setFormData(prev => ({
-          ...prev,
-          email: decodeURIComponent(email)
-        }));
-      }
-      
-      if (password && typeof password === 'string') {
-        setFormData(prev => ({
-          ...prev,
-          password: decodeURIComponent(password)
-        }));
+      // If credentials are in URL, remove them immediately
+      if (email || password) {
+        const newQuery = { ...router.query };
+        delete newQuery.email;
+        delete newQuery.password;
+        
+        // Update URL without credentials
+        router.replace({
+          pathname: router.pathname,
+          query: newQuery
+        }, undefined, { shallow: true });
       }
     }
   }, [router.isReady, router.query]);

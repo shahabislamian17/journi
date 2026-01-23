@@ -27,6 +27,17 @@ export async function getStaticProps() {
 
 
 export default function Page({ templates, layoutOptions, needsDates, inlineScripts }) {
+  // SECURITY: Remove email and password from URL immediately on page load (before React renders)
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('password') || urlParams.has('email')) {
+      urlParams.delete('password');
+      urlParams.delete('email');
+      const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+      window.history.replaceState({}, '', newUrl);
+    }
+  }
+  
   return (
     <Layout templates={templates} {...layoutOptions}>
       <section className="notifications">

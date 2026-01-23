@@ -111,10 +111,24 @@ function handler(req, res) {
   expressReq.baseUrl = '';
   expressReq.params = {};
 
-  // Ensure body is available (Next.js might have parsed it)
-  if (req.body && !expressReq.body) {
+  // Ensure body is available - Next.js will parse it with bodyParser config
+  // Copy all request properties to Express request
+  if (req.body) {
     expressReq.body = req.body;
   }
+  
+  // Copy headers to ensure Express gets all necessary headers
+  expressReq.headers = { ...req.headers };
+  
+  // Ensure Content-Type is preserved for Express body parsing
+  if (req.headers['content-type']) {
+    expressReq.headers['content-type'] = req.headers['content-type'];
+  }
+  
+  // Mark that body is already parsed (so Express doesn't try to parse again)
+  // We'll handle this by not using Express body parser middleware for these requests
+  // But since we're passing through, Express will still try to parse
+  // So we need to ensure the body is in the right format
 
   // Log the path being sent to Express for debugging
   console.log('[Bridge] Passing to Express:', {
@@ -166,6 +180,8 @@ module.exports = handler;
 module.exports.config = {
   api: {
     externalResolver: true, // Tells Next.js to wait for Express to send the response
-    bodyParser: false,      // Let Express handle body parsing (especially for POST/PUT)
+    bodyParser: {
+      sizeLimit: '1mb',
+    }, // Enable body parsing for POST/PUT requests
   },
 };
