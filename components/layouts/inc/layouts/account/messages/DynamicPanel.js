@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { conversationsAPI } from '../../../../../../lib/api';
+import { io } from 'socket.io-client';
 
 export default function DynamicPanel({ initialConversations = [] }) {
   const router = useRouter();
@@ -17,6 +18,81 @@ export default function DynamicPanel({ initialConversations = [] }) {
   const messagesContainerRef = useRef(null);
   const overlayRef = useRef(null);
   const pollIntervalRef = useRef(null);
+  const sendFormRef = useRef(null);
+  const hostQueryHandledRef = useRef(false);
+  const pollTimeoutRef = useRef(null);
+  const pollInFlightRef = useRef(false);
+  const socketRef = useRef(null);
+  const [socketConnected, setSocketConnected] = useState(false);
+
+  const getSocketUrl = () => process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+  // Realtime updates via Socket.IO (REST remains fallback)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const socket = io(getSocketUrl(), {
+      auth: { token },
+      transports: ['websocket', 'polling'],
+    });
+
+    socketRef.current = socket;
+
+    const onConnect = () => setSocketConnected(true);
+    const onDisconnect = () => setSocketConnected(false);
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+
+    socket.on('conversation_message', (payload) => {
+      const { conversationId, message } = payload || {};
+      if (!conversationId || !message) return;
+
+      // Update current thread if open
+      setSelectedConversation((prev) => {
+        if (prev?.id !== conversationId) return prev;
+        setMessages((msgs) => [...msgs, { ...message, isOwn: false }]);
+        return prev;
+      });
+
+      // Update sidebar preview
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id !== conversationId
+            ? c
+            : {
+                ...c,
+                lastMessage: {
+                  ...(c.lastMessage || {}),
+                  message: message.message,
+                  createdAt: message.createdAt,
+                  senderId: message.senderId,
+                  senderName: message.senderName,
+                  read: message.read,
+                },
+                lastMessageAt: message.createdAt,
+              }
+        )
+      );
+    });
+
+    return () => {
+      try {
+        socket.off('connect', onConnect);
+        socket.off('disconnect', onDisconnect);
+        socket.off('conversation_message');
+        socket.disconnect();
+      } catch (_) {
+        // ignore
+      }
+      socketRef.current = null;
+      setSocketConnected(false);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -114,14 +190,20 @@ export default function DynamicPanel({ initialConversations = [] }) {
 
   // Send a message
   const sendMessage = async (e) => {
-    e.preventDefault();
+    // Always guard events (prevents native submit/page reload if called without a React event)
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+
+    alert('[Send] handler called');
     
     setSendError('');
     if (!selectedConversation) {
+      alert('[Send] blocked: no selectedConversation');
       setSendError('Please select a conversation first.');
       return;
     }
     if (!messageText.trim()) {
+      alert('[Send] blocked: empty message');
       setSendError('Please type a message.');
       return;
     }
@@ -129,13 +211,26 @@ export default function DynamicPanel({ initialConversations = [] }) {
     
     setSending(true);
     try {
-      const data = await conversationsAPI.sendMessage(selectedConversation.id, messageText.trim());
+      const trimmed = messageText.trim();
+      alert('[Send] calling API...');
+      const data = await conversationsAPI.sendMessage(selectedConversation.id, trimmed);
+      alert('[Send] API response received');
       if (data?.message) {
+        alert('[Send] message appended');
         setMessages(prev => [...prev, data.message]);
         setMessageText('');
         
-        // Update conversation list
-        await loadConversations();
+        // Update conversation list locally (avoid extra API call)
+        setConversations(prev =>
+          prev.map((conv) => {
+            if (conv.id !== selectedConversation.id) return conv;
+            return {
+              ...conv,
+              lastMessage: { ...(conv.lastMessage || {}), message: trimmed, createdAt: data.message.createdAt },
+              lastMessageAt: data.message.createdAt,
+            };
+          })
+        );
         
         // Scroll to bottom
         setTimeout(() => {
@@ -144,9 +239,11 @@ export default function DynamicPanel({ initialConversations = [] }) {
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      alert('[Send] API error: ' + (error?.message || 'unknown'));
       const msg = error?.data?.error || error?.data?.message || error?.message || 'Failed to send message. Please try again.';
       setSendError(msg);
     } finally {
+      alert('[Send] done');
       setSending(false);
     }
   };
@@ -187,32 +284,95 @@ export default function DynamicPanel({ initialConversations = [] }) {
 
   // Poll for new messages
   useEffect(() => {
-    if (selectedConversation?.id) {
-      pollIntervalRef.current = setInterval(async () => {
-        try {
-          const data = await conversationsAPI.getById(selectedConversation.id);
-          if (data?.conversation) {
-            setMessages(data.conversation.messages || []);
-            await loadConversations();
-          }
-        } catch (error) {
-          console.error('Error polling messages:', error);
-        }
-      }, 5000); // Poll every 5 seconds
-    }
+    // If socket is connected, polling is unnecessary.
+    if (socketConnected) return;
+    const conversationId = selectedConversation?.id;
+    if (!conversationId) return;
 
-    return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
+    let cancelled = false;
+
+    const pollOnce = async () => {
+      if (cancelled) return;
+      if (pollInFlightRef.current) return;
+      pollInFlightRef.current = true;
+      try {
+        // Avoid aggressive polling when tab is hidden (prevents bursts on focus/HMR)
+        if (typeof document !== 'undefined' && document.hidden) return;
+
+        const data = await conversationsAPI.getById(conversationId);
+        if (cancelled) return;
+
+        if (data?.conversation) {
+          const conv = data.conversation;
+          const convMessages = conv.messages || [];
+          setMessages(convMessages);
+
+          // Update sidebar preview locally (avoid extra /api/conversations call every poll)
+          const last = convMessages.length ? convMessages[convMessages.length - 1] : null;
+          if (last) {
+            setConversations(prev =>
+              prev.map((c) =>
+                c.id !== conv.id
+                  ? c
+                  : {
+                      ...c,
+                      lastMessage: {
+                        id: last.id,
+                        message: last.message,
+                        senderId: last.senderId,
+                        senderName: last.senderName,
+                        createdAt: last.createdAt,
+                        read: last.read,
+                      },
+                      lastMessageAt: last.createdAt,
+                    }
+              )
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Error polling messages:', error);
+      } finally {
+        pollInFlightRef.current = false;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    const scheduleNext = () => {
+      if (cancelled) return;
+      const delay =
+        typeof document !== 'undefined' && document.hidden
+          ? 15000
+          : 5000;
+      pollTimeoutRef.current = setTimeout(async () => {
+        await pollOnce();
+        scheduleNext();
+      }, delay);
+    };
+
+    // Kick off polling loop
+    pollOnce();
+    scheduleNext();
+
+    return () => {
+      cancelled = true;
+      pollInFlightRef.current = false;
+      if (pollTimeoutRef.current) {
+        clearTimeout(pollTimeoutRef.current);
+        pollTimeoutRef.current = null;
+      }
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
   }, [selectedConversation?.id]);
 
   // Handle host query parameter - create or find conversation
   useEffect(() => {
     const handleHostQuery = async () => {
+      if (hostQueryHandledRef.current) return;
       if (router.isReady && router.query.host) {
+        hostQueryHandledRef.current = true;
         const hostId = router.query.host;
         const experienceId = router.query.experience || null;
         
@@ -242,7 +402,7 @@ export default function DynamicPanel({ initialConversations = [] }) {
           if (data?.conversation) {
             // Load the conversation
             await loadConversation(data.conversation.id);
-            // Reload conversations list
+            // Reload conversations list once (not in a loop)
             await loadConversations();
             
             // Remove query params from URL
@@ -266,7 +426,7 @@ export default function DynamicPanel({ initialConversations = [] }) {
     };
     
     handleHostQuery();
-  }, [router.isReady, router.query.host, router.query.experience, router]);
+  }, [router.isReady, router.query.host, router.query.experience]); // don't depend on router object identity
 
   // Load conversations on mount
   useEffect(() => {
@@ -468,7 +628,21 @@ export default function DynamicPanel({ initialConversations = [] }) {
                       </div>
 
                       <div className="block" data-block="2C">
-                        <form className="form" onSubmit={sendMessage}>
+                        <form
+                          ref={sendFormRef}
+                          className="form"
+                          onClickCapture={(e) => {
+                            // Debug: prove clicks are reaching the form area
+                            alert('[SendForm] click captured on ' + (e.target?.tagName || 'unknown'));
+                          }}
+                          onSubmitCapture={(e) => {
+                            // Absolute guard: never allow native submit navigation
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          onSubmit={sendMessage}
+                          noValidate
+                        >
                           <div className="fields">
                             <div className="fieldset">
                               <div className="blocks" data-blocks="10">
@@ -497,7 +671,8 @@ export default function DynamicPanel({ initialConversations = [] }) {
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
                                           e.preventDefault();
-                                          sendMessage(e);
+                                          // Professional single-path submit: trigger form submit once
+                                          sendFormRef.current?.requestSubmit?.();
                                         }
                                       }}
                                     />
@@ -506,12 +681,18 @@ export default function DynamicPanel({ initialConversations = [] }) {
                                 <div className="block" data-block="2CB">
                                   <div className="button small" data-button="1A">
                                     <button
-                                      type="submit"
+                                      type="button"
                                       className="action"
-                                      disabled={sending || !messageText.trim()}
+                                      disabled={sending}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        alert('[SendButton] onClick');
+                                        sendMessage(e);
+                                      }}
                                       style={{
                                         border: 'none',
-                                        cursor: sending || !messageText.trim() ? 'not-allowed' : 'pointer',
+                                        cursor: sending ? 'not-allowed' : 'pointer',
                                         width: '100%'
                                       }}
                                     >

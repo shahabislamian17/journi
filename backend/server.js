@@ -11,8 +11,14 @@ if (!process.env.VERCEL && !process.env.VERCEL_ENV) {
   const prisma = new PrismaClient();
   const PORT = process.env.PORT || 4000;
 
-  app.listen(PORT, () => {
+  const http = require('http');
+  const { initSocket } = require('./socket');
+  const server = http.createServer(app);
+  initSocket(server, app);
+
+  server.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🧩 Socket.IO enabled on same port`);
   });
 
   // Graceful shutdown

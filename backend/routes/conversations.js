@@ -453,18 +453,33 @@ router.post('/:id/messages', authenticateToken, async (req, res) => {
       data: { lastMessageAt: new Date() }
     });
 
-    res.status(201).json({
-      message: {
-        id: newMessage.id,
-        message: newMessage.message,
-        senderId: newMessage.senderId,
-        senderName: `${newMessage.sender.firstName || ''} ${newMessage.sender.lastName || ''}`.trim() || 'User',
-        senderAvatar: newMessage.sender.avatar || '/assets/images/global/hosts/placeholder.jpg',
-        createdAt: newMessage.createdAt,
-        read: newMessage.read,
-        isOwn: true
+    const formatted = {
+      id: newMessage.id,
+      message: newMessage.message,
+      senderId: newMessage.senderId,
+      senderName: `${newMessage.sender.firstName || ''} ${newMessage.sender.lastName || ''}`.trim() || 'User',
+      senderAvatar: newMessage.sender.avatar || '/assets/images/global/hosts/placeholder.jpg',
+      createdAt: newMessage.createdAt,
+      read: newMessage.read,
+      isOwn: true
+    };
+
+    // Emit realtime event to the other participant (if Socket.IO is enabled)
+    try {
+      const io = req.app?.get?.('io');
+      if (io && conversation) {
+        const otherUserId = conversation.participant1Id === userId ? conversation.participant2Id : conversation.participant1Id;
+        io.to(`user:${otherUserId}`).emit('conversation_message', {
+          conversationId: id,
+          message: { ...formatted, isOwn: false }
+        });
       }
-    });
+    } catch (emitErr) {
+      // Never fail the REST request due to socket issues
+      console.error('Socket emit error:', emitErr);
+    }
+
+    res.status(201).json({ message: formatted });
   } catch (error) {
     console.error('Send message error:', error);
     res.status(500).json({ error: 'Failed to send message' });
