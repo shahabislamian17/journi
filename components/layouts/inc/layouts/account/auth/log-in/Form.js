@@ -65,10 +65,10 @@ export default function Form() {
       password = formData.password?.trim() || '';
     }
     
-    alert('Login handleSubmit called - email: "' + email + '", password: ' + (password ? '***' : 'empty'));
+    // alert('Login handleSubmit called - email: "' + email + '", password: ' + (password ? '***' : 'empty'));
     
     if (!email || !password) {
-      alert('Login validation failed - email: "' + email + '", password: "' + (password ? '***' : 'empty') + '"');
+      // alert('Login validation failed - email: "' + email + '", password: "' + (password ? '***' : 'empty') + '"');
       setError('Please fill in all required fields.');
       return;
     }
@@ -76,7 +76,7 @@ export default function Form() {
     // Update formData with the values we're using (from DOM)
     setFormData(prev => ({ ...prev, email, password }));
     
-    alert('Login validation passed, proceeding...');
+    // alert('Login validation passed, proceeding...');
 
     setError('');
     setIsLoading(true);
@@ -139,7 +139,7 @@ export default function Form() {
     if (!button) return;
 
     const handleClick = (e) => {
-      alert('Login button clicked (useEffect backup handler)');
+      // alert('Login button clicked (useEffect backup handler)');
       // Only handle if onClick didn't already handle it
       if (e.defaultPrevented) return;
       
@@ -147,11 +147,11 @@ export default function Form() {
       e.stopPropagation();
       
       if (isLoading) {
-        alert('Button is disabled, returning');
+        // alert('Button is disabled, returning');
         return;
       }
       
-      alert('About to call handleSubmit from useEffect');
+      // alert('About to call handleSubmit from useEffect');
       const syntheticEvent = { 
         preventDefault: () => {}, 
         stopPropagation: () => {},
@@ -325,7 +325,7 @@ export default function Form() {
                                 className="action"
                                 disabled={isLoading}
                                 onClick={(e) => {
-                                  alert('Login button onClick handler');
+                                  // alert('Login button onClick handler');
                                   e.preventDefault();
                                   e.stopPropagation();
                                 }}

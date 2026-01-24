@@ -30,7 +30,7 @@ export default function Form() {
   };
 
   const handleSubmit = async (e) => {
-    alert('Register handleSubmit called - isLoading: ' + isLoading);
+    // alert('Register handleSubmit called - isLoading: ' + isLoading);
     // CRITICAL: Prevent default form submission - MUST be first thing
     if (e) {
       e.preventDefault();
@@ -39,7 +39,7 @@ export default function Form() {
     
     // Prevent multiple simultaneous submissions
     if (isLoading) {
-      alert('Register already processing, ignoring submit');
+      // alert('Register already processing, ignoring submit');
       return;
     }
     
@@ -72,10 +72,10 @@ export default function Form() {
       accountType = formData.accountType?.trim() || '';
     }
     
-    alert('Register validation - email: "' + email + '", firstName: "' + firstName + '", lastName: "' + lastName + '", accountType: "' + accountType + '", password: ' + (password ? '***' : 'empty'));
+    // alert('Register validation - email: "' + email + '", firstName: "' + firstName + '", lastName: "' + lastName + '", accountType: "' + accountType + '", password: ' + (password ? '***' : 'empty'));
     
     if (!email || !password || !firstName || !lastName || !accountType) {
-      alert('Register validation failed - missing fields');
+      // alert('Register validation failed - missing fields');
       setError('Please fill in all required fields.');
       setIsLoading(false); // Ensure loading is false on validation error
       return;
@@ -134,7 +134,7 @@ export default function Form() {
     if (!button) return;
 
     const handleClick = (e) => {
-      alert('Register button clicked (useEffect backup handler)');
+      // alert('Register button clicked (useEffect backup handler)');
       // Only handle if onClick didn't already handle it
       if (e.defaultPrevented) return;
       
@@ -142,11 +142,11 @@ export default function Form() {
       e.stopPropagation();
       
       if (isLoading) {
-        alert('Button is disabled, returning');
+        // alert('Button is disabled, returning');
         return;
       }
       
-      alert('About to call handleSubmit from useEffect');
+      // alert('About to call handleSubmit from useEffect');
       const syntheticEvent = { 
         preventDefault: () => {}, 
         stopPropagation: () => {},
@@ -373,7 +373,7 @@ export default function Form() {
                                 className="action"
                                 disabled={isLoading}
                                 onClick={(e) => {
-                                  alert('Register button onClick handler');
+                                  // alert('Register button onClick handler');
                                   e.preventDefault();
                                   e.stopPropagation();
                                 }}

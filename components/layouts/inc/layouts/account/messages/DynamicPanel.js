@@ -12,6 +12,7 @@ export default function DynamicPanel({ initialConversations = [] }) {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [messageText, setMessageText] = useState('');
+  const [sendError, setSendError] = useState('');
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const overlayRef = useRef(null);
@@ -115,7 +116,16 @@ export default function DynamicPanel({ initialConversations = [] }) {
   const sendMessage = async (e) => {
     e.preventDefault();
     
-    if (!messageText.trim() || !selectedConversation || sending) return;
+    setSendError('');
+    if (!selectedConversation) {
+      setSendError('Please select a conversation first.');
+      return;
+    }
+    if (!messageText.trim()) {
+      setSendError('Please type a message.');
+      return;
+    }
+    if (sending) return;
     
     setSending(true);
     try {
@@ -134,7 +144,8 @@ export default function DynamicPanel({ initialConversations = [] }) {
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      alert('Failed to send message. Please try again.');
+      const msg = error?.data?.error || error?.data?.message || error?.message || 'Failed to send message. Please try again.';
+      setSendError(msg);
     } finally {
       setSending(false);
     }
@@ -461,6 +472,20 @@ export default function DynamicPanel({ initialConversations = [] }) {
                           <div className="fields">
                             <div className="fieldset">
                               <div className="blocks" data-blocks="10">
+                                {sendError && (
+                                  <div className="block" data-block="2CERR">
+                                    <div style={{
+                                      color: 'red',
+                                      marginBottom: '0.75rem',
+                                      padding: '0.5rem 0.75rem',
+                                      backgroundColor: '#ffebee',
+                                      borderRadius: '4px',
+                                      border: '1px solid #f44336'
+                                    }}>
+                                      {sendError}
+                                    </div>
+                                  </div>
+                                )}
                                 <div className="block" data-block="2CA">
                                   <div className="textarea">
                                     <textarea
@@ -484,9 +509,14 @@ export default function DynamicPanel({ initialConversations = [] }) {
                                       type="submit"
                                       className="action"
                                       disabled={sending || !messageText.trim()}
-                                      style={{ background: 'none', border: 'none', padding: 0, cursor: sending || !messageText.trim() ? 'not-allowed' : 'pointer' }}
+                                      style={{
+                                        border: 'none',
+                                        cursor: sending || !messageText.trim() ? 'not-allowed' : 'pointer',
+                                        width: '100%'
+                                      }}
                                     >
                                       <div className="text">{sending ? 'Sending...' : 'Send'}</div>
+                                      <div className="background"></div>
                                     </button>
                                   </div>
                                 </div>

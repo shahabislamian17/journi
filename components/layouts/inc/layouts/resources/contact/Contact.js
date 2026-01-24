@@ -1,4 +1,49 @@
+'use client';
+
+import { useState } from 'react';
+import { messagesAPI } from '../../../../../../lib/api';
+
 export default function Contact() {
+  const [status, setStatus] = useState({ type: '', message: '' });
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus({ type: '', message: '' });
+
+    if (submitting) return;
+
+    const fd = new FormData(e.currentTarget);
+    const firstName = (fd.get('first-name') || '').toString().trim();
+    const surname = (fd.get('surname') || '').toString().trim();
+    const emailAddress = (fd.get('email-address') || '').toString().trim();
+    const subject = (fd.get('subject') || '').toString().trim();
+    const message = (fd.get('message') || '').toString().trim();
+
+    if (!firstName || !surname || !emailAddress || !subject || !message) {
+      setStatus({ type: 'error', message: 'Please fill in all required fields.' });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // Backend /api/messages requires authentication; messagesAPI will attach token if logged in.
+      const payloadMessage = `From: ${firstName} ${surname}\nEmail: ${emailAddress}\n\n${message}`;
+      const res = await messagesAPI.create({ subject, message: payloadMessage });
+
+      if (res?.message?.id) {
+        setStatus({ type: 'success', message: 'Message sent successfully.' });
+        e.currentTarget.reset();
+      } else {
+        setStatus({ type: 'error', message: res?.error || 'Failed to send message. Please log in and try again.' });
+      }
+    } catch (err) {
+      setStatus({ type: 'error', message: err?.message || 'Failed to send message. Please try again.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
         <div className="container">
     
@@ -127,7 +172,19 @@ export default function Contact() {
     
                             <div className="block" data-block="1">
     
-                                <form className="form">
+                                <form className="form" onSubmit={handleSubmit} noValidate>
+                                    {status.message && (
+                                      <div style={{
+                                        color: status.type === 'success' ? '#1b5e20' : 'red',
+                                        marginBottom: '1rem',
+                                        padding: '0.75rem',
+                                        backgroundColor: status.type === 'success' ? '#e8f5e9' : '#ffebee',
+                                        borderRadius: '4px',
+                                        border: `1px solid ${status.type === 'success' ? '#2e7d32' : '#f44336'}`
+                                      }}>
+                                        {status.message}
+                                      </div>
+                                    )}
     
                                     <div className="fields">
     
@@ -197,11 +254,10 @@ export default function Contact() {
     
                                                         <div className="button medium" data-button="1A">
     
-                                                            <a className="action" href="#">
-    
-                                                                <div className="text">Submit</div>
-    
-                                                            </a>
+                                                            <button className="action" type="submit" disabled={submitting} style={{ border: 'none', width: '100%', cursor: submitting ? 'wait' : 'pointer' }}>
+                                                                <div className="text">{submitting ? 'Sending...' : 'Submit'}</div>
+                                                                <div className="background"></div>
+                                                            </button>
     
                                                         </div>
     
