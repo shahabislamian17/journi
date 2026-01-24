@@ -8,6 +8,7 @@ import { authAPI } from '../../../../../../../lib/api';
 export default function Form() {
   const router = useRouter();
   const formRef = useRef(null);
+  const submitButtonRef = useRef(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -42,35 +43,67 @@ export default function Form() {
       return;
     }
     
-    console.log('[Register] handleSubmit called', { email: formData.email, hasPassword: !!formData.password, accountType: formData.accountType, isLoading });
+    // ALWAYS read values directly from DOM inputs to get the latest values (including autofill)
+    const form = e?.target?.closest?.('form') || document.querySelector('form[data-form="register"]');
+    let email = '';
+    let password = '';
+    let firstName = '';
+    let lastName = '';
+    let accountType = '';
     
-    // Validate form
-    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.accountType) {
+    if (form) {
+      const emailInput = form.querySelector('input[name="email"]');
+      const passwordInput = form.querySelector('input[name="password"]');
+      const firstNameInput = form.querySelector('input[name="firstName"]');
+      const lastNameInput = form.querySelector('input[name="lastName"]');
+      const accountTypeSelect = form.querySelector('select[name="accountType"]');
+      
+      email = emailInput?.value?.trim() || '';
+      password = passwordInput?.value?.trim() || '';
+      firstName = firstNameInput?.value?.trim() || '';
+      lastName = lastNameInput?.value?.trim() || '';
+      accountType = accountTypeSelect?.value?.trim() || '';
+    } else {
+      // Fallback to formData if form not found
+      email = formData.email?.trim() || '';
+      password = formData.password?.trim() || '';
+      firstName = formData.firstName?.trim() || '';
+      lastName = formData.lastName?.trim() || '';
+      accountType = formData.accountType?.trim() || '';
+    }
+    
+    alert('Register validation - email: "' + email + '", firstName: "' + firstName + '", lastName: "' + lastName + '", accountType: "' + accountType + '", password: ' + (password ? '***' : 'empty'));
+    
+    if (!email || !password || !firstName || !lastName || !accountType) {
+      alert('Register validation failed - missing fields');
       setError('Please fill in all required fields.');
       setIsLoading(false); // Ensure loading is false on validation error
       return;
     }
+    
+    // Update formData with the values we're using (from DOM)
+    setFormData(prev => ({ ...prev, email, password, firstName, lastName, accountType }));
 
     setError('');
     setIsLoading(true);
     console.log('[Register] isLoading set to true');
 
-    console.log('[Register] Form submitted', { email: formData.email, hasPassword: !!formData.password, accountType: formData.accountType });
+    console.log('[Register] Form submitted', { email, hasPassword: !!password, accountType });
 
     try {
       // Convert accountType (Traveller/Host) to role (TRAVELLER/HOST) for API
-      const role = formData.accountType && formData.accountType.toUpperCase() === 'HOST' 
+      const role = accountType && accountType.toUpperCase() === 'HOST' 
         ? 'HOST' 
         : 'TRAVELLER'; // Default to TRAVELLER
       
       console.log('[Register] Calling API...');
       const response = await authAPI.register({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
+        firstName,
+        lastName,
+        email,
+        password,
         role: role, // Send as role
-        accountType: formData.accountType, // Keep for backward compatibility if needed
+        accountType, // Keep for backward compatibility if needed
       });
 
       // Store token in localStorage and cookies
@@ -94,6 +127,41 @@ export default function Form() {
       setIsLoading(false);
     }
   };
+
+  // Attach backup click handler directly to button element (after handleSubmit is defined)
+  useEffect(() => {
+    const button = submitButtonRef.current;
+    if (!button) return;
+
+    const handleClick = (e) => {
+      alert('Register button clicked (useEffect backup handler)');
+      // Only handle if onClick didn't already handle it
+      if (e.defaultPrevented) return;
+      
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (isLoading) {
+        alert('Button is disabled, returning');
+        return;
+      }
+      
+      alert('About to call handleSubmit from useEffect');
+      const syntheticEvent = { 
+        preventDefault: () => {}, 
+        stopPropagation: () => {},
+        target: button
+      };
+      handleSubmit(syntheticEvent);
+    };
+
+    // Use capture phase to catch event early
+    button.addEventListener('click', handleClick, true);
+    
+    return () => {
+      button.removeEventListener('click', handleClick, true);
+    };
+  }, [isLoading, handleSubmit]); // Include handleSubmit in dependencies
 
   const togglePasswordVisibility = (e) => {
     e.preventDefault();
@@ -300,24 +368,14 @@ export default function Form() {
                           <div className="buttons">
                           <div className="button medium" data-button="1A">
                               <button
+                                ref={submitButtonRef}
                                 type="button"
                                 className="action"
                                 disabled={isLoading}
-                                onClick={async (e) => {
-                                  alert('Register button clicked');
+                                onClick={(e) => {
+                                  alert('Register button onClick handler');
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  
-                                  // Check loading state directly
-                                  if (isLoading) {
-                                    alert('Button is disabled (isLoading=true), returning');
-                                    return;
-                                  }
-                                  
-                                  alert('About to call handleSubmit');
-                                  // Call handleSubmit directly
-                                  const syntheticEvent = { preventDefault: () => {}, stopPropagation: () => {} };
-                                  await handleSubmit(syntheticEvent);
                                 }}
                                 style={{
                                   border: 'none',

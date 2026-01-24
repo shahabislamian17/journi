@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { authAPI } from '../../../../../../../lib/api';
 
 export default function Form() {
   const router = useRouter();
+  const submitButtonRef = useRef(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -42,32 +43,51 @@ export default function Form() {
   };
 
   const handleSubmit = async (e) => {
-    alert('Login handleSubmit called');
     // CRITICAL: Prevent default form submission
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
     
-    // Validate form
-    if (!formData.email || !formData.password) {
-      alert('Login validation failed - missing fields');
+    // ALWAYS read values directly from DOM inputs to get the latest values (including autofill)
+    const form = e?.target?.closest?.('form') || document.querySelector('form[data-form="log-in"]');
+    let email = '';
+    let password = '';
+    
+    if (form) {
+      const emailInput = form.querySelector('input[name="email"]');
+      const passwordInput = form.querySelector('input[name="password"]');
+      email = emailInput?.value?.trim() || '';
+      password = passwordInput?.value?.trim() || '';
+    } else {
+      // Fallback to formData if form not found
+      email = formData.email?.trim() || '';
+      password = formData.password?.trim() || '';
+    }
+    
+    alert('Login handleSubmit called - email: "' + email + '", password: ' + (password ? '***' : 'empty'));
+    
+    if (!email || !password) {
+      alert('Login validation failed - email: "' + email + '", password: "' + (password ? '***' : 'empty') + '"');
       setError('Please fill in all required fields.');
       return;
     }
+    
+    // Update formData with the values we're using (from DOM)
+    setFormData(prev => ({ ...prev, email, password }));
     
     alert('Login validation passed, proceeding...');
 
     setError('');
     setIsLoading(true);
 
-    console.log('[Login] Form submitted', { email: formData.email, hasPassword: !!formData.password });
+    console.log('[Login] Form submitted', { email, hasPassword: !!password });
 
     try {
       console.log('[Login] Calling API...');
       const response = await authAPI.login({
-        email: formData.email,
-        password: formData.password,
+        email,
+        password,
       });
       console.log('[Login] API response received', { hasToken: !!response.token });
 
@@ -112,6 +132,41 @@ export default function Form() {
       setIsLoading(false);
     }
   };
+
+  // Attach backup click handler directly to button element (after handleSubmit is defined)
+  useEffect(() => {
+    const button = submitButtonRef.current;
+    if (!button) return;
+
+    const handleClick = (e) => {
+      alert('Login button clicked (useEffect backup handler)');
+      // Only handle if onClick didn't already handle it
+      if (e.defaultPrevented) return;
+      
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (isLoading) {
+        alert('Button is disabled, returning');
+        return;
+      }
+      
+      alert('About to call handleSubmit from useEffect');
+      const syntheticEvent = { 
+        preventDefault: () => {}, 
+        stopPropagation: () => {},
+        target: button
+      };
+      handleSubmit(syntheticEvent);
+    };
+
+    // Use capture phase to catch event early
+    button.addEventListener('click', handleClick, true);
+    
+    return () => {
+      button.removeEventListener('click', handleClick, true);
+    };
+  }, [isLoading, handleSubmit]); // Include handleSubmit in dependencies
 
   const togglePasswordVisibility = (e) => {
     e.preventDefault();
@@ -265,30 +320,22 @@ export default function Form() {
                           <div className="buttons">
                             <div className="button medium" data-button="1A">
                               <button
+                                ref={submitButtonRef}
                                 type="button"
                                 className="action"
                                 disabled={isLoading}
                                 onClick={(e) => {
-                                  alert('Login button clicked - isLoading: ' + isLoading);
-                                  if (isLoading) {
-                                    alert('Button is disabled, returning');
-                                    return;
-                                  }
-                                  
-                                  alert('About to call handleSubmit');
-                                  // Call handleSubmit directly
-                                  const syntheticEvent = { preventDefault: () => {}, stopPropagation: () => {} };
-                                  handleSubmit(syntheticEvent);
-                                }}
-                                onMouseDown={(e) => {
-                                  console.log('Login button mouseDown');
+                                  alert('Login button onClick handler');
+                                  e.preventDefault();
+                                  e.stopPropagation();
                                 }}
                                 style={{
                                   border: 'none',
                                   cursor: isLoading ? 'wait' : 'pointer',
                                   width: '100%',
                                   position: 'relative',
-                                  zIndex: 9999
+                                  zIndex: 9999,
+                                  pointerEvents: 'auto'
                                 }}
                               >
                                 <div className="text">
