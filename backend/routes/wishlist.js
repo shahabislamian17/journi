@@ -7,7 +7,7 @@ const router = express.Router();
 // Get user's wishlist
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    console.log('Get wishlist - userId:', req.user.id);
+    console.log('Get wishlist - userId::', req.user.id);
     
     const wishlistItems = await prisma.wishlistItem.findMany({
       where: { userId: req.user.id },
