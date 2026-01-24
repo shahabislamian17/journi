@@ -42,6 +42,7 @@ export default function Form() {
   };
 
   const handleSubmit = async (e) => {
+    alert('Login handleSubmit called');
     // CRITICAL: Prevent default form submission
     if (e) {
       e.preventDefault();
@@ -50,9 +51,12 @@ export default function Form() {
     
     // Validate form
     if (!formData.email || !formData.password) {
+      alert('Login validation failed - missing fields');
       setError('Please fill in all required fields.');
       return;
     }
+    
+    alert('Login validation passed, proceeding...');
 
     setError('');
     setIsLoading(true);
@@ -73,7 +77,10 @@ export default function Form() {
         
         // Always set cookie so server-side can access it
         const maxAge = formData.rememberMe ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60; // 30 days or 7 days
-        document.cookie = `token=${response.token}; path=/; max-age=${maxAge}; SameSite=Lax`;
+        document.cookie = `token=${response.token}; path=/; max-age=${maxAge}; SameSite=Lax; Secure=${window.location.protocol === 'https:'}`;
+
+        // Wait a moment for cookie to be set before redirecting
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         // Check if there's a redirect destination stored (from auth-required links)
         const redirectAfterLogin = typeof window !== 'undefined' ? sessionStorage.getItem('redirectAfterLogin') : null;
@@ -81,11 +88,11 @@ export default function Form() {
         if (redirectAfterLogin) {
           // Clear the stored redirect
           sessionStorage.removeItem('redirectAfterLogin');
-          // Redirect to the intended page
-          router.push(redirectAfterLogin);
+          // Use window.location for full page reload (prevents React DOM errors)
+          window.location.href = redirectAfterLogin;
         } else {
-          // Default redirect to bookings page
-          router.push('/account/bookings');
+          // Default redirect to bookings page - use window.location for full reload
+          window.location.href = '/account/bookings';
         }
         return; // Prevent any further execution
       }
@@ -153,11 +160,7 @@ export default function Form() {
                 <form 
                   className="form" 
                   data-form="log-in" 
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSubmit(e);
-                  }}
+              
                   noValidate
                 >
                   {error && (
@@ -262,13 +265,30 @@ export default function Form() {
                           <div className="buttons">
                             <div className="button medium" data-button="1A">
                               <button
-                                type="submit"
+                                type="button"
                                 className="action"
                                 disabled={isLoading}
+                                onClick={(e) => {
+                                  alert('Login button clicked - isLoading: ' + isLoading);
+                                  if (isLoading) {
+                                    alert('Button is disabled, returning');
+                                    return;
+                                  }
+                                  
+                                  alert('About to call handleSubmit');
+                                  // Call handleSubmit directly
+                                  const syntheticEvent = { preventDefault: () => {}, stopPropagation: () => {} };
+                                  handleSubmit(syntheticEvent);
+                                }}
+                                onMouseDown={(e) => {
+                                  console.log('Login button mouseDown');
+                                }}
                                 style={{
                                   border: 'none',
                                   cursor: isLoading ? 'wait' : 'pointer',
-                                  width: '100%'
+                                  width: '100%',
+                                  position: 'relative',
+                                  zIndex: 9999
                                 }}
                               >
                                 <div className="text">

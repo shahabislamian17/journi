@@ -2,6 +2,9 @@
 // Passes requests directly to Express app instead of manual route matching
 // This lets Express handle routing natively (method matching, param parsing, etc.)
 
+// Load environment variables from backend/.env
+require('dotenv').config({ path: require('path').join(__dirname, '..', 'backend', '.env') });
+
 const path = require('path');
 
 // Get Express app instance (singleton pattern for serverless)
@@ -40,9 +43,11 @@ function getExpressApp() {
     });
     // Create error handler that returns proper error
     const errorHandler = (req, res, next) => {
+      res.setHeader('Content-Type', 'application/json');
       res.status(500).json({ 
         error: 'Backend server not available',
         message: error.message || 'Failed to load Express app',
+        code: 'EXPRESS_LOAD_ERROR',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     };
@@ -53,13 +58,18 @@ function getExpressApp() {
 
 // Handler function
 function handler(req, res) {
-  // Log entry for debugging
-  console.log('[API ENTRY]', {
-    method: req.method,
-    url: req.url,
-    originalUrl: req.url,
-    route: req.query.route
-  });
+  // Wrap everything in try-catch to ensure we always return JSON
+  try {
+    // Set JSON content type immediately to prevent HTML error pages
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Log entry for debugging
+    console.log('[API ENTRY]', {
+      method: req.method,
+      url: req.url,
+      originalUrl: req.url,
+      route: req.query.route
+    });
 
   // Reconstruct the full path for Express
   // Next.js catch-all route: /api/[...route] becomes req.query.route = ['auth', 'register']
@@ -87,7 +97,8 @@ function handler(req, res) {
   // Ensure we have a valid path
   if (segments.length === 0) {
     console.error('[Bridge] No route segments found. URL:', req.url, 'Query:', req.query);
-    return res.status(404).json({ error: 'API route not found' });
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(404).json({ error: 'API route not found', path: req.url });
   }
   
   // Reconstruct query string (remove the 'route' param)
@@ -163,9 +174,14 @@ function handler(req, res) {
       clearTimeout(timeout);
       if (err) {
         console.error('[Bridge Error]:', err);
+        console.error('[Bridge Error Stack]:', err.stack);
         if (!res.headersSent) {
+          // Ensure we return JSON, not HTML
+          res.setHeader('Content-Type', 'application/json');
           res.status(err.status || 500).json({ 
-            error: err.message || 'Internal server error' 
+            error: err.message || 'Internal server error',
+            code: 'BRIDGE_ERROR',
+            details: process.env.NODE_ENV === 'development' ? err.stack : undefined
           });
         }
         return reject(err);
@@ -173,11 +189,27 @@ function handler(req, res) {
       // Response should have been sent by Express
       if (!res.headersSent) {
         console.error('[Bridge] No response sent by Express for:', fullPath);
+        // Ensure we return JSON, not HTML
+        res.setHeader('Content-Type', 'application/json');
         res.status(404).json({ error: 'Route not found in Express', path: fullPath });
       }
       resolve();
     });
   });
+  } catch (error) {
+    // Catch any synchronous errors
+    console.error('[API Handler] Uncaught error:', error);
+    console.error('[API Handler] Error stack:', error.stack);
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(500).json({
+        error: 'Internal server error',
+        message: error.message,
+        code: 'HANDLER_ERROR',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    }
+  }
 }
 
 // Export handler with config

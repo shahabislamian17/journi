@@ -9,10 +9,27 @@ const router = express.Router();
 // Register
 router.post('/register', async (req, res) => {
   try {
+    // Validate JWT_SECRET is set
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not set in environment variables');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+
     const { email, password, firstName, lastName, phone, role } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
 
     // Validate role if provided
@@ -70,13 +87,33 @@ router.post('/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Register error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    
+    // Handle Prisma unique constraint violation
+    if (error.code === 'P2002') {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+    
+    // Handle other Prisma errors
+    if (error.code && error.code.startsWith('P')) {
+      return res.status(400).json({ error: 'Database error occurred' });
+    }
+    
+    res.status(500).json({ 
+      error: 'Registration failed',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
 // Login
 router.post('/login', async (req, res) => {
   try {
+    // Validate JWT_SECRET is set
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not set in environment variables');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -98,14 +135,22 @@ router.post('/login', async (req, res) => {
     });
 
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ 
+        error: 'Invalid credentials',
+        code: 'USER_NOT_FOUND',
+        message: 'No account found with this email address. Please check your email or register a new account.'
+      });
     }
 
     // Verify password
     const isValid = await bcrypt.compare(password, user.password);
 
     if (!isValid) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ 
+        error: 'Invalid credentials',
+        code: 'INVALID_PASSWORD',
+        message: 'Incorrect password. Please try again or reset your password.'
+      });
     }
 
     // Generate token
@@ -128,7 +173,24 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    console.error('Login error stack:', error.stack);
+    console.error('Login error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      hasJwtSecret: !!process.env.JWT_SECRET,
+      hasDatabaseUrl: !!process.env.DATABASE_URL
+    });
+    
+    res.status(500).json({ 
+      error: 'Login failed',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred during login',
+      details: process.env.NODE_ENV === 'development' ? {
+        name: error.name,
+        code: error.code,
+        stack: error.stack
+      } : undefined
+    });
   }
 });
 

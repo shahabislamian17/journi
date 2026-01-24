@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { authAPI } from '../../../../../../../lib/api';
 
 export default function Form() {
   const router = useRouter();
+  const formRef = useRef(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -28,20 +29,31 @@ export default function Form() {
   };
 
   const handleSubmit = async (e) => {
-    // CRITICAL: Prevent default form submission
+    alert('Register handleSubmit called - isLoading: ' + isLoading);
+    // CRITICAL: Prevent default form submission - MUST be first thing
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
     
+    // Prevent multiple simultaneous submissions
+    if (isLoading) {
+      alert('Register already processing, ignoring submit');
+      return;
+    }
+    
+    console.log('[Register] handleSubmit called', { email: formData.email, hasPassword: !!formData.password, accountType: formData.accountType, isLoading });
+    
     // Validate form
     if (!formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.accountType) {
       setError('Please fill in all required fields.');
+      setIsLoading(false); // Ensure loading is false on validation error
       return;
     }
 
     setError('');
     setIsLoading(true);
+    console.log('[Register] isLoading set to true');
 
     console.log('[Register] Form submitted', { email: formData.email, hasPassword: !!formData.password, accountType: formData.accountType });
 
@@ -66,11 +78,14 @@ export default function Form() {
       if (response.token) {
         localStorage.setItem('token', response.token);
         // Also set cookie for server-side access
-        document.cookie = `token=${response.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+        document.cookie = `token=${response.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax; Secure=${window.location.protocol === 'https:'}`;
+        
+        // Wait a moment for cookie to be set before redirecting
+        await new Promise(resolve => setTimeout(resolve, 100));
         
         console.log('[Register] Token stored, redirecting...');
-        // Redirect to bookings page (same behavior as login)
-        router.push('/account/bookings');
+        // Redirect to bookings page - use window.location for full reload (prevents React DOM errors)
+        window.location.href = '/account/bookings';
       }
     } catch (error) {
       console.error('[Register] Error:', error);
@@ -167,13 +182,10 @@ export default function Form() {
             <div className="blocks" data-blocks="1">
               <div className="block" data-block="1">
                 <form 
+                  ref={formRef}
                   className="form" 
                   data-form="register" 
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSubmit(e);
-                  }}
+            
                   noValidate
                 >
                   {error && (
@@ -286,18 +298,36 @@ export default function Form() {
 
                         <div className="block" data-block="1E">
                           <div className="buttons">
-                            <div className="button medium" data-button="1A">
+                          <div className="button medium" data-button="1A">
                               <button
-                                type="submit"
+                                type="button"
                                 className="action"
                                 disabled={isLoading}
+                                onClick={async (e) => {
+                                  alert('Register button clicked');
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  
+                                  // Check loading state directly
+                                  if (isLoading) {
+                                    alert('Button is disabled (isLoading=true), returning');
+                                    return;
+                                  }
+                                  
+                                  alert('About to call handleSubmit');
+                                  // Call handleSubmit directly
+                                  const syntheticEvent = { preventDefault: () => {}, stopPropagation: () => {} };
+                                  await handleSubmit(syntheticEvent);
+                                }}
                                 style={{
                                   border: 'none',
                                   cursor: isLoading ? 'wait' : 'pointer',
                                   width: '100%'
                                 }}
                               >
-                                <div className="text">{isLoading ? 'Registering...' : 'Register'}</div>
+                                 <div className="text">
+                                   {isLoading ? 'Registering...' : 'Register'}
+                                 </div>
                                 <div className="background"></div>
                               </button>
                             </div>

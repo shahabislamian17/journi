@@ -1231,6 +1231,54 @@ button {
     width: 100%;
 }
 
+/* Make button elements look like anchor tags - reset default button styles */
+.button button.action {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-sizing: border-box;
+    color: inherit;
+    cursor: pointer;
+    display: block;
+    float: left;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    height: 100%;
+    line-height: inherit;
+    margin: 0;
+    outline: none;
+    padding: 0;
+    text-align: inherit;
+    text-decoration: none;
+    transition: all 0.2s ease 0s;
+    -webkit-transition: all 0.2s ease 0s;
+    width: 100%;
+}
+
+.button button.action:disabled {
+    cursor: wait;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.button button.action .background {
+    pointer-events: none !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+}
+
+.button button.action .text {
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+    user-select: none;
+}
+
 .button[data-button='1A'] .action {
     background: #101820;
 }
