@@ -14,6 +14,7 @@ export default function DynamicPanel({ initialConversations = [] }) {
   const [sending, setSending] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [sendError, setSendError] = useState('');
+  // NOTE: keep UI simple; use console logs for debugging if needed
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const overlayRef = useRef(null);
@@ -189,21 +190,13 @@ export default function DynamicPanel({ initialConversations = [] }) {
   };
 
   // Send a message
-  const sendMessage = async (e) => {
-    // Always guard events (prevents native submit/page reload if called without a React event)
-    e?.preventDefault?.();
-    e?.stopPropagation?.();
-
-    alert('[Send] handler called');
-    
+  const sendMessage = async () => {
     setSendError('');
     if (!selectedConversation) {
-      alert('[Send] blocked: no selectedConversation');
       setSendError('Please select a conversation first.');
       return;
     }
     if (!messageText.trim()) {
-      alert('[Send] blocked: empty message');
       setSendError('Please type a message.');
       return;
     }
@@ -212,11 +205,8 @@ export default function DynamicPanel({ initialConversations = [] }) {
     setSending(true);
     try {
       const trimmed = messageText.trim();
-      alert('[Send] calling API...');
       const data = await conversationsAPI.sendMessage(selectedConversation.id, trimmed);
-      alert('[Send] API response received');
       if (data?.message) {
-        alert('[Send] message appended');
         setMessages(prev => [...prev, data.message]);
         setMessageText('');
         
@@ -239,11 +229,9 @@ export default function DynamicPanel({ initialConversations = [] }) {
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      alert('[Send] API error: ' + (error?.message || 'unknown'));
       const msg = error?.data?.error || error?.data?.message || error?.message || 'Failed to send message. Please try again.';
       setSendError(msg);
     } finally {
-      alert('[Send] done');
       setSending(false);
     }
   };
@@ -631,16 +619,12 @@ export default function DynamicPanel({ initialConversations = [] }) {
                         <form
                           ref={sendFormRef}
                           className="form"
-                          onClickCapture={(e) => {
-                            // Debug: prove clicks are reaching the form area
-                            alert('[SendForm] click captured on ' + (e.target?.tagName || 'unknown'));
-                          }}
-                          onSubmitCapture={(e) => {
-                            // Absolute guard: never allow native submit navigation
+                          onSubmit={(e) => {
+                            // Hard-block native submit navigation (prevents reload even with requestSubmit())
                             e.preventDefault();
                             e.stopPropagation();
+                            sendMessage();
                           }}
-                          onSubmit={sendMessage}
                           noValidate
                         >
                           <div className="fields">
@@ -681,15 +665,9 @@ export default function DynamicPanel({ initialConversations = [] }) {
                                 <div className="block" data-block="2CB">
                                   <div className="button small" data-button="1A">
                                     <button
-                                      type="button"
+                                      type="submit"
                                       className="action"
                                       disabled={sending}
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        alert('[SendButton] onClick');
-                                        sendMessage(e);
-                                      }}
                                       style={{
                                         border: 'none',
                                         cursor: sending ? 'not-allowed' : 'pointer',
