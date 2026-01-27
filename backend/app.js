@@ -38,6 +38,7 @@ app.use('/api/stays', require(path.join(backendPath, 'stays')));
 app.use('/api/cars', require(path.join(backendPath, 'cars')));
 app.use('/api/stripe', require(path.join(backendPath, 'stripe')));
 app.use('/api/upload', require(path.join(backendPath, 'upload')));
+app.use('/api/contact', require(path.join(backendPath, 'contact')));
 
 // Health check
 app.get('/api/health', (req, res) => {

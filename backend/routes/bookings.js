@@ -4,6 +4,38 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Generate booking ID in format YYYYMMDD0001
+async function generateBookingId(date) {
+  const bookingDate = new Date(date);
+  const dateStr = bookingDate.toISOString().split('T')[0].replace(/-/g, ''); // YYYYMMDD
+  
+  // Find the last booking for this date
+  const lastBooking = await prisma.booking.findFirst({
+    where: {
+      bookingId: {
+        startsWith: dateStr
+      }
+    },
+    orderBy: {
+      bookingId: 'desc'
+    }
+  });
+  
+  let sequence = 1;
+  if (lastBooking && lastBooking.bookingId) {
+    // Extract sequence number from last booking ID (last 4 digits)
+    const lastSequence = parseInt(lastBooking.bookingId.slice(-4), 10);
+    if (!isNaN(lastSequence)) {
+      sequence = lastSequence + 1;
+    }
+  }
+  
+  // Format sequence as 4-digit number with leading zeros
+  const sequenceStr = sequence.toString().padStart(4, '0');
+  
+  return `${dateStr}${sequenceStr}`;
+}
+
 // Get user's bookings
 router.get('/', authenticateToken, async (req, res) => {
   try {
@@ -84,8 +116,12 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Experience not found' });
     }
 
+    // Generate unique booking ID
+    const bookingId = await generateBookingId(date);
+
     const booking = await prisma.booking.create({
       data: {
+        bookingId,
         userId: req.user.id,
         experienceId,
         date: new Date(date),

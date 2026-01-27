@@ -109,6 +109,7 @@ model ExperienceImage {
 
 model Booking {
   id              String   @id @default(uuid())
+  bookingId       String?  @unique @map("booking_id") // Format: YYYYMMDD0001
   userId          String   @map("user_id")
   experienceId    String   @map("experience_id")
   date            DateTime

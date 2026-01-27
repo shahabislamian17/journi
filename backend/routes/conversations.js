@@ -454,14 +454,14 @@ router.post('/:id/messages', authenticateToken, async (req, res) => {
     });
 
     const formatted = {
-      id: newMessage.id,
-      message: newMessage.message,
-      senderId: newMessage.senderId,
-      senderName: `${newMessage.sender.firstName || ''} ${newMessage.sender.lastName || ''}`.trim() || 'User',
-      senderAvatar: newMessage.sender.avatar || '/assets/images/global/hosts/placeholder.jpg',
-      createdAt: newMessage.createdAt,
-      read: newMessage.read,
-      isOwn: true
+        id: newMessage.id,
+        message: newMessage.message,
+        senderId: newMessage.senderId,
+        senderName: `${newMessage.sender.firstName || ''} ${newMessage.sender.lastName || ''}`.trim() || 'User',
+        senderAvatar: newMessage.sender.avatar || '/assets/images/global/hosts/placeholder.jpg',
+        createdAt: newMessage.createdAt,
+        read: newMessage.read,
+        isOwn: true
     };
 
     // Emit realtime event to the other participant (if Socket.IO is enabled)
